@@ -1,18 +1,21 @@
 package com.dgopadakak.tagsgallery.tags
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val tags by viewModel.tags.collectAsState(initial = emptyList())
@@ -51,20 +55,28 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        LazyColumn {
-            items(tags) { tag ->
-                TagItem(
-                    tag = tag,
-                    onEdit = {
-                        tagToEdit = tag
-                        showDialog = true
-                    },
-                    onDelete = { viewModel.deleteTag(tag) }
-                )
+    Box {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            item {
+                FlowRow(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    tags.forEach { tag ->
+                        TagCard(
+                            tag = tag,
+                            onEdit = {
+                                tagToEdit = tag
+                                showDialog = true
+                            },
+                            onDelete = { viewModel.deleteTag(tag) }
+                        )
+                    }
+                }
             }
         }
 
@@ -80,20 +92,25 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun TagItem(tag: Tag, onEdit: () -> Unit, onDelete: () -> Unit) {
-    Row(
+fun TagCard(tag: Tag, onEdit: () -> Unit, onDelete: () -> Unit) {
+    Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(4.dp)
+            .clickable(onClick = onEdit),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Text(tag.name, style = MaterialTheme.typography.bodyLarge)
-        Row {
-            IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit")
-            }
+        Row(
+            modifier = Modifier
+                .padding(start = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = tag.name,
+                style = MaterialTheme.typography.bodyMedium
+            )
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Delete Tag")
             }
         }
     }
