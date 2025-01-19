@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":tags"))
     implementation(project(":gallery"))
     implementation(project(":search"))
+    implementation(project(":core:local_storage"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -57,10 +58,11 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(libs.androidx.compose.navigation)
-    implementation(libs.hilt.navigation)
 
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
+
+    implementation(libs.room.runtime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
