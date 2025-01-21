@@ -6,7 +6,7 @@ import androidx.room.Relation
 data class TagWithMedia(
     @Embedded
     val tag: Tag,
-    @Relation(
+    @Relation(  // TODO: почитать подробнее
         parentColumn = "id",
         entityColumn = "tagId"
     )

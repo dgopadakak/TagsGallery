@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.TagWithMedia
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +18,9 @@ interface TagDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTag(tag: Tag): Long
+
+    @Update
+    suspend fun updateTag(tag: Tag)
 
     @Delete
     suspend fun deleteTag(tag: Tag)

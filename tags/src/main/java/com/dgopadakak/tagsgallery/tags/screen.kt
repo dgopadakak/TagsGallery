@@ -3,12 +3,16 @@ package com.dgopadakak.tagsgallery.tags
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +44,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val tags by viewModel.tags.collectAsState(initial = emptyList())
+    val sortBy by viewModel.sortBy.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var tagToEdit by remember { mutableStateOf<Tag?>(null) }
@@ -47,52 +53,83 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         TagDialog(
             tag = tagToEdit,
             onDismiss = { showDialog = false; tagToEdit = null },
-            onSave = { name ->
-                viewModel.saveTag(name)
+            onSave = { id, name ->
+                viewModel.saveTag(id, name)
                 showDialog = false
                 tagToEdit = null
             }
         )
     }
 
-    Box {
-        LazyColumn(
+    Column {
+        LazyRow(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             item {
-                FlowRow(
-                    modifier = Modifier.padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    tags.forEach { tag ->
-                        TagCard(
-                            tag = tag,
-                            onEdit = {
-                                tagToEdit = tag
-                                showDialog = true
-                            },
-                            onDelete = { viewModel.deleteTag(tag) }
-                        )
-                    }
-                }
+                Text(
+                    modifier = Modifier
+                        .padding(start = 12.dp),
+                    text = "Sort tags by:"
+                )
+            }
+
+            items(SortVariant.entries.toList()) { sortVariant ->
+                FilterChip(
+                    modifier = Modifier
+                        .padding(start = 20.dp),
+                    selected = sortBy == sortVariant,
+                    onClick = { viewModel.setSortBy(sortVariant) },
+                    label = { Text(text = "$sortVariant") }
+                )
             }
         }
 
-        FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            onClick = { showDialog = true }
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Tag")
+        Box {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                item {
+                    FlowRow(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        tags.forEach { tag ->
+                            TagCard(
+                                tag = tag,
+                                onEdit = {
+                                    tagToEdit = tag
+                                    showDialog = true
+                                },
+                                onDelete = { viewModel.deleteTag(tag) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                onClick = { showDialog = true }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Tag")
+            }
         }
     }
 }
 
 @Composable
-fun TagCard(tag: Tag, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun TagCard(
+    tag: Tag,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     Card(
         modifier = Modifier
             .padding(4.dp)
@@ -117,7 +154,11 @@ fun TagCard(tag: Tag, onEdit: () -> Unit, onDelete: () -> Unit) {
 }
 
 @Composable
-fun TagDialog(tag: Tag?, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+fun TagDialog(
+    tag: Tag?,
+    onDismiss: () -> Unit,
+    onSave: (Long?, String) -> Unit
+) {
     var name by remember { mutableStateOf(tag?.name ?: "") }
 
     AlertDialog(
@@ -131,7 +172,7 @@ fun TagDialog(tag: Tag?, onDismiss: () -> Unit, onSave: (String) -> Unit) {
             )
         },
         confirmButton = {
-            TextButton(onClick = { if (name.isNotBlank()) onSave(name) }) {
+            TextButton(onClick = { if (name.isNotBlank()) onSave(tag?.id, name) }) {
                 Text("Save")
             }
         },
