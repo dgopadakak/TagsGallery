@@ -1,17 +1,24 @@
 package com.dgopadakak.tagsgallery.tags
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector2D
+import androidx.compose.animation.core.Spring.StiffnessMediumLow
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,14 +40,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val tags by viewModel.tags.collectAsState(initial = emptyList())
@@ -87,28 +101,25 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             }
         }
 
-        Box {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            LazyVerticalGrid(   // TODO: may be custom FlowRow?
+                columns = GridCells.Adaptive(160.dp),
+                modifier = Modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    FlowRow(
-                        modifier = Modifier.padding(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        tags.forEach { tag ->
-                            TagCard(
-                                tag = tag,
-                                onEdit = {
-                                    tagToEdit = tag
-                                    showDialog = true
-                                },
-                                onDelete = { viewModel.deleteTag(tag) }
-                            )
-                        }
-                    }
+                items(tags, key = { it.id }) { tag ->
+                    TagCard(
+                        tag = tag,
+                        onEdit = {
+                            tagToEdit = tag
+                            showDialog = true
+                        },
+                        onDelete = { viewModel.deleteTag(tag) }
+                    )
                 }
             }
 
@@ -132,6 +143,8 @@ fun TagCard(
 ) {
     Card(
         modifier = Modifier
+            .animatePlacement()
+            .fillMaxSize()
             .padding(4.dp)
             .clickable(onClick = onEdit),
         shape = RoundedCornerShape(8.dp),
@@ -139,13 +152,20 @@ fun TagCard(
     ) {
         Row(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(start = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = tag.name,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Box {
+                Text(
+                    modifier = Modifier.width(130.dp),
+                    text = tag.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete Tag")
             }
@@ -182,4 +202,33 @@ fun TagDialog(
             }
         }
     )
+}
+
+fun Modifier.animatePlacement(): Modifier = composed {  // TODO: разобрать
+    val scope = rememberCoroutineScope()
+    var targetOffset by remember { mutableStateOf(IntOffset.Zero) }
+    var animatable by remember {
+        mutableStateOf<Animatable<IntOffset, AnimationVector2D>?>(null)
+    }
+    this
+        .onPlaced {
+            // Calculate the position in the parent layout
+            targetOffset = it.positionInParent().round()
+        }
+        .offset {
+            // Animate to the new target offset when alignment changes.
+            val anim =
+                animatable
+                    ?: Animatable(targetOffset, IntOffset.VectorConverter).also {
+                        animatable = it
+                    }
+            if (anim.targetValue != targetOffset) {
+                scope.launch {
+                    anim.animateTo(targetOffset, spring(stiffness = StiffnessMediumLow))
+                }
+            }
+            // Offset the child in the opposite direction to the targetOffset, and slowly catch
+            // up to zero offset via an animation to achieve an overall animated movement.
+            animatable?.let { it.value - targetOffset } ?: IntOffset.Zero
+        }
 }

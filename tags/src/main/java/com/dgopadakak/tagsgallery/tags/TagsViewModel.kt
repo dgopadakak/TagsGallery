@@ -25,7 +25,7 @@ class TagsViewModel @Inject constructor(
             SortVariant.NAME -> tagList.sortedBy { it.name }
             SortVariant.DATE -> tagList.sortedBy { it.lastModified }
         }
-    }.stateIn(
+    }.stateIn(  // TODO: почитать подробнее
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = emptyList()
