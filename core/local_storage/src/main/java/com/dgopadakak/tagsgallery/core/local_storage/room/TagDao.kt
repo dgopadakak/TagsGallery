@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.dgopadakak.tagsgallery.core.local_storage.room.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.TagWithMedia
 import kotlinx.coroutines.flow.Flow
@@ -28,4 +29,7 @@ interface TagDao {
     @Transaction
     @Query("SELECT * FROM Tag WHERE id = :tagId")
     fun getTagWithMedia(tagId: Long): Flow<TagWithMedia>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
 }

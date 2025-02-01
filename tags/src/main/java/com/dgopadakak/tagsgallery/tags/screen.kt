@@ -105,7 +105,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            LazyVerticalGrid(   // TODO: may be custom FlowRow?
+            LazyVerticalGrid(
                 columns = GridCells.Adaptive(160.dp),
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

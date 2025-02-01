@@ -4,6 +4,6 @@ import androidx.room.Entity
 
 @Entity(primaryKeys = ["mediaId", "tagId"])
 data class MediaTagCrossRef(
-    val mediaId: Long,
+    val mediaId: String,
     val tagId: Long
 )
