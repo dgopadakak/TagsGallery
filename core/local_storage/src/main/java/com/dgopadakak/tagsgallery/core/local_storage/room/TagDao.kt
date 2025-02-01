@@ -28,7 +28,7 @@ interface TagDao {
 
     @Transaction
     @Query("SELECT * FROM Tag WHERE id = :tagId")
-    fun getTagWithMedia(tagId: Long): Flow<TagWithMedia>
+    fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)

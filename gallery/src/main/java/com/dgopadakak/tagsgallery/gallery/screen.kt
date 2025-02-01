@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.gallery
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -38,22 +39,41 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     var selectedTagIds by remember { mutableStateOf(setOf<Long>()) }
 
     val tagList by viewModel.tags.collectAsState(initial = emptyList())
+    val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         selectedMediaUris = uris
+        uris.forEach { uri ->
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        }
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (selectedMediaUris.isEmpty()) {
-            Button(onClick = { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) }) {
+            Button(onClick = {
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                    )
+                )
+            }) {
                 Text("Add media")
             }
         } else {
-            Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+            ) {
                 selectedMediaUris.forEach { uri ->
                     val imageLoader = ImageLoader.Builder(LocalContext.current)
                         .components {
@@ -63,7 +83,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                     AsyncImage(
                         model = uri,
                         imageLoader = imageLoader,
-                        contentDescription = "Media dile selected by user"
+                        contentDescription = "Media file selected by user"
                     )
                 }
             }
@@ -85,7 +105,12 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
             Row {
                 Button(
                     onClick = {
-                        selectedMediaUris.forEach { uri -> viewModel.saveMediaTags(uri.toString(), selectedTagIds.toList()) }
+                        selectedMediaUris.forEach { uri ->
+                            viewModel.saveMediaTags(
+                                mediaId = uri.toString(),
+                                selectedTagIds = selectedTagIds.toList()
+                            )
+                        }
                         selectedMediaUris = emptyList()
                         selectedTagIds = emptySet()
                     },

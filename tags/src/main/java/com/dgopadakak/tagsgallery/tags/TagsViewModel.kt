@@ -36,7 +36,7 @@ class TagsViewModel @Inject constructor(
             if (id == null) {
                 tagDao.insertTag(
                     Tag(
-                        name = name,
+                        name = name.trim(),
                         lastModified = System.currentTimeMillis()
                     )
                 )
@@ -44,7 +44,7 @@ class TagsViewModel @Inject constructor(
                 tagDao.updateTag(
                     Tag(
                         id = id,
-                        name = name,
+                        name = name.trim(),
                         lastModified = System.currentTimeMillis()
                     )
                 )
