@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +59,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
 import kotlinx.coroutines.launch
 
@@ -85,29 +84,10 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     }
 
     Column {
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        SortVariantsRow(
+            sortBy = sortBy
         ) {
-            item {
-                Text(
-                    modifier = Modifier
-                        .padding(start = 12.dp),
-                    text = "Sort tags by:"
-                )
-            }
-
-            items(SortVariant.entries.toList()) { sortVariant ->
-                FilterChip(
-                    modifier = Modifier
-                        .padding(start = 20.dp),
-                    selected = sortBy == sortVariant,
-                    onClick = { viewModel.setSortBy(sortVariant) },
-                    label = { Text(text = "$sortVariant") }
-                )
-            }
+            viewModel.setSortBy(it)
         }
 
         Box(
