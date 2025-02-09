@@ -5,6 +5,8 @@ import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.Spring.StiffnessMediumLow
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,15 +16,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -31,6 +36,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -45,6 +51,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,8 +76,8 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         TagDialog(
             tag = tagToEdit,
             onDismiss = { showDialog = false; tagToEdit = null },
-            onSave = { id, name ->
-                viewModel.saveTag(id, name)
+            onSave = { id, name, color ->
+                viewModel.saveTag(id, name, color)
                 showDialog = false
                 tagToEdit = null
             }
@@ -141,12 +150,17 @@ fun TagCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val baseColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
+    val blendedColor = lerp(baseColor, tagColor, 0.15f) // 15% смешения
+
     Card(
         modifier = Modifier
             .animatePlacement()
             .fillMaxSize()
             .padding(4.dp)
             .clickable(onClick = onEdit),
+        colors = CardDefaults.cardColors(containerColor = blendedColor),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -177,22 +191,30 @@ fun TagCard(
 fun TagDialog(
     tag: Tag?,
     onDismiss: () -> Unit,
-    onSave: (Long?, String) -> Unit
+    onSave: (Long?, String, Tag.Color) -> Unit
 ) {
     var name by remember { mutableStateOf(tag?.name ?: "") }
+    var color by remember { mutableStateOf(tag?.color ?: Tag.Color.NO_COLOR) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = if (tag == null) "Add Tag" else "Edit Tag") },
         text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Tag Name") }
-            )
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Tag Name") }
+                )
+                ColorPickerRow(
+                    modifier = Modifier
+                        .padding( top = 16.dp),
+                    selectedColor = color
+                ) { color = it }
+            }
         },
         confirmButton = {
-            TextButton(onClick = { if (name.isNotBlank()) onSave(tag?.id, name) }) {
+            TextButton(onClick = { if (name.isNotBlank()) onSave(tag?.id, name, color) }) {
                 Text("Save")
             }
         },
@@ -202,6 +224,78 @@ fun TagDialog(
             }
         }
     )
+}
+
+@Composable
+private fun ColorPickerRow(
+    modifier: Modifier = Modifier,
+    selectedColor: Tag.Color,
+    onSelectedColorChanged: (color: Tag.Color) -> Unit
+) {
+    LazyRow(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        item {
+            Text(
+                modifier = Modifier
+                    .padding(end = 10.dp),
+                text = "Color:"
+            )
+        }
+        items(Tag.Color.entries.toList()) { color->
+            ColorChip(
+                modifier = Modifier
+                    .padding(horizontal = 2.dp),
+                color = color,
+                checked = selectedColor == color,
+                onClick = { onSelectedColorChanged(color) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColorChip(
+    modifier: Modifier = Modifier,
+    color: Tag.Color,
+    checked: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        contentAlignment= Alignment.Center,
+        modifier = modifier
+            .size(30.dp)
+            .border(
+                width = 2.dp,
+                color = if (checked)
+                    if (color.colorLong != null)
+                        Color(color.colorLong!!)
+                    else
+                        LocalContentColor.current
+                else
+                    Color.Transparent,
+                shape = CircleShape
+            ),
+    ) {
+        if (color.colorLong == null) {
+            Icon(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clickable(onClick = onClick),
+                imageVector = Icons.Default.Close,
+                contentDescription = null
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(color = Color(color.colorLong!!))
+                    .clickable(onClick = onClick)
+            )
+        }
+    }
 }
 
 fun Modifier.animatePlacement(): Modifier = composed {  // TODO: разобрать

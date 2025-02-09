@@ -8,5 +8,15 @@ data class Tag(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
-    val lastModified: Long = System.currentTimeMillis()
-)
+    val lastModified: Long = System.currentTimeMillis(),
+    val color: Color
+) {
+
+    enum class Color(val colorLong: Long?) {
+        NO_COLOR(null),
+        YELLOW(0xFFFFFF00),
+        RED(0xFFFF0000),
+        GREEN(0xFF00FF00),
+        BLUE(0xFF0000FF)
+    }
+}
