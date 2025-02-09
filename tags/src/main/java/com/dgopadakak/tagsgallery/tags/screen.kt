@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.style.TextOverflow
@@ -149,12 +150,17 @@ fun TagCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val baseColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
+    val blendedColor = lerp(baseColor, tagColor, 0.15f) // 15% смешения
+
     Card(
         modifier = Modifier
             .animatePlacement()
             .fillMaxSize()
             .padding(4.dp)
             .clickable(onClick = onEdit),
+        colors = CardDefaults.cardColors(containerColor = blendedColor),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
