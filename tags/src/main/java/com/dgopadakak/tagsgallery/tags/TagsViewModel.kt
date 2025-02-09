@@ -31,13 +31,14 @@ class TagsViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    fun saveTag(id: Long?, name: String) {
+    fun saveTag(id: Long?, name: String, color: Tag.Color) {
         viewModelScope.launch {
             if (id == null) {
                 tagDao.insertTag(
                     Tag(
                         name = name.trim(),
-                        lastModified = System.currentTimeMillis()
+                        lastModified = System.currentTimeMillis(),
+                        color = color
                     )
                 )
             } else {
@@ -45,7 +46,8 @@ class TagsViewModel @Inject constructor(
                     Tag(
                         id = id,
                         name = name.trim(),
-                        lastModified = System.currentTimeMillis()
+                        lastModified = System.currentTimeMillis(),
+                        color = color
                     )
                 )
             }
