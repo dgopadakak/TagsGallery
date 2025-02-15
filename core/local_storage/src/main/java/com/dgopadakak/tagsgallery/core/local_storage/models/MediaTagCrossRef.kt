@@ -1,4 +1,4 @@
-package com.dgopadakak.tagsgallery.core.local_storage.room.models
+package com.dgopadakak.tagsgallery.core.local_storage.models
 
 import androidx.room.Entity
 
