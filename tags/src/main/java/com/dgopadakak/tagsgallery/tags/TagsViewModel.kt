@@ -2,6 +2,7 @@ package com.dgopadakak.tagsgallery.tags
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
 import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel

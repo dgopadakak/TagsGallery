@@ -1,4 +1,4 @@
-package com.dgopadakak.tagsgallery.tags
+package com.dgopadakak.tagsgallery.core.compose.enums
 
 enum class SortVariant(private val variantName: String) {
     NAME("Name"),

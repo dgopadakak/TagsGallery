@@ -14,8 +14,8 @@ data class Tag(
 
     enum class Color(val colorLong: Long?) {
         NO_COLOR(null),
-        YELLOW(0xFFFFFF00),
         RED(0xFFFF0000),
+        YELLOW(0xFFFFFF00),
         GREEN(0xFF00FF00),
         BLUE(0xFF0000FF)
     }
