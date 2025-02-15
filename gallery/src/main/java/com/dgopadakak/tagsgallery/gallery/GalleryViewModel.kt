@@ -2,7 +2,7 @@ package com.dgopadakak.tagsgallery.gallery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
+import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,10 +14,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GalleryViewModel @Inject constructor(
-    private val tagDao: TagDao
+    private val repository: Repository
 ) : ViewModel() {
 
-    val tags: Flow<List<Tag>> = tagDao.getAllTags().stateIn(  // TODO: почитать подробнее
+    val tags: Flow<List<Tag>> = repository.getAllTags().stateIn(  // TODO: почитать подробнее
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = emptyList()
@@ -26,7 +26,7 @@ class GalleryViewModel @Inject constructor(
     fun saveMediaTags(mediaId: String, selectedTagIds: List<Long>) {
         viewModelScope.launch {
             selectedTagIds.forEach { tagId ->
-                tagDao.insertMediaTagCrossRef(MediaTagCrossRef(mediaId, tagId))
+                repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaId, tagId))
             }
         }
     }

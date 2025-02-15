@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.di
 
 import android.content.Context
+import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.room.AppDatabase
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
 import dagger.Module
@@ -13,8 +14,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class LocalStorageModule {
+
     @Provides
-    fun provideTagsDao(database: AppDatabase): TagDao {
+    fun provideRepository(tagDao: TagDao): Repository {
+        return Repository(tagDao)
+    }
+
+    @Provides
+    fun provideTagDao(database: AppDatabase): TagDao {
         return database.tagDao()
     }
 

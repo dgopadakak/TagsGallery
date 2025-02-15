@@ -3,7 +3,7 @@ package com.dgopadakak.tagsgallery.tags
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
-import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
+import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TagsViewModel @Inject constructor(
-    private val tagDao: TagDao
+    private val repository: Repository
 ) : ViewModel() {
     private val _sortBy = MutableStateFlow(SortVariant.NAME)
     val sortBy = _sortBy.asStateFlow()
@@ -25,7 +25,7 @@ class TagsViewModel @Inject constructor(
 
     val tags = combine(
         flow = combine(
-            flow = tagDao.getAllTags(),
+            flow = repository.getAllTags(),
             flow2 =  _filterBy
         ) { tagList, filterVariant ->
             if (filterVariant == null) {
@@ -50,7 +50,7 @@ class TagsViewModel @Inject constructor(
     fun saveTag(id: Long?, name: String, color: Tag.Color) {
         viewModelScope.launch {
             if (id == null) {
-                tagDao.insertTag(
+                repository.insertTag(
                     Tag(
                         name = name.trim(),
                         lastModified = System.currentTimeMillis(),
@@ -58,7 +58,7 @@ class TagsViewModel @Inject constructor(
                     )
                 )
             } else {
-                tagDao.updateTag(
+                repository.updateTag(
                     Tag(
                         id = id,
                         name = name.trim(),
@@ -72,7 +72,7 @@ class TagsViewModel @Inject constructor(
 
     fun deleteTag(tag: Tag) {
         viewModelScope.launch {
-            tagDao.deleteTag(tag)
+            repository.deleteTag(tag)
         }
     }
 
