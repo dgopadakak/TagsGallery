@@ -20,15 +20,14 @@ fun SortVariantsRow(
 ) {
     LazyRow(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         item {
             Text(
                 modifier = Modifier
                     .padding(start = 12.dp),
-                text = "Sort tags by:"
+                text = "Sort by:"
             )
         }
 
@@ -38,7 +37,7 @@ fun SortVariantsRow(
                     .padding(start = 20.dp),
                 selected = sortBy == sortVariant,
                 onClick = { onSortVariantChanged(sortVariant) },
-                label = { Text(text = "$sortVariant") }
+                label = { Text("$sortVariant") }
             )
         }
     }

@@ -20,8 +20,22 @@ class TagsViewModel @Inject constructor(
 ) : ViewModel() {
     private val _sortBy = MutableStateFlow(SortVariant.NAME)
     val sortBy = _sortBy.asStateFlow()
+    private val _filterBy = MutableStateFlow<Tag.Color?>(null)
+    val filterBy = _filterBy.asStateFlow()
 
-    val tags = combine(tagDao.getAllTags(), _sortBy) { tagList, sortVariant ->
+    val tags = combine(
+        flow = combine(
+            flow = tagDao.getAllTags(),
+            flow2 =  _filterBy
+        ) { tagList, filterVariant ->
+            if (filterVariant == null) {
+                tagList
+            } else {
+                tagList.filter { it.color == filterVariant }
+            }
+        },
+        flow2 =  _sortBy
+    ) { tagList, sortVariant ->
         when (sortVariant) {
             SortVariant.NAME -> tagList.sortedBy { it.name }
             SortVariant.DATE -> tagList.sortedBy { it.lastModified }
@@ -64,5 +78,9 @@ class TagsViewModel @Inject constructor(
 
     fun setSortBy(sortBy: SortVariant) {
         _sortBy.value = sortBy
+    }
+
+    fun setFilterBy(filterBy: Tag.Color?) {
+        _filterBy.value = filterBy
     }
 }
