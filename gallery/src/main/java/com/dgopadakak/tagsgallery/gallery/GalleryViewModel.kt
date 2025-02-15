@@ -3,8 +3,8 @@ package com.dgopadakak.tagsgallery.gallery
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.MediaTagCrossRef
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted

@@ -7,9 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.MediaTagCrossRef
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.TagWithMedia
+import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.models.TagWithMedia
 import kotlinx.coroutines.flow.Flow
 
 @Dao

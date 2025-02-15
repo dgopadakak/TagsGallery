@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,6 +25,7 @@ class TagsViewModel @Inject constructor(
         when (sortVariant) {
             SortVariant.NAME -> tagList.sortedBy { it.name }
             SortVariant.DATE -> tagList.sortedBy { it.lastModified }
+            SortVariant.COLOR -> tagList.sortedBy { it.color.compareToken }
         }
     }.stateIn(  // TODO: почитать подробнее
         scope = viewModelScope,

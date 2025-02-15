@@ -21,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
 @Composable
 fun ColorPickerRow(

@@ -41,7 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
 import com.dgopadakak.tagsgallery.core.compose.ui.animatePlacement
-import com.dgopadakak.tagsgallery.core.local_storage.room.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
