@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
 import com.dgopadakak.tagsgallery.core.compose.ui.animatePlacement
@@ -47,6 +48,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val tags by viewModel.tags.collectAsState(initial = emptyList())
     val sortBy by viewModel.sortBy.collectAsState()
+    val filterBy by viewModel.filterBy.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var tagToEdit by remember { mutableStateOf<Tag?>(null) }
@@ -68,6 +70,14 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             sortBy = sortBy
         ) {
             viewModel.setSortBy(it)
+        }
+
+        ColorFilterRow(
+            modifier = Modifier
+                .padding(vertical = 4.dp),
+            filterBy = filterBy
+        ) {
+            viewModel.setFilterBy(it)
         }
 
         Box(
