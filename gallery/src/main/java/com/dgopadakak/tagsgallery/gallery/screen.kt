@@ -6,15 +6,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,18 +55,24 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(vertical = 16.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         if (selectedMediaUris.isEmpty()) {
-            Button(onClick = {
-                photoPickerLauncher.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+            Text(
+                text = "Select the media to apply the tags to"
+            )
+            Button(
+                onClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                        )
                     )
-                )
-            }) {
+                }
+            ) {
                 Text("Add media")
             }
         } else {
@@ -81,13 +88,16 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                         }
                         .build()
                     AsyncImage(
+                        modifier = Modifier
+                            .height(180.dp)
+                            .padding(horizontal = 4.dp)
+                            .clip(RoundedCornerShape(4.dp)),
                         model = uri,
                         imageLoader = imageLoader,
                         contentDescription = "Media file selected by user"
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
             tagList.forEach { tag ->
                 FilterChip(
                     selected = selectedTagIds.contains(tag.id),
@@ -101,9 +111,10 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                     label = { Text(tag.name) }
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
             Row {
                 Button(
+                    modifier = Modifier
+                        .padding(end = 4.dp),
                     onClick = {
                         selectedMediaUris.forEach { uri ->
                             viewModel.saveMediaTags(
@@ -118,11 +129,14 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 ) {
                     Text("Add")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = {
-                    selectedMediaUris = emptyList()
-                    selectedTagIds = emptySet()
-                }) {
+                Button(
+                    modifier = Modifier
+                        .padding(start = 4.dp),
+                    onClick = {
+                        selectedMediaUris = emptyList()
+                        selectedTagIds = emptySet()
+                    }
+                ) {
                     Text("Cancel")
                 }
             }
