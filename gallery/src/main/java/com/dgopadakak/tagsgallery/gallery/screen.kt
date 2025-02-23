@@ -87,7 +87,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun PreviewRow(     // TODO: у изображений, не дотягивающихся до углов - не скругляются углы
+private fun PreviewRow(     // FIXME: у изображений, не дотягивающихся до углов - не скругляются углы
     uiStateFlow: StateFlow<GalleryViewModel.UiState>
 ) {
     val selectedUris by remember {

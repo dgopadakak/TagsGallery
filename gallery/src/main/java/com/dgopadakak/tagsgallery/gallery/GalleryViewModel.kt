@@ -37,7 +37,7 @@ class GalleryViewModel @Inject constructor(
 
     fun addSelectedMedia(uris: List<Uri>) {
         // Из-за использования derivedStateOf обновлять список нужно, создавая новый список, а не изменяя старый
-        // TODO: но это все равно не работает, возможно новый список не создается и мы все еще работаем с тем же?
+        // FIXME: но это все равно не работает, возможно новый список не создается и мы все еще работаем с тем же?
         _state.update { currentState ->
             val updatedUris = (currentState.selectedUris + uris).distinct() // Гарантированно создаем новый список
 
