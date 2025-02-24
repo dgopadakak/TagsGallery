@@ -18,29 +18,33 @@ class GalleryViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
-    data class UiState(
+    data class GalleryUiState(      // TODO: переименовать как-то так: tagsUiState
         val tags: List<Tag> = emptyList(),
-        val selectedTagIds: List<Long> = emptyList(),
+        val selectedTagIds: List<Long> = emptyList()
+    )
+
+    data class PreviewUiState(      // TODO: переименовать как-то так: mediaUiState
         val selectedUris: List<Uri> = emptyList()
     )
-    private val _state = MutableStateFlow(UiState())
-    val state = _state.asStateFlow()
+
+    private val _galleryState = MutableStateFlow(GalleryUiState())
+    val galleryState = _galleryState.asStateFlow()
+
+    private val _previewState = MutableStateFlow(PreviewUiState())
+    val previewState = _previewState.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.getAllTags()
                 .collect { tags ->
-                    _state.update { it.copy(tags = tags) }
+                    _galleryState.update { it.copy(tags = tags) }
                 }
         }
     }
 
     fun addSelectedMedia(uris: List<Uri>) {
-        // Из-за использования derivedStateOf обновлять список нужно, создавая новый список, а не изменяя старый
-        // FIXME: но это все равно не работает, возможно новый список не создается и мы все еще работаем с тем же?
-        _state.update { currentState ->
-            val updatedUris = (currentState.selectedUris + uris).distinct() // Гарантированно создаем новый список
-
+        _previewState.update { currentState ->
+            val updatedUris = (currentState.selectedUris + uris).distinct()
             currentState.copy(selectedUris = updatedUris)
         }
     }
@@ -50,14 +54,14 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onTagSelected(id: Long) {
-        if (_state.value.selectedTagIds.contains(id)) {
-            _state.update { currentState ->
+        if (_galleryState.value.selectedTagIds.contains(id)) {
+            _galleryState.update { currentState ->
                 currentState.copy(
                     selectedTagIds = currentState.selectedTagIds - id
                 )
             }
         } else {
-            _state.update { currentState ->
+            _galleryState.update { currentState ->
                 currentState.copy(
                     selectedTagIds = currentState.selectedTagIds + id
                 )
@@ -66,8 +70,8 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onClickSave() {
-        _state.value.selectedUris.forEach { uri ->
-            saveMediaTags(uri.toString(), _state.value.selectedTagIds)
+        _previewState.value.selectedUris.forEach { uri ->
+            saveMediaTags(uri.toString(), _galleryState.value.selectedTagIds)
         }
         removeAllSelected()
     }
@@ -85,11 +89,7 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun removeAllSelected() {
-        _state.update { currentUiState ->
-            currentUiState.copy(
-                selectedUris = emptyList(),
-                selectedTagIds = emptyList()
-            )
-        }
+        _previewState.update { it.copy(selectedUris = emptyList()) }
+        _galleryState.update { it.copy(selectedTagIds = emptyList()) }
     }
 }

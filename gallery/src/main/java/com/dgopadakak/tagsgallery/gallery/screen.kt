@@ -19,9 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
-    val uiState by viewModel.state.collectAsState()
+    val uiState by viewModel.previewState.collectAsState()
 
     val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(        // TODO: Постараться найти способ передать в PhotoPicker уже выбранные медиа
@@ -65,14 +63,15 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 text = "Select the media to apply the tags to"
             )
         } else {
-            PreviewRow(viewModel.state)
+            PreviewRow(viewModel.previewState)
             TagsSegment(
-                uiStateFlow = viewModel.state,
+                galleryUiStateFlow = viewModel.galleryState,
                 onTagSelected = { id -> viewModel.onTagSelected(id) }
             )
         }
         ButtonBlock(
-            uiStateFlow = viewModel.state,
+            previewUiStateFlow = viewModel.previewState,
+            galleryUiStateFlow = viewModel.galleryState,
             onClickSave = { viewModel.onClickSave() },
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
@@ -86,19 +85,20 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     }
 }
 
+// FIXME: у изображений, не дотягивающихся до углов - не скругляются углы
+// FIXME: хранить ScrollState где-то типо в скоупе viewModel. То же с картинками, а то при перехода
+//  с экрана на экран все грузится заново
 @Composable
-private fun PreviewRow(     // FIXME: у изображений, не дотягивающихся до углов - не скругляются углы
-    uiStateFlow: StateFlow<GalleryViewModel.UiState>
+private fun PreviewRow(
+    previewUiStateStateFlow: StateFlow<GalleryViewModel.PreviewUiState>
 ) {
-    val selectedUris by remember {
-        derivedStateOf { uiStateFlow.value.selectedUris }
-    }
+    val selectedUris by previewUiStateStateFlow.collectAsState()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
     ) {
-        selectedUris.forEach { uri ->
+        selectedUris.selectedUris.forEach { uri ->
             val imageLoader = ImageLoader.Builder(LocalContext.current)
                 .components {
                     add(VideoFrameDecoder.Factory())
@@ -120,10 +120,10 @@ private fun PreviewRow(     // FIXME: у изображений, не дотяг
 @Composable
 private fun TagsSegment(
     modifier: Modifier = Modifier,
-    uiStateFlow: StateFlow<GalleryViewModel.UiState>,
+    galleryUiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onTagSelected: (Long) -> Unit
 ) {
-    val uiState by uiStateFlow.collectAsState()
+    val uiState by galleryUiStateFlow.collectAsState()
     TagsFlowRow(
         modifier = modifier,
         tags = uiState.tags,
@@ -134,12 +134,14 @@ private fun TagsSegment(
 
 @Composable
 private fun ButtonBlock(
-    uiStateFlow: StateFlow<GalleryViewModel.UiState>,
+    previewUiStateFlow: StateFlow<GalleryViewModel.PreviewUiState>,
+    galleryUiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onClickSave: () -> Unit,
     onClickReset: () -> Unit,
     onAddMediaClick: () -> Unit
 ) {
-    val uiState by uiStateFlow.collectAsState()
+    val galleryUiState by galleryUiStateFlow.collectAsState()
+    val previewUiState by previewUiStateFlow.collectAsState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -153,7 +155,7 @@ private fun ButtonBlock(
                 modifier = Modifier
                     .padding(end = 4.dp),
                 onClick = onClickSave,
-                enabled = uiState.selectedTagIds.isNotEmpty()
+                enabled = galleryUiState.selectedTagIds.isNotEmpty()
             ) {
                 Text("Add")
             }
@@ -161,7 +163,7 @@ private fun ButtonBlock(
                 modifier = Modifier
                     .padding(start = 4.dp),
                 onClick = onClickReset,
-                enabled = uiState.selectedUris.isNotEmpty()
+                enabled = previewUiState.selectedUris.isNotEmpty()
             ) {
                 Text("Reset")
             }
