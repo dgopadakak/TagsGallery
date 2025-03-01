@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextOverflow
@@ -164,12 +167,16 @@ fun TagDialog(
     var name by remember { mutableStateOf(tag?.name ?: "") }
     var color by remember { mutableStateOf(tag?.color ?: Tag.Color.NO_COLOR) }
 
+    val focusRequester = remember { FocusRequester() }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = if (tag == null) "Add Tag" else "Edit Tag") },
         text = {
             Column {
                 OutlinedTextField(
+                    modifier = Modifier
+                        .focusRequester(focusRequester),
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Tag Name") }
@@ -192,4 +199,8 @@ fun TagDialog(
             }
         }
     )
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 }
