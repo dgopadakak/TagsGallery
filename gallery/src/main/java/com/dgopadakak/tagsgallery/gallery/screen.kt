@@ -63,7 +63,10 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 text = "Select the media to apply the tags to"
             )
         } else {
-            Column{
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
                 PreviewRow(viewModel.galleryMediaUiState)
                 TagsSegment(
                     galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
@@ -73,7 +76,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 )
             }
         }
-        ButtonBlock(    // FIXME: при большом количестве тегов уезжает на пределы экрана
+        ButtonBlock(
             galleryMediaUiStateFlow = viewModel.galleryMediaUiState,
             galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
             onClickSave = { viewModel.onClickSave() },
@@ -144,7 +147,6 @@ private fun TagsSegment(
 
 @Composable
 private fun ButtonBlock(
-    modifier: Modifier = Modifier,
     galleryMediaUiStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
     galleryTagsUiStateFlow: StateFlow<GalleryViewModel.GalleryTagsUiState>,
     onClickSave: () -> Unit,
@@ -154,7 +156,6 @@ private fun ButtonBlock(
     val galleryUiState by galleryTagsUiStateFlow.collectAsState()
     val previewUiState by galleryMediaUiStateFlow.collectAsState()
     Column(
-        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(

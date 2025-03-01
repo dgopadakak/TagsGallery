@@ -8,4 +8,8 @@ enum class SortVariant(private val variantName: String) {
     override fun toString(): String {
         return variantName
     }
+
+    companion object {
+        val DEFAULT_SORT_VARIANT = NAME
+    }
 }

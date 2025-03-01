@@ -1,10 +1,11 @@
 package com.dgopadakak.tagsgallery.core.compose.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagsSelectionView(
     modifier: Modifier = Modifier,
@@ -25,31 +26,30 @@ fun TagsSelectionView(
     filterBy: Tag.Color?,
     onFilterVariantChanged: (Tag.Color?) -> Unit
 ) {
-    LazyColumn(
+    Column(
         modifier = modifier
     ) {
-        stickyHeader {
-            SortVariantsRow(
-                sortBy = sortBy,
-                onSortVariantChanged = onSortVariantChanged
-            )
+        SortVariantsRow(
+            sortBy = sortBy,
+            onSortVariantChanged = onSortVariantChanged
+        )
 
-            ColorFilterRow(
-                filterBy = filterBy,
-                onFilterVariantChanged = onFilterVariantChanged
-            )
-        }
+        ColorFilterRow(
+            filterBy = filterBy,
+            onFilterVariantChanged = onFilterVariantChanged
+        )
 
-        item {
-            FlowRow {
-                tags.forEach { tag ->
-                    FilterChip(     // TODO: подкрасить
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        selected = selectedTagsIds.contains(tag.id),
-                        onClick = { onTagClick(tag.id) },
-                        label = { Text(tag.name) }      // FIXME: не обрезает текст в теге
-                    )
-                }
+        FlowRow(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+        ) {
+            tags.forEach { tag ->
+                FilterChip(     // TODO: подкрасить
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                    selected = selectedTagsIds.contains(tag.id),
+                    onClick = { onTagClick(tag.id) },
+                    label = { Text(tag.name) }      // FIXME: не обрезает текст в теге
+                )
             }
         }
     }

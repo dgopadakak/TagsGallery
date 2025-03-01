@@ -25,7 +25,7 @@ class GalleryViewModel @Inject constructor(
     data class GalleryTagsUiState(
         val tags: List<Tag> = emptyList(),
         val selectedTagIds: List<Long> = emptyList(),
-        val sortBy: SortVariant = SortVariant.NAME,
+        val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
     )
 
@@ -104,16 +104,18 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    private fun removeAllSelected() {
-        _galleryMediaUiState.update { it.copy(selectedUris = emptyList()) }
-        _galleryTagsUiState.update { it.copy(selectedTagIds = emptyList()) }
-    }
-
     fun setSortBy(sortBy: SortVariant) {
         _galleryTagsUiState.update { it.copy(sortBy = sortBy) }
     }
 
     fun setFilterBy(filterBy: Tag.Color?) {
         _galleryTagsUiState.update { it.copy(filterBy = filterBy) }
+    }
+
+    private fun removeAllSelected() {
+        _galleryMediaUiState.update { it.copy(selectedUris = emptyList()) }
+        _galleryTagsUiState.update { it.copy(selectedTagIds = emptyList()) }
+        setSortBy(SortVariant.DEFAULT_SORT_VARIANT)
+        setFilterBy(null)
     }
 }
