@@ -7,9 +7,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
@@ -44,11 +49,22 @@ fun TagsSelectionView(
                 .verticalScroll(rememberScrollState())
         ) {
             tags.forEach { tag ->
-                FilterChip(     // TODO: подкрасить
+                val baseColor = MaterialTheme.colorScheme.surface
+                val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
+                val blendedColor = lerp(baseColor, tagColor, 0.2f)
+
+                FilterChip(
                     modifier = Modifier.padding(horizontal = 4.dp),
                     selected = selectedTagsIds.contains(tag.id),
                     onClick = { onTagClick(tag.id) },
-                    label = { Text(tag.name) }      // FIXME: не обрезает текст в теге
+                    label = {
+                        Text(
+                            text = tag.name,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(containerColor = blendedColor)
                 )
             }
         }
