@@ -46,9 +46,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
-    val tags by viewModel.tags.collectAsState(initial = emptyList())
-    val sortBy by viewModel.sortBy.collectAsState()
-    val filterBy by viewModel.filterBy.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var tagToEdit by remember { mutableStateOf<Tag?>(null) }
@@ -67,7 +65,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 
     Column {
         SortVariantsRow(
-            sortBy = sortBy
+            sortBy = uiState.sortBy
         ) {
             viewModel.setSortBy(it)
         }
@@ -75,7 +73,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         ColorFilterRow(
             modifier = Modifier
                 .padding(vertical = 4.dp),
-            filterBy = filterBy
+            filterBy = uiState.filterBy
         ) {
             viewModel.setFilterBy(it)
         }
@@ -90,7 +88,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(tags, key = { it.id }) { tag ->
+                items(uiState.tags, key = { it.id }) { tag ->
                     TagCard(
                         tag = tag,
                         onEdit = {
