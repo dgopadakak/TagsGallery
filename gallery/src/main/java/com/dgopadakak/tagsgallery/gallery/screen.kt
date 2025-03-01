@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,13 +28,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
-import com.dgopadakak.tagsgallery.core.compose.ui.TagsFlowRow
+import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
+import com.dgopadakak.tagsgallery.core.compose.ui.TagsSelectionView
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
-    val uiState by viewModel.previewState.collectAsState()
+    val uiState by viewModel.galleryMediaUiState.collectAsState()
 
     val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(        // TODO: Постараться найти способ передать в PhotoPicker уже выбранные медиа
@@ -53,8 +54,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .padding(vertical = 16.dp)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),     // На всякий случай для маленьких экранов
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -63,15 +63,19 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 text = "Select the media to apply the tags to"
             )
         } else {
-            PreviewRow(viewModel.previewState)
-            TagsSegment(
-                galleryUiStateFlow = viewModel.galleryState,
-                onTagSelected = { id -> viewModel.onTagSelected(id) }
-            )
+            Column{
+                PreviewRow(viewModel.galleryMediaUiState)
+                TagsSegment(
+                    galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
+                    onTagSelected = { id -> viewModel.onTagSelected(id) },
+                    onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
+                    onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) }
+                )
+            }
         }
-        ButtonBlock(
-            previewUiStateFlow = viewModel.previewState,
-            galleryUiStateFlow = viewModel.galleryState,
+        ButtonBlock(    // FIXME: при большом количестве тегов уезжает на пределы экрана
+            galleryMediaUiStateFlow = viewModel.galleryMediaUiState,
+            galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
             onClickSave = { viewModel.onClickSave() },
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
@@ -90,9 +94,9 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 //  с экрана на экран все грузится заново
 @Composable
 private fun PreviewRow(
-    previewUiStateStateFlow: StateFlow<GalleryViewModel.PreviewUiState>
+    galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>
 ) {
-    val selectedUris by previewUiStateStateFlow.collectAsState()
+    val selectedUris by galleryMediaUiStateStateFlow.collectAsState()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,29 +124,37 @@ private fun PreviewRow(
 @Composable
 private fun TagsSegment(
     modifier: Modifier = Modifier,
-    galleryUiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
-    onTagSelected: (Long) -> Unit
+    galleryTagsUiStateFlow: StateFlow<GalleryViewModel.GalleryTagsUiState>,
+    onTagSelected: (Long) -> Unit,
+    onSortVariantChanged: (SortVariant) -> Unit,
+    onFilterVariantChanged: (Tag.Color?) -> Unit
 ) {
-    val uiState by galleryUiStateFlow.collectAsState()
-    TagsFlowRow(
+    val uiState by galleryTagsUiStateFlow.collectAsState()
+    TagsSelectionView(
         modifier = modifier,
         tags = uiState.tags,
         selectedTagsIds = uiState.selectedTagIds,
-        onTagClick = onTagSelected
+        onTagClick = onTagSelected,
+        sortBy = uiState.sortBy,
+        onSortVariantChanged = onSortVariantChanged,
+        filterBy = uiState.filterBy,
+        onFilterVariantChanged = onFilterVariantChanged
     )
 }
 
 @Composable
 private fun ButtonBlock(
-    previewUiStateFlow: StateFlow<GalleryViewModel.PreviewUiState>,
-    galleryUiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
+    modifier: Modifier = Modifier,
+    galleryMediaUiStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
+    galleryTagsUiStateFlow: StateFlow<GalleryViewModel.GalleryTagsUiState>,
     onClickSave: () -> Unit,
     onClickReset: () -> Unit,
     onAddMediaClick: () -> Unit
 ) {
-    val galleryUiState by galleryUiStateFlow.collectAsState()
-    val previewUiState by previewUiStateFlow.collectAsState()
+    val galleryUiState by galleryTagsUiStateFlow.collectAsState()
+    val previewUiState by galleryMediaUiStateFlow.collectAsState()
     Column(
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
