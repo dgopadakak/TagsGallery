@@ -1,11 +1,13 @@
 package com.dgopadakak.tagsgallery.gallery
 
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -69,7 +75,10 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 modifier = Modifier
                     .weight(1f)
             ) {
-                PreviewRow(viewModel.galleryMediaUiState)
+                PreviewRow(
+                    galleryMediaUiStateStateFlow = viewModel.galleryMediaUiState,
+                    onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
+                )
                 TagsSegment(
                     galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
                     onTagSelected = { id -> viewModel.onTagSelected(id) },
@@ -94,12 +103,14 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     }
 }
 
-// FIXME: у изображений, не дотягивающихся до углов - не скругляются углы
+// FIXME: у изображений, не дотягивающихся до углов - не скругляются углы. Растягивать до минимальных
+//  размеров, обрезая по максимальным размерам?
 // FIXME: хранить ScrollState где-то типо в скоупе viewModel. То же с картинками, а то при перехода
 //  с экрана на экран все грузится заново
 @Composable
 private fun PreviewRow(
-    galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>
+    galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
+    onRemoveMediaClick: (Uri) -> Unit
 ) {
     val selectedUris by galleryMediaUiStateStateFlow.collectAsState()
     Row(
@@ -113,15 +124,24 @@ private fun PreviewRow(
                     add(VideoFrameDecoder.Factory())
                 }
                 .build()
-            AsyncImage(
-                modifier = Modifier
-                    .height(180.dp)
-                    .padding(horizontal = 4.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                model = uri,
-                imageLoader = imageLoader,
-                contentDescription = "Media file selected by user"
-            )
+            Box {
+                AsyncImage(
+                    modifier = Modifier
+                        .height(180.dp)
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    model = uri,
+                    imageLoader = imageLoader,
+                    contentDescription = "Media file selected by user"
+                )
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd),
+                    onClick = { onRemoveMediaClick(uri) }
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Remove selected media")
+                }
+            }
         }
     }
 }
