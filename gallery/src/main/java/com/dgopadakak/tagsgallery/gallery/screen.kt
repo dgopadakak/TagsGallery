@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,8 +26,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import coil3.video.VideoFrameDecoder
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.compose.ui.TagsSelectionView
@@ -112,18 +117,41 @@ private fun PreviewRow(
     galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
     onRemoveMediaClick: (Uri) -> Unit
 ) {
-    val selectedUris by galleryMediaUiStateStateFlow.collectAsState()
-    Row(
+    val context = LocalContext.current
+    val uiState by galleryMediaUiStateStateFlow.collectAsState()
+
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .components {
+                add(VideoFrameDecoder.Factory())
+            }
+            .build()
+    }
+
+    val listState = rememberLazyListState()
+
+    // Динамическая подгрузка по скроллу
+    // FIXME: починить появление призрачных превью
+    LaunchedEffect(listState.firstVisibleItemIndex, uiState.selectedUris) {
+        val preloadRange = 1..7     // Сколько "вперёд" загружать
+        val start = listState.firstVisibleItemIndex + 1
+        val end = (start + preloadRange.last).coerceAtMost(uiState.selectedUris.size)
+
+        for (i in start until end) {
+            val uri = uiState.selectedUris[i]
+            val request = ImageRequest.Builder(context)
+                .data(uri)
+                .size(180) // TODO: узнать про этот размер
+                .build()
+            imageLoader.enqueue(request)
+        }
+    }
+
+    LazyRow (
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
     ) {
-        selectedUris.selectedUris.forEach { uri ->
-            val imageLoader = ImageLoader.Builder(LocalContext.current)
-                .components {
-                    add(VideoFrameDecoder.Factory())
-                }
-                .build()
+        items(uiState.selectedUris) { uri ->
             Box {
                 AsyncImage(
                     modifier = Modifier
@@ -192,7 +220,7 @@ private fun ButtonBlock(
                 onClick = onClickSave,
                 enabled = galleryUiState.selectedTagIds.isNotEmpty()
             ) {
-                Text("Add")
+                Text("Apply")
             }
             Button(
                 modifier = Modifier
@@ -200,7 +228,7 @@ private fun ButtonBlock(
                 onClick = onClickReset,
                 enabled = previewUiState.selectedUris.isNotEmpty()
             ) {
-                Text("Reset")
+                Text("Clear")
             }
         }
     }
