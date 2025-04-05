@@ -5,41 +5,46 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.video.VideoFrameDecoder
+import coil3.request.crossfade
+import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.compose.ui.TagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
@@ -108,10 +113,6 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     }
 }
 
-// FIXME: у изображений, не дотягивающихся до углов - не скругляются углы. Растягивать до минимальных
-//  размеров, обрезая по максимальным размерам?
-// FIXME: хранить ScrollState где-то типо в скоупе viewModel. То же с картинками, а то при перехода
-//  с экрана на экран все грузится заново
 @Composable
 private fun PreviewRow(
     galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
@@ -120,54 +121,73 @@ private fun PreviewRow(
     val context = LocalContext.current
     val uiState by galleryMediaUiStateStateFlow.collectAsState()
 
-    val imageLoader = remember {
-        ImageLoader.Builder(context)
-            .components {
-                add(VideoFrameDecoder.Factory())
-            }
-            .build()
-    }
+    val previewSize = 120.dp
+    val previewRows = 2
+    val previewPadding = 8.dp
 
-    val listState = rememberLazyListState()
-
-    // Динамическая подгрузка по скроллу
-    // FIXME: починить появление призрачных превью
-    LaunchedEffect(listState.firstVisibleItemIndex, uiState.selectedUris) {
-        val preloadRange = 1..7     // Сколько "вперёд" загружать
-        val start = listState.firstVisibleItemIndex + 1
-        val end = (start + preloadRange.last).coerceAtMost(uiState.selectedUris.size)
-
-        for (i in start until end) {
-            val uri = uiState.selectedUris[i]
-            val request = ImageRequest.Builder(context)
-                .data(uri)
-                .size(180) // TODO: узнать про этот размер
-                .build()
-            imageLoader.enqueue(request)
-        }
-    }
-
-    LazyRow (
+    LazyHorizontalGrid(
         modifier = Modifier
-            .fillMaxWidth()
+            .height(previewSize * previewRows + previewPadding * previewRows)
+            .fillMaxWidth(),
+        rows = GridCells.Fixed(2),
+        contentPadding = PaddingValues(previewPadding),
+        verticalArrangement = Arrangement.spacedBy(previewPadding),
+        horizontalArrangement = Arrangement.spacedBy(previewPadding)
     ) {
         items(uiState.selectedUris) { uri ->
-            Box {
+            val isVideo = remember(uri) {
+                val type = context.contentResolver.getType(uri)
+                type?.startsWith("video") == true
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(previewSize)
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
                 AsyncImage(
-                    modifier = Modifier
-                        .height(180.dp)
-                        .padding(horizontal = 4.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    model = uri,
-                    imageLoader = imageLoader,
-                    contentDescription = "Media file selected by user"
+                    model = ImageRequest.Builder(context)
+                        .data(uri)
+                        .apply {
+                            if (isVideo) {
+                                videoFrameMillis(1000L) // превью видео
+                            }
+                        }
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
-                IconButton(
+
+                if (isVideo) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Video",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(36.dp)
+                    )
+                }
+
+                Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd),
-                    onClick = { onRemoveMediaClick(uri) }
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .clickable { onRemoveMediaClick(uri) }
+                        .padding(4.dp) // Внутренний отступ для иконки
                 ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Remove selected media")
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Удалить",
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
             }
         }
