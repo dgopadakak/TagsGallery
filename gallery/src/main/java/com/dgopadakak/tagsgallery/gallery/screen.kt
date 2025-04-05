@@ -56,7 +56,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     val uiState by viewModel.galleryMediaUiState.collectAsState()
 
     val context = LocalContext.current
-    val photoPickerLauncher = rememberLauncherForActivityResult(        // TODO: Постараться найти способ передать в PhotoPicker уже выбранные медиа
+    val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         viewModel.addSelectedMedia(uris.toMutableList())
@@ -140,6 +140,8 @@ private fun PreviewRow(
                 type?.startsWith("video") == true
             }
 
+            // TODO: Посмотреть, почему тут не работает animatedPlacement, попробовать починить и
+            //  и заюзать тут
             Box(
                 modifier = Modifier
                     .size(previewSize)
