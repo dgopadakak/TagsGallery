@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -85,9 +87,12 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            val gridState = rememberLazyGridState()
+
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(160.dp),
                 modifier = Modifier.padding(8.dp),
+                state = gridState,
+                columns = GridCells.Adaptive(160.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -98,7 +103,8 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                             tagToEdit = tag
                             showDialog = true
                         },
-                        onDelete = { viewModel.deleteTag(tag) }
+                        onDelete = { viewModel.deleteTag(tag) },
+                        gridState = gridState
                     )
                 }
             }
@@ -119,7 +125,8 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 fun TagCard(
     tag: Tag,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    gridState: LazyGridState
 ) {
     val baseColor = CardDefaults.cardColors().containerColor
     val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
@@ -127,7 +134,7 @@ fun TagCard(
 
     Card(
         modifier = Modifier
-            .animatePlacement()
+            .animatePlacement(enabled = !gridState.isScrollInProgress)
             .fillMaxSize()
             .padding(4.dp)
             .clickable(onClick = onEdit),

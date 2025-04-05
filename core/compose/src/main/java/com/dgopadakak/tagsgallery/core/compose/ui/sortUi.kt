@@ -27,7 +27,7 @@ fun SortVariantsRow(
             Text(
                 modifier = Modifier
                     .padding(start = 12.dp),
-                text = "Sort by:"
+                text = "Sort tags by:"
             )
         }
 

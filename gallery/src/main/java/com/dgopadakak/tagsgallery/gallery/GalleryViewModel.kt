@@ -66,7 +66,9 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun removeSelectedMedia(uri: Uri) {
-        // TODO
+        _galleryMediaUiState.update { currentState ->
+            currentState.copy(selectedUris = currentState.selectedUris - uri)
+        }
     }
 
     fun onTagSelected(id: Long) {

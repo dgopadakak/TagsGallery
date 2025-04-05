@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.round
 import kotlinx.coroutines.launch
 
-fun Modifier.animatePlacement(): Modifier = composed {  // TODO: разобрать
+fun Modifier.animatePlacement(enabled: Boolean = true): Modifier = composed {  // TODO: разобрать
+    if (!enabled) return@composed this
+
     val scope = rememberCoroutineScope()
     var targetOffset by remember { mutableStateOf(IntOffset.Zero) }
     var animatable by remember {
