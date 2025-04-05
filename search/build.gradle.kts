@@ -40,6 +40,7 @@ android {
 dependencies {
 
     implementation(project(":core:local_storage"))
+    implementation(project(":core:compose"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
