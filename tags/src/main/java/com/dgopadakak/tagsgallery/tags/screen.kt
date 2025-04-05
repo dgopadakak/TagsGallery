@@ -47,6 +47,9 @@ import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
 import com.dgopadakak.tagsgallery.core.compose.ui.animatePlacement
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import java.text.DateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
@@ -192,6 +195,19 @@ fun TagDialog(
                         .padding( top = 16.dp),
                     selectedColor = color
                 ) { color = it }
+                if (tag != null) {
+                    val date = Date(tag.lastModified)
+                    val formatter = DateFormat.getDateTimeInstance(
+                        DateFormat.DEFAULT, // Уровень детализации (можно SHORT, MEDIUM, LONG, FULL)
+                        DateFormat.DEFAULT,
+                        Locale.getDefault()
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 8.dp),
+                        text = "Last update: ${formatter.format(date)}"
+                    )
+                }
             }
         },
         confirmButton = {
