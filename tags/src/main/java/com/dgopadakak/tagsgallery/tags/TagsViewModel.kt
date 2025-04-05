@@ -59,14 +59,19 @@ class TagsViewModel @Inject constructor(
                     )
                 )
             } else {
-                repository.updateTag(
-                    Tag(
-                        id = id,
-                        name = name.trim(),
-                        lastModified = System.currentTimeMillis(),
-                        color = color
-                    )
-                )
+                val oldTag = _uiState.value.tags.find { it.id == id }
+                oldTag?.let {
+                    if (it.name != name.trim() || it.color != color) {
+                        repository.updateTag(
+                            Tag(
+                                id = id,
+                                name = name.trim(),
+                                lastModified = System.currentTimeMillis(),
+                                color = color
+                            )
+                        )
+                    }
+                }
             }
         }
     }
