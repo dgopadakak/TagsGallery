@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -104,7 +103,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                             showDialog = true
                         },
                         onDelete = { viewModel.deleteTag(tag) },
-                        gridState = gridState
+                        isScrollInProgress = gridState.isScrollInProgress
                     )
                 }
             }
@@ -126,7 +125,7 @@ fun TagCard(
     tag: Tag,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    gridState: LazyGridState
+    isScrollInProgress: Boolean
 ) {
     val baseColor = CardDefaults.cardColors().containerColor
     val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
@@ -134,7 +133,7 @@ fun TagCard(
 
     Card(
         modifier = Modifier
-            .animatePlacement(enabled = !gridState.isScrollInProgress)
+            .animatePlacement(enabled = !isScrollInProgress)
             .fillMaxSize()
             .padding(4.dp)
             .clickable(onClick = onEdit),

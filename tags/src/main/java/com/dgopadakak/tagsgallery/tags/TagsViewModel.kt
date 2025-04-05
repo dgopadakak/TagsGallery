@@ -19,6 +19,7 @@ import javax.inject.Inject
 class TagsViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
+
     data class UiState(
         val sortBy: SortVariant = SortVariant.NAME,
         val filterBy: Tag.Color? = null,

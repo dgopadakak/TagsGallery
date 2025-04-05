@@ -32,15 +32,15 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
 
 @Composable
 private fun TestMediaViewer(viewModel: SearchViewModel) {   // TODO: для теста! Удалить.
-    val tagList by viewModel.tags.collectAsState(initial = emptyList())
-    val savedMediaUris by viewModel.testSavedMediaUris.collectAsState(emptyList())
+    val tagList by viewModel.searchTagsUiState.collectAsState()
+    val savedMediaUris by viewModel.searchMediaUiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        tagList.forEach {
+        tagList.tags.forEach {
             Button(onClick = { viewModel.loadMediaForTag(it.id) }) { Text(it.name) }
         }
         Text(text = "Saved Media", style = MaterialTheme.typography.titleLarge)
@@ -50,7 +50,7 @@ private fun TestMediaViewer(viewModel: SearchViewModel) {   // TODO: для те
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
         ) {
-            savedMediaUris?.forEach { uri ->
+            savedMediaUris.foundedMediaUris.forEach { uri ->
                 val imageLoader = ImageLoader.Builder(LocalContext.current)
                     .components {
                         add(VideoFrameDecoder.Factory())
