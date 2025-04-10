@@ -19,7 +19,7 @@ class Repository(private val tagDao: TagDao) {
 
     suspend fun updateTag(tag: Tag) = tagDao.updateTag(tag)
 
-    suspend fun deleteTag(tag: Tag) = tagDao.deleteTag(tag)
+    suspend fun deleteTagAndRelations(tag: Tag) = tagDao.deleteTagAndRelations(tag)
 
     fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?> = tagDao.getTagWithMedia(tagId)
 
