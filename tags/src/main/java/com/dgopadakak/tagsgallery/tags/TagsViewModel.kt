@@ -78,7 +78,7 @@ class TagsViewModel @Inject constructor(
 
     fun deleteTag(tag: Tag) {
         viewModelScope.launch {
-            repository.deleteTag(tag)
+            repository.deleteTagAndRelations(tag)
         }
     }
 

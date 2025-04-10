@@ -53,7 +53,15 @@ class SearchViewModel @Inject constructor(
                     SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
-                _searchTagsUiState.update { it.copy(tags = sortedTags) }
+                // Очистка selectedTagIds от несуществующих id
+                val existingIds = tagList.map { it.id }.toSet()
+                val updatedSelectedIds = _searchTagsUiState.value.selectedTagIds.filter { it in existingIds }
+                _searchTagsUiState.update {
+                    it.copy(
+                        tags = sortedTags,
+                        selectedTagIds = updatedSelectedIds
+                    )
+                }
             }.collect {}
         }
     }

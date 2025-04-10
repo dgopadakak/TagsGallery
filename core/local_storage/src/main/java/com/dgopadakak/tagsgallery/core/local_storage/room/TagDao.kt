@@ -23,13 +23,22 @@ interface TagDao {
     @Update
     suspend fun updateTag(tag: Tag)
 
-    @Delete
-    suspend fun deleteTag(tag: Tag)
-
     @Transaction
     @Query("SELECT * FROM Tag WHERE id = :tagId")
     fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
+
+    @Transaction
+    suspend fun deleteTagAndRelations(tag: Tag) {
+        deleteMediaTagCrossRefsByTagId(tag.id)
+        deleteTag(tag)
+    }
+
+    @Query("DELETE FROM MediaTagCrossRef WHERE tagId = :tagId")
+    suspend fun deleteMediaTagCrossRefsByTagId(tagId: Long)
+
+    @Delete
+    suspend fun deleteTag(tag: Tag)
 }
