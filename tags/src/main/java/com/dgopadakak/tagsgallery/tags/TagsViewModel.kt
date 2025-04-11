@@ -54,7 +54,6 @@ class TagsViewModel @Inject constructor(
                 repository.insertTag(
                     Tag(
                         name = name.trim(),
-                        lastModified = System.currentTimeMillis(),
                         color = color
                     )
                 )
@@ -66,7 +65,6 @@ class TagsViewModel @Inject constructor(
                             Tag(
                                 id = id,
                                 name = name.trim(),
-                                lastModified = System.currentTimeMillis(),
                                 color = color
                             )
                         )
