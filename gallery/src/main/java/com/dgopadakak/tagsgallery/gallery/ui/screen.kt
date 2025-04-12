@@ -1,0 +1,132 @@
+package com.dgopadakak.tagsgallery.gallery.ui
+
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
+import com.dgopadakak.tagsgallery.gallery.ui.preview.MediaPreviewRow
+import com.dgopadakak.tagsgallery.gallery.ui.tags.TagsSegment
+import kotlinx.coroutines.flow.StateFlow
+
+@Composable
+fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
+
+    val uiState by viewModel.galleryMediaUiState.collectAsState()
+
+    val context = LocalContext.current
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia()
+    ) { uris ->
+        viewModel.addSelectedMedia(uris.toMutableList())
+        uris.forEach { uri ->
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(vertical = 16.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),     // На всякий случай для маленьких экранов
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        if (uiState.selectedUris.isEmpty()) {
+            Text(
+                text = "Select the media to apply the tags to"
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                MediaPreviewRow(
+                    galleryMediaUiStateStateFlow = viewModel.galleryMediaUiState,
+                    onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
+                )
+
+                TagsSegment(
+                    galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
+                    onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
+                    onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
+                    onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
+                    onIndividualTagToggle = { uri, tagId -> viewModel.onPerMediaTagToggle(uri, tagId) },
+                    onIndividualTagAccept = { viewModel.setActiveUriForIndividualTags(null) }
+                )
+            }
+        }
+        ButtonBlock(
+            galleryMediaUiStateFlow = viewModel.galleryMediaUiState,
+            galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
+            onClickSave = { viewModel.onClickSave() },
+            onClickReset = { viewModel.onClickReset() },
+            onAddMediaClick = {
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                    )
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun ButtonBlock(
+    galleryMediaUiStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
+    galleryTagsUiStateFlow: StateFlow<GalleryViewModel.GalleryTagsUiState>,
+    onClickSave: () -> Unit,
+    onClickReset: () -> Unit,
+    onAddMediaClick: () -> Unit
+) {
+    val galleryUiState by galleryTagsUiStateFlow.collectAsState()
+    val previewUiState by galleryMediaUiStateFlow.collectAsState()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = onAddMediaClick
+        ) {
+            Text("Add media")
+        }
+        Row {
+            Button(
+                modifier = Modifier
+                    .padding(end = 4.dp),
+                onClick = onClickSave,
+                enabled = galleryUiState.selectedTagIds.isNotEmpty()
+            ) {
+                Text("Apply")
+            }
+            Button(
+                modifier = Modifier
+                    .padding(start = 4.dp),
+                onClick = onClickReset,
+                enabled = previewUiState.selectedUris.isNotEmpty()
+            ) {
+                Text("Clear")
+            }
+        }
+    }
+}

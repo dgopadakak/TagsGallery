@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
+// TODO: сделать отдельный ViewModel для этой view, чтоб не нагружать sortBy и другими параметрами
+//  стейты и viewModel в местах использования
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagsSelectionView(

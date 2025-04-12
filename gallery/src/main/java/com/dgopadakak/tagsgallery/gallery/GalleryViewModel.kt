@@ -29,14 +29,17 @@ class GalleryViewModel @Inject constructor(
         val selectedTagIds: List<Long> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
+        val activeEditIndividualTags: Uri? = null,      // TODO: дублирование в обоих UiState, подумать над исправлением
+        val perMediaAddedTagIds: Map<Uri, List<Long>> = mapOf(),
+        val perMediaRemovedTagIds: Map<Uri, List<Long>> = mapOf()
     )
 
     @Stable
     data class GalleryMediaUiState(
         val selectedUris: List<Uri> = emptyList(),
         val activeEditIndividualTags: Uri? = null,
-        val perMediaAddedTags: Map<Uri, List<Long>> = mapOf(),
-        val perMediaRemovedTags: Map<Uri, List<Long>> = mapOf()
+        val perMediaAddedTagsNum: Map<Uri, Int> = mapOf(),
+        val perMediaRemovedTagsNum: Map<Uri, Int> = mapOf(),
     )
 
     private val _galleryTagsUiState = MutableStateFlow(GalleryTagsUiState())
@@ -106,26 +109,26 @@ class GalleryViewModel @Inject constructor(
         val isCommonSelected = _galleryTagsUiState.value.selectedTagIds.contains(tagId)
         if (isCommonSelected) {
             val removed = arrayListOf<Long>()
-            _galleryMediaUiState.value.perMediaRemovedTags.getOrDefault(uri, defaultValue = null)?.forEach { id ->
+            _galleryTagsUiState.value.perMediaRemovedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
                 removed.add(id)
             }
             if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
-            _galleryMediaUiState.update { currentState ->
+            _galleryTagsUiState.update { currentState ->
                 currentState.copy(
                     // Так создаются новые объекты Map с новыми ключами. При коллизии берутся значения
                     //  из правого слагаемого Проверено.
-                    perMediaRemovedTags = currentState.perMediaRemovedTags + mapOf(Pair(uri, removed))
+                    perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(Pair(uri, removed))
                 )
             }
         } else {
             val added = arrayListOf<Long>()
-            _galleryMediaUiState.value.perMediaAddedTags.getOrDefault(uri, defaultValue = null)?.forEach { id ->
+            _galleryTagsUiState.value.perMediaAddedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
                 added.add(id)
             }
             if (added.contains(tagId)) added.remove(tagId) else added.add(tagId)
-            _galleryMediaUiState.update { currentState ->
+            _galleryTagsUiState.update { currentState ->
                 currentState.copy(
-                    perMediaAddedTags = currentState.perMediaAddedTags + mapOf(Pair(uri, added))
+                    perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(Pair(uri, added))
                 )
             }
         }
