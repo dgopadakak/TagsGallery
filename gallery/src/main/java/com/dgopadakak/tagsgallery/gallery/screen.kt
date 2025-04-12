@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
@@ -85,7 +86,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 modifier = Modifier
                     .weight(1f)
             ) {
-                PreviewRow(
+                MediaPreviewRow(
                     galleryMediaUiStateStateFlow = viewModel.galleryMediaUiState,
                     onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
                 )
@@ -114,11 +115,10 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun PreviewRow(
+private fun MediaPreviewRow(
     galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
     onRemoveMediaClick: (Uri) -> Unit
 ) {
-    val context = LocalContext.current
     val uiState by galleryMediaUiStateStateFlow.collectAsState()
 
     val previewSize = 120.dp
@@ -135,63 +135,80 @@ private fun PreviewRow(
         horizontalArrangement = Arrangement.spacedBy(previewPadding)
     ) {
         items(uiState.selectedUris) { uri ->
-            val isVideo = remember(uri) {
-                val type = context.contentResolver.getType(uri)
-                type?.startsWith("video") == true
-            }
+            MediaPreview(
+                uri = uri,
+                previewSize = previewSize,
+                onPreviewCLick = { /*TODO*/ },
+                onRemoveMediaClick = { onRemoveMediaClick(uri) }
+            )
+        }
+    }
+}
 
-            // TODO: Посмотреть, почему тут не работает animatedPlacement, попробовать починить и
-            //  и заюзать тут
-            Box(
+@Composable
+private fun MediaPreview(
+    uri: Uri,
+    previewSize: Dp,
+    onPreviewCLick: () -> Unit,
+    onRemoveMediaClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val isVideo = remember(uri) {
+        val type = context.contentResolver.getType(uri)
+        type?.startsWith("video") == true
+    }
+
+    // TODO: Посмотреть, почему тут не работает animatedPlacement, попробовать починить и
+    //  и использовать тут
+    Box(
+        modifier = Modifier
+            .size(previewSize)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable{ onPreviewCLick }
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(uri)
+                .apply {
+                    if (isVideo) {
+                        videoFrameMillis(1000L) // Выбор кадра для превью видео
+                    }
+                }
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        if (isVideo) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = "Video",
+                tint = Color.White,
                 modifier = Modifier
-                    .size(previewSize)
-                    .clip(RoundedCornerShape(8.dp))
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(uri)
-                        .apply {
-                            if (isVideo) {
-                                videoFrameMillis(1000L) // превью видео
-                            }
-                        }
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    .align(Alignment.Center)
+                    .size(36.dp)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(4.dp)
+                .background(
+                    color = Color.Black.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(4.dp)
                 )
-
-                if (isVideo) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Video",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(36.dp)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .clickable { onRemoveMediaClick(uri) }
-                        .padding(4.dp) // Внутренний отступ для иконки
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Удалить",
-                        tint = Color.White,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-            }
+                .clickable { onRemoveMediaClick() }
+                .padding(4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Удалить",
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
+            )
         }
     }
 }

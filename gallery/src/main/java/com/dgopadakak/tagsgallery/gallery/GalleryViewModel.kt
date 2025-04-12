@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.gallery
 
 import android.net.Uri
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
@@ -22,6 +23,7 @@ class GalleryViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
+    @Stable
     data class GalleryTagsUiState(
         val tags: List<Tag> = emptyList(),
         val selectedTagIds: List<Long> = emptyList(),
@@ -29,8 +31,12 @@ class GalleryViewModel @Inject constructor(
         val filterBy: Tag.Color? = null,
     )
 
+    @Stable
     data class GalleryMediaUiState(
-        val selectedUris: List<Uri> = emptyList()
+        val selectedUris: List<Uri> = emptyList(),
+        val activeEditIndividualTags: Uri? = null,
+        val perMediaAddedTags: Map<Uri, List<Long>> = mapOf(),
+        val perMediaRemovedTags: Map<Uri, List<Long>> = mapOf()
     )
 
     private val _galleryTagsUiState = MutableStateFlow(GalleryTagsUiState())
@@ -80,6 +86,7 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onTagSelected(id: Long) {
+        // TODO: обеспечить влияние на perMediaAddedTags и perMediaRemovedTags
         if (_galleryTagsUiState.value.selectedTagIds.contains(id)) {
             _galleryTagsUiState.update { currentState ->
                 currentState.copy(
@@ -95,14 +102,57 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
+    fun onPerMediaTagToggle(uri: Uri, tagId: Long) {
+        val isCommonSelected = _galleryTagsUiState.value.selectedTagIds.contains(tagId)
+        if (isCommonSelected) {
+            val removed = arrayListOf<Long>()
+            _galleryMediaUiState.value.perMediaRemovedTags.getOrDefault(uri, defaultValue = null)?.forEach { id ->
+                removed.add(id)
+            }
+            if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
+            _galleryMediaUiState.update { currentState ->
+                currentState.copy(
+                    // Так создаются новые объекты Map с новыми ключами. При коллизии берутся значения
+                    //  из правого слагаемого Проверено.
+                    perMediaRemovedTags = currentState.perMediaRemovedTags + mapOf(Pair(uri, removed))
+                )
+            }
+        } else {
+            val added = arrayListOf<Long>()
+            _galleryMediaUiState.value.perMediaAddedTags.getOrDefault(uri, defaultValue = null)?.forEach { id ->
+                added.add(id)
+            }
+            if (added.contains(tagId)) added.remove(tagId) else added.add(tagId)
+            _galleryMediaUiState.update { currentState ->
+                currentState.copy(
+                    perMediaAddedTags = currentState.perMediaAddedTags + mapOf(Pair(uri, added))
+                )
+            }
+        }
+    }
+
+    fun setSortBy(sortBy: SortVariant) {
+        _galleryTagsUiState.update { it.copy(sortBy = sortBy) }
+    }
+
+    fun setFilterBy(filterBy: Tag.Color?) {
+        _galleryTagsUiState.update { it.copy(filterBy = filterBy) }
+    }
+
+    fun setActiveUriForIndividualTags(uri: Uri?) {
+        if (_galleryMediaUiState.value.activeEditIndividualTags == null) {
+            _galleryMediaUiState.update { currentState ->
+                currentState.copy(
+                    activeEditIndividualTags = uri
+                )
+            }
+        }
+    }
+
     fun onClickSave() {
         _galleryMediaUiState.value.selectedUris.forEach { uri ->
             saveMediaTags(uri.toString(), _galleryTagsUiState.value.selectedTagIds)
         }
-        removeAllSelected()
-    }
-
-    fun onClickReset() {
         removeAllSelected()
     }
 
@@ -114,12 +164,8 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    fun setSortBy(sortBy: SortVariant) {
-        _galleryTagsUiState.update { it.copy(sortBy = sortBy) }
-    }
-
-    fun setFilterBy(filterBy: Tag.Color?) {
-        _galleryTagsUiState.update { it.copy(filterBy = filterBy) }
+    fun onClickReset() {
+        removeAllSelected()
     }
 
     private fun removeAllSelected() {
