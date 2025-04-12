@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 internal fun MediaPreviewRow(
     galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
+    onPreviewClick: (Uri) -> Unit,
     onRemoveMediaClick: (Uri) -> Unit
 ) {
     val uiState by galleryMediaUiStateStateFlow.collectAsState()
@@ -64,9 +66,10 @@ internal fun MediaPreviewRow(
             MediaPreview(
                 uri = uri,
                 previewSize = previewSize,
+                isActiveForIndividualTagsEdit = uiState.activeEditIndividualTags == uri,
                 individualAddedTagsNum = uiState.perMediaAddedTagsNum.getOrDefault(uri, 0),
                 individualRemovedTagsNum = uiState.perMediaRemovedTagsNum.getOrDefault(uri, 0),
-                onPreviewClick = { /*TODO*/ },
+                onPreviewClick = { onPreviewClick(uri) },
                 onRemoveMediaClick = { onRemoveMediaClick(uri) }
             )
         }
@@ -77,6 +80,7 @@ internal fun MediaPreviewRow(
 private fun MediaPreview(
     uri: Uri,
     previewSize: Dp,
+    isActiveForIndividualTagsEdit: Boolean,
     individualAddedTagsNum: Int,
     individualRemovedTagsNum: Int,
     onPreviewClick: () -> Unit,
@@ -150,13 +154,24 @@ private fun MediaPreview(
                         color = Color.Black.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(4.dp)
                     )
-                    .padding(4.dp)
+                    .padding(4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (individualAddedTagsNum != 0) {
-                    Text("+$individualAddedTagsNum")
+                    Text(
+                        text = "+$individualAddedTagsNum",
+                        fontSize = 8.sp,
+                        color = Color.White,
+                        lineHeight = 8.sp
+                    )
                 }
                 if (individualRemovedTagsNum != 0) {
-                    Text("-$individualRemovedTagsNum")
+                    Text(
+                        text = "-$individualRemovedTagsNum",
+                        fontSize = 8.sp,
+                        color = Color.White,
+                        lineHeight = 8.sp
+                    )
                 }
             }
         }

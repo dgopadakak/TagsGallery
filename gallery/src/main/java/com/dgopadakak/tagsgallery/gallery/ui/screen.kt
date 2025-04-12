@@ -63,6 +63,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
             ) {
                 MediaPreviewRow(
                     galleryMediaUiStateStateFlow = viewModel.galleryMediaUiState,
+                    onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
                     onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
                 )
 
@@ -76,19 +77,21 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 )
             }
         }
-        ButtonBlock(
-            galleryMediaUiStateFlow = viewModel.galleryMediaUiState,
-            galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
-            onClickSave = { viewModel.onClickSave() },
-            onClickReset = { viewModel.onClickReset() },
-            onAddMediaClick = {
-                photoPickerLauncher.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+        if (uiState.activeEditIndividualTags == null) {
+            ButtonBlock(
+                galleryMediaUiStateFlow = viewModel.galleryMediaUiState,
+                galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
+                onClickSave = { viewModel.onClickSave() },
+                onClickReset = { viewModel.onClickReset() },
+                onAddMediaClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                        )
                     )
-                )
-            }
-        )
+                }
+            )
+        }
     }
 }
 
@@ -100,7 +103,7 @@ private fun ButtonBlock(
     onClickReset: () -> Unit,
     onAddMediaClick: () -> Unit
 ) {
-    val galleryUiState by galleryTagsUiStateFlow.collectAsState()
+    val tagsUiState by galleryTagsUiStateFlow.collectAsState()
     val previewUiState by galleryMediaUiStateFlow.collectAsState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -115,7 +118,7 @@ private fun ButtonBlock(
                 modifier = Modifier
                     .padding(end = 4.dp),
                 onClick = onClickSave,
-                enabled = galleryUiState.selectedTagIds.isNotEmpty()
+                enabled = tagsUiState.selectedTagIds.isNotEmpty()
             ) {
                 Text("Apply")
             }

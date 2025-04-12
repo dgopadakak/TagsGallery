@@ -1,12 +1,20 @@
 package com.dgopadakak.tagsgallery.gallery.ui.tags
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
-import com.dgopadakak.tagsgallery.core.compose.ui.TagsSelectionView
+import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
+import com.dgopadakak.tagsgallery.core.compose.ui.SimpleTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -26,33 +34,70 @@ internal fun TagsSegment(
     val activeMediaUri = uiState.activeEditIndividualTags
     if (activeMediaUri != null) {
         IndividualTagsSelector(
+            tags = uiState.tags.sortedBy { it.name },
             selectedCommonTagIds = uiState.selectedTagIds,
             individualAddedTagIds = uiState.perMediaAddedTagIds.getOrDefault(activeMediaUri, emptyList()),
             individualRemovedTagIds = uiState.perMediaRemovedTagIds.getOrDefault(activeMediaUri, emptyList()),
             onTagToggle = { tagId -> onIndividualTagToggle(activeMediaUri, tagId) },
-            onOkClick = { onIndividualTagAccept }
+            onClickAccept = onIndividualTagAccept
+        )
+    } else {
+        FullTagsSelectionView(
+            modifier = modifier,
+            tags = uiState.tags,
+            selectedTagsIds = uiState.selectedTagIds,
+            onTagClick = onCommonTagSelected,
+            sortBy = uiState.sortBy,
+            onSortVariantChanged = onSortVariantChanged,
+            filterBy = uiState.filterBy,
+            onFilterVariantChanged = onFilterVariantChanged
         )
     }
-
-    TagsSelectionView(
-        modifier = modifier,
-        tags = uiState.tags,
-        selectedTagsIds = uiState.selectedTagIds,
-        onTagClick = onCommonTagSelected,
-        sortBy = uiState.sortBy,
-        onSortVariantChanged = onSortVariantChanged,
-        filterBy = uiState.filterBy,
-        onFilterVariantChanged = onFilterVariantChanged
-    )
 }
 
 @Composable
 private fun IndividualTagsSelector(
+    tags: List<Tag>,
     selectedCommonTagIds: List<Long>,
     individualAddedTagIds: List<Long>,
     individualRemovedTagIds: List<Long>,
     onTagToggle: (Long) -> Unit,
-    onOkClick: () -> Unit
+    onClickAccept: () -> Unit
 ) {
-
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+    ) {
+        Text(text = "Edit tags list individual for selected media")
+        SimpleTagsSelectionView(
+            modifier = Modifier
+                .fillMaxWidth(),
+            tags = tags,
+            selectedTagsIds = calculateFinalTagIds(
+                selectedCommonTagIds = selectedCommonTagIds,
+                individualAddedTagIds = individualAddedTagIds,
+                individualRemovedTagIds = individualRemovedTagIds
+            ),
+            onTagClick = onTagToggle
+        )
+        Button(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally),
+            onClick = onClickAccept
+        ) {
+            Text(text = "Accept")
+        }
+    }
 }
+
+private fun calculateFinalTagIds(
+    selectedCommonTagIds: List<Long>,
+    individualAddedTagIds: List<Long>,
+    individualRemovedTagIds: List<Long>
+): List<Long> {
+    return (selectedCommonTagIds + individualAddedTagIds)
+        .toSet()
+        .minus(individualRemovedTagIds.toSet())
+        .toList()
+}
+

@@ -29,7 +29,7 @@ class GalleryViewModel @Inject constructor(
         val selectedTagIds: List<Long> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
-        val activeEditIndividualTags: Uri? = null,      // TODO: дублирование в обоих UiState, подумать над исправлением
+        val activeEditIndividualTags: Uri? = null,      // TODO: дублирование в обоих UiState, подумать над исправлением (возможно, объединить стейты)
         val perMediaAddedTagIds: Map<Uri, List<Long>> = mapOf(),
         val perMediaRemovedTagIds: Map<Uri, List<Long>> = mapOf()
     )
@@ -84,7 +84,22 @@ class GalleryViewModel @Inject constructor(
 
     fun removeSelectedMedia(uri: Uri) {
         _galleryMediaUiState.update { currentState ->
-            currentState.copy(selectedUris = currentState.selectedUris - uri)
+            currentState.copy(
+                selectedUris = currentState.selectedUris - uri,
+                activeEditIndividualTags = null,
+                perMediaAddedTagsNum = currentState.perMediaAddedTagsNum - uri,
+                perMediaRemovedTagsNum = currentState.perMediaRemovedTagsNum - uri
+            )
+        }
+        _galleryTagsUiState.update { currentState ->
+            currentState.copy(
+                activeEditIndividualTags = null,
+                perMediaAddedTagIds = currentState.perMediaAddedTagIds - uri,
+                perMediaRemovedTagIds = currentState.perMediaAddedTagIds - uri
+            )
+        }
+        if (_galleryMediaUiState.value.selectedUris.isEmpty()) {
+            resetScreen()
         }
     }
 
@@ -115,9 +130,12 @@ class GalleryViewModel @Inject constructor(
             if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
             _galleryTagsUiState.update { currentState ->
                 currentState.copy(
-                    // Так создаются новые объекты Map с новыми ключами. При коллизии берутся значения
-                    //  из правого слагаемого Проверено.
                     perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(Pair(uri, removed))
+                )
+            }
+            _galleryMediaUiState.update { currentState ->
+                currentState.copy(
+                    perMediaRemovedTagsNum = currentState.perMediaRemovedTagsNum + mapOf(Pair(uri, removed.size))
                 )
             }
         } else {
@@ -129,6 +147,11 @@ class GalleryViewModel @Inject constructor(
             _galleryTagsUiState.update { currentState ->
                 currentState.copy(
                     perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(Pair(uri, added))
+                )
+            }
+            _galleryMediaUiState.update { currentState ->
+                currentState.copy(
+                    perMediaAddedTagsNum = currentState.perMediaAddedTagsNum + mapOf(Pair(uri, added.size))
                 )
             }
         }
@@ -143,9 +166,14 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun setActiveUriForIndividualTags(uri: Uri?) {
-        if (_galleryMediaUiState.value.activeEditIndividualTags == null) {
+        if (_galleryMediaUiState.value.activeEditIndividualTags == null || uri == null) {
             _galleryMediaUiState.update { currentState ->
                 currentState.copy(
+                    activeEditIndividualTags = uri
+                )
+            }
+            _galleryTagsUiState.update { currentSTate ->
+                currentSTate.copy(
                     activeEditIndividualTags = uri
                 )
             }
@@ -153,10 +181,11 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onClickSave() {
+        // TODO: обеспечить сохранение с учетом perMediaAddedTags и perMediaRemovedTags
         _galleryMediaUiState.value.selectedUris.forEach { uri ->
             saveMediaTags(uri.toString(), _galleryTagsUiState.value.selectedTagIds)
         }
-        removeAllSelected()
+        resetScreen()
     }
 
     private fun saveMediaTags(mediaId: String, selectedTagIds: List<Long>) {
@@ -168,12 +197,24 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onClickReset() {
-        removeAllSelected()
+        resetScreen()
     }
 
-    private fun removeAllSelected() {
-        _galleryMediaUiState.update { it.copy(selectedUris = emptyList()) }
-        _galleryTagsUiState.update { it.copy(selectedTagIds = emptyList()) }
+    private fun resetScreen() {
+        _galleryMediaUiState.update { currentState ->
+            currentState.copy(
+                selectedUris = emptyList(),
+                perMediaAddedTagsNum = emptyMap(),
+                perMediaRemovedTagsNum = emptyMap()
+            )
+        }
+        _galleryTagsUiState.update { currentState ->
+            currentState.copy(
+                selectedTagIds = emptyList(),
+                perMediaAddedTagIds = emptyMap(),
+                perMediaRemovedTagIds = emptyMap()
+            )
+        }
         setSortBy(SortVariant.DEFAULT_SORT_VARIANT)
         setFilterBy(null)
     }

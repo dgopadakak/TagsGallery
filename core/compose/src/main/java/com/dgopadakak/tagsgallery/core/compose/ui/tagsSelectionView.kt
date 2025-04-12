@@ -24,7 +24,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TagsSelectionView(
+fun FullTagsSelectionView(
     modifier: Modifier = Modifier,
     tags: List<Tag>,
     selectedTagsIds: List<Long>,
@@ -47,29 +47,44 @@ fun TagsSelectionView(
             onFilterVariantChanged = onFilterVariantChanged
         )
 
-        FlowRow(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-        ) {
-            tags.forEach { tag ->
-                val baseColor = MaterialTheme.colorScheme.surface
-                val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
-                val blendedColor = lerp(baseColor, tagColor, 0.2f)
+        SimpleTagsSelectionView(
+            tags = tags,
+            selectedTagsIds = selectedTagsIds,
+            onTagClick = onTagClick
+        )
+    }
+}
 
-                FilterChip(
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                    selected = selectedTagsIds.contains(tag.id),
-                    onClick = { onTagClick(tag.id) },
-                    label = {
-                        Text(
-                            text = tag.name,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(containerColor = blendedColor)
-                )
-            }
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun SimpleTagsSelectionView(
+    modifier: Modifier = Modifier,
+    tags: List<Tag>,
+    selectedTagsIds: List<Long>,
+    onTagClick: (Long) -> Unit
+) {
+    FlowRow(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+    ) {
+        tags.forEach { tag ->
+            val baseColor = MaterialTheme.colorScheme.surface
+            val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
+            val blendedColor = lerp(baseColor, tagColor, 0.2f)
+
+            FilterChip(
+                modifier = Modifier.padding(horizontal = 4.dp),
+                selected = selectedTagsIds.contains(tag.id),
+                onClick = { onTagClick(tag.id) },
+                label = {
+                    Text(
+                        text = tag.name,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(containerColor = blendedColor)
+            )
         }
     }
 }
