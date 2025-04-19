@@ -8,6 +8,7 @@ import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.gallery.util.calculateFinalTagIds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -153,9 +154,17 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onClickSave() {
-        // TODO: обеспечить сохранение с учетом perMediaAddedTags и perMediaRemovedTags
-        _galleryUiState.value.selectedUris.forEach { uri ->
-            saveMediaTags(uri.toString(), _galleryUiState.value.selectedTagIds)
+        with(_galleryUiState.value) {
+            selectedUris.forEach { uri ->
+                saveMediaTags(
+                    mediaId = uri.toString(),
+                    selectedTagIds = calculateFinalTagIds(
+                        selectedCommonTagIds = selectedTagIds,
+                        individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
+                        individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
+                    )
+                )
+            }
         }
         resetScreen()
     }
