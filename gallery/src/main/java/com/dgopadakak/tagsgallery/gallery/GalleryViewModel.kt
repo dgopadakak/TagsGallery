@@ -53,7 +53,9 @@ class GalleryViewModel @Inject constructor(
                     SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
-                // Очистка от несуществующих id
+                // TODO: вызывать код ниже только в случае изменения tagList (возможно, стоит
+                //  перенести в upSteam)
+                // Очистка от несуществующих id в случае их удаления на экране Tags
                 val existingIds = tagList.map { it.id }.toSet()
                 val updatedSelectedIds = _galleryUiState.value.selectedTagIds.filter { it in existingIds }
                 val updatedPerMediaAddedTagIds = _galleryUiState.value.perMediaAddedTagIds.mapValues {
@@ -87,7 +89,7 @@ class GalleryViewModel @Inject constructor(
                 selectedUris = currentState.selectedUris - uri,
                 activeEditIndividualTags = null,
                 perMediaAddedTagIds = currentState.perMediaAddedTagIds - uri,
-                perMediaRemovedTagIds = currentState.perMediaAddedTagIds - uri
+                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds - uri
             )
         }
         if (_galleryUiState.value.selectedUris.isEmpty()) {
@@ -96,13 +98,19 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun onTagSelected(id: Long) {
-        // TODO: обеспечить влияние на perMediaAddedTags и perMediaRemovedTags
+        val isAddition = !_galleryUiState.value.selectedTagIds.contains(id)
         _galleryUiState.update { currentState ->
             currentState.copy(
-                selectedTagIds = if (_galleryUiState.value.selectedTagIds.contains(id)) {
-                    currentState.selectedTagIds - id
-                } else {
+                selectedTagIds = if (isAddition) {
                     currentState.selectedTagIds + id
+                } else {
+                    currentState.selectedTagIds - id
+                },
+                perMediaAddedTagIds = currentState.perMediaAddedTagIds.mapValues {
+                    it.value.filter { it != id }
+                },
+                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds.mapValues {
+                    it.value.filter { it != id }
                 }
             )
         }

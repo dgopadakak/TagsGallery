@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
+    // TODO: избавиться от рекомпозиций данной функции из-за изменения в uiState не имеющих для нее
+    //  значения параметров
     val uiState by viewModel.galleryUiState.collectAsState()
 
     val context = LocalContext.current
