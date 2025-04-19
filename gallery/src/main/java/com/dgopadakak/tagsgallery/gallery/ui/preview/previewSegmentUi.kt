@@ -43,11 +43,11 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun MediaPreviewRow(
-    galleryMediaUiStateStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
+    uiStateStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onPreviewClick: (Uri) -> Unit,
     onRemoveMediaClick: (Uri) -> Unit
 ) {
-    val uiState by galleryMediaUiStateStateFlow.collectAsState()
+    val uiState by uiStateStateFlow.collectAsState()
 
     val previewSize = 120.dp
     val previewRows = 2
@@ -67,8 +67,8 @@ internal fun MediaPreviewRow(
                 uri = uri,
                 previewSize = previewSize,
                 isActiveForIndividualTagsEdit = uiState.activeEditIndividualTags == uri,
-                individualAddedTagsNum = uiState.perMediaAddedTagsNum.getOrDefault(uri, 0),
-                individualRemovedTagsNum = uiState.perMediaRemovedTagsNum.getOrDefault(uri, 0),
+                individualAddedTagsNum = uiState.perMediaAddedTagIds.getOrDefault(uri, emptyList()).size,
+                individualRemovedTagsNum = uiState.perMediaRemovedTagIds.getOrDefault(uri, emptyList()).size,
                 onPreviewClick = { onPreviewClick(uri) },
                 onRemoveMediaClick = { onRemoveMediaClick(uri) }
             )

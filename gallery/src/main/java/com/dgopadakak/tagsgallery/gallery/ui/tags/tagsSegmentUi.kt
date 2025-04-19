@@ -17,19 +17,20 @@ import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.compose.ui.SimpleTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
+import com.dgopadakak.tagsgallery.gallery.util.calculateFinalTagIds
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun TagsSegment(
     modifier: Modifier = Modifier,
-    galleryTagsUiStateFlow: StateFlow<GalleryViewModel.GalleryTagsUiState>,
+    uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onCommonTagSelected: (Long) -> Unit,
     onSortVariantChanged: (SortVariant) -> Unit,
     onFilterVariantChanged: (Tag.Color?) -> Unit,
     onIndividualTagToggle: (Uri, Long) -> Unit,
     onIndividualTagAccept: () -> Unit,
 ) {
-    val uiState by galleryTagsUiStateFlow.collectAsState()
+    val uiState by uiStateFlow.collectAsState()
 
     val activeMediaUri = uiState.activeEditIndividualTags
     if (activeMediaUri != null) {
@@ -89,15 +90,3 @@ private fun IndividualTagsSelector(
         }
     }
 }
-
-private fun calculateFinalTagIds(
-    selectedCommonTagIds: List<Long>,
-    individualAddedTagIds: List<Long>,
-    individualRemovedTagIds: List<Long>
-): List<Long> {
-    return (selectedCommonTagIds + individualAddedTagIds)
-        .toSet()
-        .minus(individualRemovedTagIds.toSet())
-        .toList()
-}
-

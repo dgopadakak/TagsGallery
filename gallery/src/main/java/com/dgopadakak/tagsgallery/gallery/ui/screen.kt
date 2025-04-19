@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
-    val uiState by viewModel.galleryMediaUiState.collectAsState()
+    val uiState by viewModel.galleryUiState.collectAsState()
 
     val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -62,13 +62,13 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                     .weight(1f)
             ) {
                 MediaPreviewRow(
-                    galleryMediaUiStateStateFlow = viewModel.galleryMediaUiState,
+                    uiStateStateFlow = viewModel.galleryUiState,
                     onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
                     onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
                 )
 
                 TagsSegment(
-                    galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
+                    uiStateFlow = viewModel.galleryUiState,
                     onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
                     onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
                     onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
@@ -79,8 +79,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
         }
         if (uiState.activeEditIndividualTags == null) {
             ButtonBlock(
-                galleryMediaUiStateFlow = viewModel.galleryMediaUiState,
-                galleryTagsUiStateFlow = viewModel.galleryTagsUiState,
+                uiStateFlow = viewModel.galleryUiState,
                 onClickSave = { viewModel.onClickSave() },
                 onClickReset = { viewModel.onClickReset() },
                 onAddMediaClick = {
@@ -97,14 +96,13 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
 @Composable
 private fun ButtonBlock(
-    galleryMediaUiStateFlow: StateFlow<GalleryViewModel.GalleryMediaUiState>,
-    galleryTagsUiStateFlow: StateFlow<GalleryViewModel.GalleryTagsUiState>,
+    uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onClickSave: () -> Unit,
     onClickReset: () -> Unit,
     onAddMediaClick: () -> Unit
 ) {
-    val tagsUiState by galleryTagsUiStateFlow.collectAsState()
-    val previewUiState by galleryMediaUiStateFlow.collectAsState()
+    val uiState by uiStateFlow.collectAsState()
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -118,7 +116,7 @@ private fun ButtonBlock(
                 modifier = Modifier
                     .padding(end = 4.dp),
                 onClick = onClickSave,
-                enabled = tagsUiState.selectedTagIds.isNotEmpty()
+                enabled = uiState.selectedTagIds.isNotEmpty()
             ) {
                 Text("Apply")
             }
@@ -126,7 +124,7 @@ private fun ButtonBlock(
                 modifier = Modifier
                     .padding(start = 4.dp),
                 onClick = onClickReset,
-                enabled = previewUiState.selectedUris.isNotEmpty()
+                enabled = uiState.selectedUris.isNotEmpty()
             ) {
                 Text("Clear")
             }

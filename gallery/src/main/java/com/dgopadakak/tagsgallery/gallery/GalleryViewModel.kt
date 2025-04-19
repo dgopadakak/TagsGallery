@@ -24,36 +24,26 @@ class GalleryViewModel @Inject constructor(
 ) : ViewModel() {
 
     @Stable
-    data class GalleryTagsUiState(
+    data class GalleryUiState(
         val tags: List<Tag> = emptyList(),
         val selectedTagIds: List<Long> = emptyList(),
+        val selectedUris: List<Uri> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
-        val activeEditIndividualTags: Uri? = null,      // TODO: дублирование в обоих UiState, подумать над исправлением (возможно, объединить стейты)
+        val activeEditIndividualTags: Uri? = null,
         val perMediaAddedTagIds: Map<Uri, List<Long>> = mapOf(),
         val perMediaRemovedTagIds: Map<Uri, List<Long>> = mapOf()
     )
 
-    @Stable
-    data class GalleryMediaUiState(
-        val selectedUris: List<Uri> = emptyList(),
-        val activeEditIndividualTags: Uri? = null,
-        val perMediaAddedTagsNum: Map<Uri, Int> = mapOf(),
-        val perMediaRemovedTagsNum: Map<Uri, Int> = mapOf(),
-    )
-
-    private val _galleryTagsUiState = MutableStateFlow(GalleryTagsUiState())
-    val galleryTagsUiState = _galleryTagsUiState.asStateFlow()
-
-    private val _galleryMediaUiState = MutableStateFlow(GalleryMediaUiState())
-    val galleryMediaUiState = _galleryMediaUiState.asStateFlow()
+    private val _galleryUiState = MutableStateFlow(GalleryUiState())
+    val galleryUiState = _galleryUiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             combine(
                 repository.getAllTags(),
-                _galleryTagsUiState.map { it.filterBy }.distinctUntilChanged(),
-                _galleryTagsUiState.map { it.sortBy }.distinctUntilChanged()
+                _galleryUiState.map { it.filterBy }.distinctUntilChanged(),
+                _galleryUiState.map { it.sortBy }.distinctUntilChanged()
             ) { tagList, filterVariant, sortVariant ->
                 val filteredTags =
                     filterVariant?.let { tagList.filter { it.color == filterVariant } } ?: tagList
@@ -62,13 +52,21 @@ class GalleryViewModel @Inject constructor(
                     SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
-                // Очистка selectedTagIds от несуществующих id
+                // Очистка от несуществующих id
                 val existingIds = tagList.map { it.id }.toSet()
-                val updatedSelectedIds = _galleryTagsUiState.value.selectedTagIds.filter { it in existingIds }
-                _galleryTagsUiState.update {
-                    it.copy(
+                val updatedSelectedIds = _galleryUiState.value.selectedTagIds.filter { it in existingIds }
+                val updatedPerMediaAddedTagIds = _galleryUiState.value.perMediaAddedTagIds.mapValues {
+                    it.value.filter { it in existingIds }
+                }
+                val updatedPerMediaRemovedTagIds = _galleryUiState.value.perMediaRemovedTagIds.mapValues {
+                    it.value.filter { it in existingIds }
+                }
+                _galleryUiState.update { currentState ->
+                    currentState.copy(
                         tags = sortedTags,
-                        selectedTagIds = updatedSelectedIds
+                        selectedTagIds = updatedSelectedIds,
+                        perMediaAddedTagIds = updatedPerMediaAddedTagIds,
+                        perMediaRemovedTagIds = updatedPerMediaRemovedTagIds
                     )
                 }
             }.collect {}
@@ -76,104 +74,78 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun addSelectedMedia(uris: List<Uri>) {
-        _galleryMediaUiState.update { currentState ->
+        _galleryUiState.update { currentState ->
             val updatedUris = (currentState.selectedUris + uris).distinct()
             currentState.copy(selectedUris = updatedUris)
         }
     }
 
     fun removeSelectedMedia(uri: Uri) {
-        _galleryMediaUiState.update { currentState ->
+        _galleryUiState.update { currentState ->
             currentState.copy(
                 selectedUris = currentState.selectedUris - uri,
-                activeEditIndividualTags = null,
-                perMediaAddedTagsNum = currentState.perMediaAddedTagsNum - uri,
-                perMediaRemovedTagsNum = currentState.perMediaRemovedTagsNum - uri
-            )
-        }
-        _galleryTagsUiState.update { currentState ->
-            currentState.copy(
                 activeEditIndividualTags = null,
                 perMediaAddedTagIds = currentState.perMediaAddedTagIds - uri,
                 perMediaRemovedTagIds = currentState.perMediaAddedTagIds - uri
             )
         }
-        if (_galleryMediaUiState.value.selectedUris.isEmpty()) {
+        if (_galleryUiState.value.selectedUris.isEmpty()) {
             resetScreen()
         }
     }
 
     fun onTagSelected(id: Long) {
         // TODO: обеспечить влияние на perMediaAddedTags и perMediaRemovedTags
-        if (_galleryTagsUiState.value.selectedTagIds.contains(id)) {
-            _galleryTagsUiState.update { currentState ->
-                currentState.copy(
-                    selectedTagIds = currentState.selectedTagIds - id
-                )
-            }
-        } else {
-            _galleryTagsUiState.update { currentState ->
-                currentState.copy(
-                    selectedTagIds = currentState.selectedTagIds + id
-                )
-            }
+        _galleryUiState.update { currentState ->
+            currentState.copy(
+                selectedTagIds = if (_galleryUiState.value.selectedTagIds.contains(id)) {
+                    currentState.selectedTagIds - id
+                } else {
+                    currentState.selectedTagIds + id
+                }
+            )
         }
     }
 
     fun onPerMediaTagToggle(uri: Uri, tagId: Long) {
-        val isCommonSelected = _galleryTagsUiState.value.selectedTagIds.contains(tagId)
+        val isCommonSelected = _galleryUiState.value.selectedTagIds.contains(tagId)
         if (isCommonSelected) {
             val removed = arrayListOf<Long>()
-            _galleryTagsUiState.value.perMediaRemovedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
+            _galleryUiState.value.perMediaRemovedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
                 removed.add(id)
             }
             if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
-            _galleryTagsUiState.update { currentState ->
+            _galleryUiState.update { currentState ->
                 currentState.copy(
                     perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(Pair(uri, removed))
                 )
             }
-            _galleryMediaUiState.update { currentState ->
-                currentState.copy(
-                    perMediaRemovedTagsNum = currentState.perMediaRemovedTagsNum + mapOf(Pair(uri, removed.size))
-                )
-            }
         } else {
             val added = arrayListOf<Long>()
-            _galleryTagsUiState.value.perMediaAddedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
+            _galleryUiState.value.perMediaAddedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
                 added.add(id)
             }
             if (added.contains(tagId)) added.remove(tagId) else added.add(tagId)
-            _galleryTagsUiState.update { currentState ->
+            _galleryUiState.update { currentState ->
                 currentState.copy(
                     perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(Pair(uri, added))
-                )
-            }
-            _galleryMediaUiState.update { currentState ->
-                currentState.copy(
-                    perMediaAddedTagsNum = currentState.perMediaAddedTagsNum + mapOf(Pair(uri, added.size))
                 )
             }
         }
     }
 
     fun setSortBy(sortBy: SortVariant) {
-        _galleryTagsUiState.update { it.copy(sortBy = sortBy) }
+        _galleryUiState.update { it.copy(sortBy = sortBy) }
     }
 
     fun setFilterBy(filterBy: Tag.Color?) {
-        _galleryTagsUiState.update { it.copy(filterBy = filterBy) }
+        _galleryUiState.update { it.copy(filterBy = filterBy) }
     }
 
     fun setActiveUriForIndividualTags(uri: Uri?) {
-        if (_galleryMediaUiState.value.activeEditIndividualTags == null || uri == null) {
-            _galleryMediaUiState.update { currentState ->
+        if (_galleryUiState.value.activeEditIndividualTags == null || uri == null) {
+            _galleryUiState.update { currentState ->
                 currentState.copy(
-                    activeEditIndividualTags = uri
-                )
-            }
-            _galleryTagsUiState.update { currentSTate ->
-                currentSTate.copy(
                     activeEditIndividualTags = uri
                 )
             }
@@ -182,8 +154,8 @@ class GalleryViewModel @Inject constructor(
 
     fun onClickSave() {
         // TODO: обеспечить сохранение с учетом perMediaAddedTags и perMediaRemovedTags
-        _galleryMediaUiState.value.selectedUris.forEach { uri ->
-            saveMediaTags(uri.toString(), _galleryTagsUiState.value.selectedTagIds)
+        _galleryUiState.value.selectedUris.forEach { uri ->
+            saveMediaTags(uri.toString(), _galleryUiState.value.selectedTagIds)
         }
         resetScreen()
     }
@@ -201,16 +173,10 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun resetScreen() {
-        _galleryMediaUiState.update { currentState ->
-            currentState.copy(
-                selectedUris = emptyList(),
-                perMediaAddedTagsNum = emptyMap(),
-                perMediaRemovedTagsNum = emptyMap()
-            )
-        }
-        _galleryTagsUiState.update { currentState ->
+        _galleryUiState.update { currentState ->
             currentState.copy(
                 selectedTagIds = emptyList(),
+                selectedUris = emptyList(),
                 perMediaAddedTagIds = emptyMap(),
                 perMediaRemovedTagIds = emptyMap()
             )
