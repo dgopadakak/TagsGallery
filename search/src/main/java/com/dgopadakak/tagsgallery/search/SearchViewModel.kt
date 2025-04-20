@@ -22,44 +22,33 @@ class SearchViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
-    data class SearchTagsUiState(
+    data class SearchUiState(
         val tags: List<Tag> = emptyList(),
-        val selectedTagIds: List<Long> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
-    )
-
-    data class SearchMediaUiState(
         val foundedMediaUris: List<Uri> = emptyList()
     )
 
-    private val _searchTagsUiState = MutableStateFlow(SearchTagsUiState())
-    val searchTagsUiState = _searchTagsUiState.asStateFlow()
-
-    private val _searchMediaUiState = MutableStateFlow(SearchMediaUiState())
-    val searchMediaUiState = _searchMediaUiState.asStateFlow()
+    private val _searchUiState = MutableStateFlow(SearchUiState())
+    val searchUiState = _searchUiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             combine(
                 repository.getAllTags(),
-                _searchTagsUiState.map { it.filterBy }.distinctUntilChanged(),
-                _searchTagsUiState.map { it.sortBy }.distinctUntilChanged()
+                _searchUiState.map { it.filterBy }.distinctUntilChanged(),
+                _searchUiState.map { it.sortBy }.distinctUntilChanged()
             ) { tagList, filterVariant, sortVariant ->
                 val filteredTags =
                     filterVariant?.let { tagList.filter { it.color == filterVariant } } ?: tagList
-                val sortedTags = when (sortVariant) {
+                val sortedAndFilteredTags = when (sortVariant) {
                     SortVariant.NAME -> filteredTags.sortedBy { it.name }
                     SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
-                // Очистка selectedTagIds от несуществующих id
-                val existingIds = tagList.map { it.id }.toSet()
-                val updatedSelectedIds = _searchTagsUiState.value.selectedTagIds.filter { it in existingIds }
-                _searchTagsUiState.update {
+                _searchUiState.update {
                     it.copy(
-                        tags = sortedTags,
-                        selectedTagIds = updatedSelectedIds
+                        tags = sortedAndFilteredTags
                     )
                 }
             }.collect {}
@@ -70,7 +59,7 @@ class SearchViewModel @Inject constructor(
     fun loadMediaForTag(tagId: Long) {
         viewModelScope.launch {
             repository.getTagWithMedia(tagId).collect { tagWithMedia ->
-                _searchMediaUiState.update { currentState ->
+                _searchUiState.update { currentState ->
                     currentState.copy(foundedMediaUris = tagWithMedia?.media?.map { it.mediaId.toUri() } ?: emptyList<Uri>())
                 }
             }

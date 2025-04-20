@@ -41,21 +41,8 @@ class GalleryViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(
-                repository.getAllTags(),
-                _galleryUiState.map { it.filterBy }.distinctUntilChanged(),
-                _galleryUiState.map { it.sortBy }.distinctUntilChanged()
-            ) { tagList, filterVariant, sortVariant ->
-                val filteredTags =
-                    filterVariant?.let { tagList.filter { it.color == filterVariant } } ?: tagList
-                val sortedTags = when (sortVariant) {
-                    SortVariant.NAME -> filteredTags.sortedBy { it.name }
-                    SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
-                    SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
-                }
-                // TODO: вызывать код ниже только в случае изменения tagList (возможно, стоит
-                //  перенести в upSteam)
-                // Очистка от несуществующих id в случае их удаления на экране Tags
+            // Очистка от несуществующих id в случае их удаления на экране Tags
+            repository.getAllTags().collect { tagList ->
                 val existingIds = tagList.map { it.id }.toSet()
                 val updatedSelectedIds = _galleryUiState.value.selectedTagIds.filter { it in existingIds }
                 val updatedPerMediaAddedTagIds = _galleryUiState.value.perMediaAddedTagIds.mapValues {
@@ -66,11 +53,29 @@ class GalleryViewModel @Inject constructor(
                 }
                 _galleryUiState.update { currentState ->
                     currentState.copy(
-                        tags = sortedTags,
                         selectedTagIds = updatedSelectedIds,
                         perMediaAddedTagIds = updatedPerMediaAddedTagIds,
                         perMediaRemovedTagIds = updatedPerMediaRemovedTagIds
                     )
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            combine(
+                repository.getAllTags(),
+                _galleryUiState.map { it.filterBy }.distinctUntilChanged(),
+                _galleryUiState.map { it.sortBy }.distinctUntilChanged()
+            ) { tagList, filterVariant, sortVariant ->
+                val filteredTags =
+                    filterVariant?.let { tagList.filter { it.color == filterVariant } } ?: tagList
+                val sortedAndFilteredTags = when (sortVariant) {
+                    SortVariant.NAME -> filteredTags.sortedBy { it.name }
+                    SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
+                    SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
+                }
+                _galleryUiState.update { currentState ->
+                    currentState.copy(tags = sortedAndFilteredTags)
                 }
             }.collect {}
         }
