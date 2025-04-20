@@ -1,7 +1,9 @@
 package com.dgopadakak.tagsgallery.gallery.ui.preview
 
 import android.net.Uri
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -87,6 +90,13 @@ private fun MediaPreview(
     onRemoveMediaClick: () -> Unit
 ) {
     val context = LocalContext.current
+    val borderColor by animateColorAsState(
+        if (isActiveForIndividualTagsEdit){
+            MaterialTheme.colorScheme.primary
+        } else {
+            Color.Transparent
+        }
+    )
     val isVideo = remember(uri) {
         val type = context.contentResolver.getType(uri)
         type?.startsWith("video") == true
@@ -98,6 +108,7 @@ private fun MediaPreview(
         modifier = Modifier
             .size(previewSize)
             .clip(RoundedCornerShape(8.dp))
+            .border(4.dp, borderColor, RoundedCornerShape(8.dp))
             .clickable{ onPreviewClick() }
     ) {
         AsyncImage(
@@ -129,7 +140,7 @@ private fun MediaPreview(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(4.dp)
+                .padding(6.dp)
                 .background(
                     color = Color.Black.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(4.dp)
@@ -149,7 +160,7 @@ private fun MediaPreview(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(4.dp)
+                    .padding(6.dp)
                     .background(
                         color = Color.Black.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(4.dp)

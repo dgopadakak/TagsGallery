@@ -157,12 +157,14 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun setActiveUriForIndividualTags(uri: Uri?) {
-        if (_galleryUiState.value.activeEditIndividualTags == null || uri == null) {
-            _galleryUiState.update { currentState ->
-                currentState.copy(
-                    activeEditIndividualTags = uri
-                )
-            }
+        _galleryUiState.update { currentState ->
+            currentState.copy(
+                activeEditIndividualTags = if (currentState.activeEditIndividualTags == uri) {
+                    null
+                } else {
+                    uri
+                }
+            )
         }
     }
 
