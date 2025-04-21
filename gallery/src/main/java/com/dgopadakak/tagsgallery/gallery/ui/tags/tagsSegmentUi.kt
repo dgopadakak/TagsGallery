@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun TagsSegment(
-    modifier: Modifier = Modifier,
     uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onCommonTagSelected: (Long) -> Unit,
     onSortVariantChanged: (SortVariant) -> Unit,
@@ -39,42 +39,46 @@ internal fun TagsSegment(
     onIndividualTagToggle: (Uri, Long) -> Unit,
     onIndividualTagAccept: () -> Unit,
 ) {
+
     val uiState by uiStateFlow.collectAsState()
 
-    val activeMediaUri = uiState.activeEditIndividualTags
-    AnimatedContent(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .clipToBounds(),
-        targetState = activeMediaUri,
-        transitionSpec = {
-            if (targetState != null) {
-                (slideInVertically { -it } + fadeIn()).togetherWith(slideOutVertically { it } + fadeOut())
+            .clipToBounds()
+    ) {
+        AnimatedContent(
+            modifier = Modifier
+                .fillMaxSize(),
+            targetState = uiState.activeEditIndividualTags,
+            transitionSpec = {
+                if (targetState != null) {
+                    (slideInVertically { -it } + fadeIn()).togetherWith(slideOutVertically { it } + fadeOut())
+                } else {
+                    (slideInVertically { it } + fadeIn()).togetherWith(slideOutVertically { -it } + fadeOut())
+                }.using(SizeTransform(clip = false))
+            }
+        ) { uri ->
+            if (uri != null) {
+                IndividualTagsSelector(
+                    tags = uiState.tags.sortedBy { it.name },
+                    selectedCommonTagIds = uiState.selectedTagIds,
+                    individualAddedTagIds = uiState.perMediaAddedTagIds.getOrDefault(uri, emptyList()),
+                    individualRemovedTagIds = uiState.perMediaRemovedTagIds.getOrDefault(uri, emptyList()),
+                    onTagToggle = { tagId -> onIndividualTagToggle(uri, tagId) },
+                    onClickAccept = onIndividualTagAccept
+                )
             } else {
-                (slideInVertically { it } + fadeIn()).togetherWith(slideOutVertically { -it } + fadeOut())
-            }.using(SizeTransform(clip = false))
-        }
-    ) { uri ->
-        if (uri != null) {
-            IndividualTagsSelector(
-                tags = uiState.tags.sortedBy { it.name },
-                selectedCommonTagIds = uiState.selectedTagIds,
-                individualAddedTagIds = uiState.perMediaAddedTagIds.getOrDefault(uri, emptyList()),
-                individualRemovedTagIds = uiState.perMediaRemovedTagIds.getOrDefault(uri, emptyList()),
-                onTagToggle = { tagId -> onIndividualTagToggle(uri, tagId) },
-                onClickAccept = onIndividualTagAccept
-            )
-        } else {
-            FullTagsSelectionView(
-                modifier = modifier,
-                tags = uiState.tags,
-                selectedTagsIds = uiState.selectedTagIds,
-                onTagClick = onCommonTagSelected,
-                sortBy = uiState.sortBy,
-                onSortVariantChanged = onSortVariantChanged,
-                filterBy = uiState.filterBy,
-                onFilterVariantChanged = onFilterVariantChanged
-            )
+                FullTagsSelectionView(
+                    tags = uiState.tags,
+                    selectedTagsIds = uiState.selectedTagIds,
+                    onTagClick = onCommonTagSelected,
+                    sortBy = uiState.sortBy,
+                    onSortVariantChanged = onSortVariantChanged,
+                    filterBy = uiState.filterBy,
+                    onFilterVariantChanged = onFilterVariantChanged
+                )
+            }
         }
     }
 }
