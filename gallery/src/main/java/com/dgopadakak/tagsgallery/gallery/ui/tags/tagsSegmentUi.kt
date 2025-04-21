@@ -10,11 +10,15 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.compose.ui.SimpleTagsSelectionView
@@ -51,6 +56,7 @@ internal fun TagsSegment(
             modifier = Modifier
                 .fillMaxSize(),
             targetState = uiState.activeEditIndividualTags,
+            contentKey = { it == null },
             transitionSpec = {
                 if (targetState != null) {
                     (slideInVertically { -it } + fadeIn()).togetherWith(slideOutVertically { it } + fadeOut())
@@ -69,15 +75,23 @@ internal fun TagsSegment(
                     onClickAccept = onIndividualTagAccept
                 )
             } else {
-                FullTagsSelectionView(
-                    tags = uiState.tags,
-                    selectedTagsIds = uiState.selectedTagIds,
-                    onTagClick = onCommonTagSelected,
-                    sortBy = uiState.sortBy,
-                    onSortVariantChanged = onSortVariantChanged,
-                    filterBy = uiState.filterBy,
-                    onFilterVariantChanged = onFilterVariantChanged
-                )
+                Column {
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 8.dp),
+                        text = "Tap on media to edit tags individually",
+                        fontSize = 12.sp
+                    )
+                    FullTagsSelectionView(
+                        tags = uiState.tags,
+                        selectedTagsIds = uiState.selectedTagIds,
+                        onTagClick = onCommonTagSelected,
+                        sortBy = uiState.sortBy,
+                        onSortVariantChanged = onSortVariantChanged,
+                        filterBy = uiState.filterBy,
+                        onFilterVariantChanged = onFilterVariantChanged
+                    )
+                }
             }
         }
     }
@@ -92,14 +106,28 @@ private fun IndividualTagsSelector(
     onTagToggle: (Long) -> Unit,
     onClickAccept: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-    ) {
-        Text(text = "Edit tags list individual for selected media")
+    Column {
+        TextButton(
+            onClick = onClickAccept
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(start = 8.dp),
+                    text = "Save and return to common tags"
+                )
+            }
+        }
         SimpleTagsSelectionView(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp),
             tags = tags,
             selectedTagsIds = calculateFinalTagIds(
                 selectedCommonTagIds = selectedCommonTagIds,
@@ -108,12 +136,5 @@ private fun IndividualTagsSelector(
             ),
             onTagClick = onTagToggle
         )
-        Button(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally),
-            onClick = onClickAccept
-        ) {
-            Text(text = "Accept")
-        }
     }
 }
