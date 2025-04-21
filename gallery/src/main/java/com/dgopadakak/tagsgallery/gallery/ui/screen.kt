@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -48,17 +49,26 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
     Column(
         modifier = Modifier
-            .padding(vertical = 16.dp)
+            .padding(top = 8.dp)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),     // На всякий случай для маленьких экранов
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        if (uiState.selectedUris.isEmpty()) {
-            Text(
-                text = "Select the media to apply the tags to"
-            )
-        } else {
+        ButtonRow(
+            uiStateFlow = viewModel.galleryUiState,
+            onClickSave = { viewModel.onClickSave() },
+            onClickReset = { viewModel.onClickReset() },
+            onAddMediaClick = {
+                viewModel.setActiveUriForIndividualTags(null)
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                    )
+                )
+            }
+        )
+        if (uiState.selectedUris.isNotEmpty()) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -79,25 +89,11 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 )
             }
         }
-        if (uiState.activeEditIndividualTags == null) {
-            ButtonBlock(
-                uiStateFlow = viewModel.galleryUiState,
-                onClickSave = { viewModel.onClickSave() },
-                onClickReset = { viewModel.onClickReset() },
-                onAddMediaClick = {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageAndVideo
-                        )
-                    )
-                }
-            )
-        }
     }
 }
 
 @Composable
-private fun ButtonBlock(
+private fun ButtonRow(
     uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
     onClickSave: () -> Unit,
     onClickReset: () -> Unit,
@@ -105,10 +101,14 @@ private fun ButtonBlock(
 ) {
     val uiState by uiStateFlow.collectAsState()
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Button(
+            modifier = Modifier
+                .padding(start = 8.dp),
             onClick = onAddMediaClick
         ) {
             Text("Add media")
@@ -116,19 +116,19 @@ private fun ButtonBlock(
         Row {
             Button(
                 modifier = Modifier
-                    .padding(end = 4.dp),
-                onClick = onClickSave,
-                enabled = uiState.selectedTagIds.isNotEmpty()
-            ) {
-                Text("Apply")
-            }
-            Button(
-                modifier = Modifier
-                    .padding(start = 4.dp),
+                    .padding(end = 8.dp),
                 onClick = onClickReset,
                 enabled = uiState.selectedUris.isNotEmpty()
             ) {
-                Text("Clear")
+                Text("Clear all")
+            }
+            Button(
+                modifier = Modifier
+                    .padding(end = 8.dp),
+                onClick = onClickSave,
+                enabled = uiState.selectedTagIds.isNotEmpty()
+            ) {
+                Text("Save")
             }
         }
     }
