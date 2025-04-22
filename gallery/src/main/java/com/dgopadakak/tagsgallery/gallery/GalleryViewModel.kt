@@ -124,10 +124,7 @@ class GalleryViewModel @Inject constructor(
     fun onPerMediaTagToggle(uri: Uri, tagId: Long) {
         val isCommonSelected = _galleryUiState.value.selectedTagIds.contains(tagId)
         if (isCommonSelected) {
-            val removed = arrayListOf<Long>()
-            _galleryUiState.value.perMediaRemovedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
-                removed.add(id)
-            }
+            val removed = ArrayList(_galleryUiState.value.perMediaRemovedTagIds.getOrDefault(uri, emptyList()))
             if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
             _galleryUiState.update { currentState ->
                 currentState.copy(
@@ -135,10 +132,7 @@ class GalleryViewModel @Inject constructor(
                 )
             }
         } else {
-            val added = arrayListOf<Long>()
-            _galleryUiState.value.perMediaAddedTagIds.getOrDefault(uri, defaultValue = null)?.forEach { id ->
-                added.add(id)
-            }
+            val added = ArrayList(_galleryUiState.value.perMediaAddedTagIds.getOrDefault(uri, emptyList()))
             if (added.contains(tagId)) added.remove(tagId) else added.add(tagId)
             _galleryUiState.update { currentState ->
                 currentState.copy(
