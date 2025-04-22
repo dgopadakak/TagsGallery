@@ -25,7 +25,7 @@ fun ColorFilterRow(
         item {
             Text(
                 modifier = Modifier
-                    .padding(start = 12.dp, end = 4.dp),
+                    .padding(end = 4.dp),
                 text = "Filter tags by:"
             )
         }

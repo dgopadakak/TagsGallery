@@ -18,7 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.dgopadakak.tagsgallery.gallery.GalleryScreen
+import com.dgopadakak.tagsgallery.gallery.ui.GalleryScreen
 import com.dgopadakak.tagsgallery.search.SearchScreen
 import com.dgopadakak.tagsgallery.tags.TagsScreen
 

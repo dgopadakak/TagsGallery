@@ -38,12 +38,12 @@ class TagsViewModel @Inject constructor(
             ) { tagList, filterVariant, sortVariant ->
                 val filteredTags =
                     filterVariant?.let { tagList.filter { it.color == filterVariant } } ?: tagList
-                val sortedTags = when (sortVariant) {
+                val filteredAndSortedTags = when (sortVariant) {
                     SortVariant.NAME -> filteredTags.sortedBy { it.name }
                     SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
-                _uiState.update { it.copy(tags = sortedTags) }
+                _uiState.update { it.copy(tags = filteredAndSortedTags) }
             }.collect {}
         }
     }
@@ -54,7 +54,6 @@ class TagsViewModel @Inject constructor(
                 repository.insertTag(
                     Tag(
                         name = name.trim(),
-                        lastModified = System.currentTimeMillis(),
                         color = color
                     )
                 )
@@ -66,7 +65,6 @@ class TagsViewModel @Inject constructor(
                             Tag(
                                 id = id,
                                 name = name.trim(),
-                                lastModified = System.currentTimeMillis(),
                                 color = color
                             )
                         )
