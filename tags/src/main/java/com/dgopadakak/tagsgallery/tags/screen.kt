@@ -92,7 +92,9 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             val gridState = rememberLazyGridState()
 
             LazyVerticalGrid(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp, start = 8.dp, end = 8.dp),
                 state = gridState,
                 columns = GridCells.Adaptive(160.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -211,7 +213,9 @@ fun TagDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (name.isNotBlank()) onSave(tag?.id, name, color) }) {
+            TextButton(
+                onClick = { if (name.isNotBlank()) onSave(tag?.id, name, color) }
+            ) {
                 Text("Save")
             }
         },
