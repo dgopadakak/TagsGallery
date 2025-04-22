@@ -8,22 +8,25 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -107,22 +110,29 @@ private fun IndividualTagsSelector(
     onClickAccept: () -> Unit
 ) {
     Column {
-        TextButton(
-            onClick = onClickAccept
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .clickable(onClick = onClickAccept)
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 8.dp),
-                    text = "Save and return to common tags"
-                )
-            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                modifier = Modifier
+                    .padding(start = 8.dp),
+                text = "Save and return to common tags",
+                color = MaterialTheme.colorScheme.primary,
+                fontFamily = MaterialTheme.typography.labelLarge.fontFamily,
+                fontWeight = MaterialTheme.typography.labelLarge.fontWeight,
+                fontSize = MaterialTheme.typography.labelLarge.fontSize,
+                letterSpacing = MaterialTheme.typography.labelLarge.letterSpacing
+            )
         }
         SimpleTagsSelectionView(
             modifier = Modifier
