@@ -72,6 +72,8 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 
     Column {
         SortVariantsRow(
+            modifier = Modifier
+                .padding(start = 12.dp),
             sortBy = uiState.sortBy
         ) {
             viewModel.setSortBy(it)
@@ -79,7 +81,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 
         ColorFilterRow(
             modifier = Modifier
-                .padding(vertical = 4.dp),
+                .padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
             filterBy = uiState.filterBy
         ) {
             viewModel.setFilterBy(it)

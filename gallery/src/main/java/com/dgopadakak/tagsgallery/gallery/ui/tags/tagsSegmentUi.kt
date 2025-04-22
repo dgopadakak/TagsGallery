@@ -86,6 +86,7 @@ internal fun TagsSegment(
                         fontSize = 12.sp
                     )
                     FullTagsSelectionView(
+                        modifier = Modifier.padding(start = 8.dp),
                         tags = uiState.tags,
                         selectedTagsIds = uiState.selectedTagIds,
                         onTagClick = onCommonTagSelected,
