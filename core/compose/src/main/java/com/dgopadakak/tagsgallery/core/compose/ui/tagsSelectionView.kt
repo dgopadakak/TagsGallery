@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,14 +71,26 @@ fun SimpleTagsSelectionView(
             .verticalScroll(rememberScrollState())
     ) {
         tags.forEach { tag ->
-            val baseColor = MaterialTheme.colorScheme.surface
-            val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
-            val blendedColor = lerp(baseColor, tagColor, 0.2f)
+            val baseSelectedColor = MaterialTheme.colorScheme.secondaryContainer
+            val tagSelectedColor = tag.color.colorLong?.let { Color(it) } ?: baseSelectedColor
+            val blendedSelectedColor = lerp(baseSelectedColor, tagSelectedColor, 0.2f)
+
+            val baseUnselectedColor = MaterialTheme.colorScheme.surface
+            val tagUnselectedColor = tag.color.colorLong?.let { Color(it) } ?: baseUnselectedColor
+            val blendedUnselectedColor = lerp(baseUnselectedColor, tagUnselectedColor, 0.2f)
 
             FilterChip(
                 modifier = Modifier.padding(horizontal = 4.dp),
                 selected = selectedTagsIds.contains(tag.id),
                 onClick = { onTagClick(tag.id) },
+                leadingIcon = {
+                    if (selectedTagsIds.contains(tag.id)) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null
+                        )
+                    }
+                },
                 label = {
                     Text(
                         text = tag.name,
@@ -83,7 +98,10 @@ fun SimpleTagsSelectionView(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                colors = FilterChipDefaults.filterChipColors(containerColor = blendedColor)
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = blendedUnselectedColor,
+                    selectedContainerColor = blendedSelectedColor
+                )
             )
         }
     }
