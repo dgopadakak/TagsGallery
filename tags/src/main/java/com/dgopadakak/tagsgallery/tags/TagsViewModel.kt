@@ -102,10 +102,17 @@ class TagsViewModel @Inject constructor(
         }
     }
 
-    fun deleteSelectedTags(tag: Tag) {
+    fun onResetSelection() {
+        _uiState.update { it.copy(selectedTagIds = emptyList()) }
+    }
+
+    fun deleteSelectedTags() {
         // TODO: обеспечить удаление всех выбранных тегов одной транзакцией
+        // TODO: обеспечить удаление тега по id, без передачи самого объекта для удаления
         viewModelScope.launch {
-            repository.deleteTagAndRelations(tag)
+            _uiState.value.selectedTagIds.forEach { id ->
+                repository.deleteTagAndRelations(_uiState.value.tags.find { it.id == id }!!)
+            }
         }
     }
 

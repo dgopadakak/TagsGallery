@@ -40,24 +40,36 @@ import java.util.Locale
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var tagToEdit by remember { mutableStateOf<Tag?>(null) }
 
-    if (showDialog) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showEditDialog) {
         TagDialog(
             tag = tagToEdit,
-            onDismiss = { showDialog = false; tagToEdit = null },
+            onDismiss = { showEditDialog = false; tagToEdit = null },
             onSave = { id, name, color ->
                 viewModel.saveTag(id, name, color)
-                showDialog = false
+                showEditDialog = false
                 tagToEdit = null
             }
         )
     }
 
+    if (showDeleteDialog) {
+        DeleteDialog(
+            numOfTags = uiState.selectedTagIds.size,
+            onAccept = { viewModel.deleteSelectedTags() },
+            onDismiss = { showDeleteDialog = false }
+        )
+    }
+
     Column {
         HeaderRow(
-            uiStateFlow = viewModel.uiState
+            uiStateFlow = viewModel.uiState,
+            onResetSelection = { viewModel.onResetSelection() },
+            onAcceptDeletion = { showDeleteDialog = true }
         )
 
         SortVariantsRow(
@@ -84,7 +96,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 uiStateFlow = viewModel.uiState,
                 onTagEdit = { tag ->
                     tagToEdit = tag
-                    showDialog = true
+                    showEditDialog = true
                 },
                 onTagSelect = { id ->
                     viewModel.onTagSelect(id)
@@ -95,7 +107,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp),
-                onClick = { showDialog = true }
+                onClick = { showEditDialog = true }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Tag")
             }
@@ -104,7 +116,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun TagDialog(
+private fun TagDialog(
     tag: Tag?,
     onDismiss: () -> Unit,
     onSave: (Long?, String, Tag.Color) -> Unit
@@ -163,4 +175,27 @@ fun TagDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+}
+
+@Composable
+private fun DeleteDialog(
+    numOfTags: Int,
+    onAccept: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete Tags?") },
+        text = { Text("Selected tags ($numOfTags) will be deleted") },
+        confirmButton = {
+            TextButton(onClick = onAccept) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
