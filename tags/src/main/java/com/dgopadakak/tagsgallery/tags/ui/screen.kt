@@ -31,8 +31,7 @@ import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.tags.TagsViewModel
 import com.dgopadakak.tagsgallery.tags.ui.body.TagsGrid
-import com.dgopadakak.tagsgallery.tags.ui.header.LimitsAndAdHeaderRow
-import com.dgopadakak.tagsgallery.tags.ui.header.TagSelectionModeHeaderRow
+import com.dgopadakak.tagsgallery.tags.ui.header.HeaderRow
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,11 +56,9 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     }
 
     Column {
-        if (uiState.selectedTagIds.isEmpty()) {
-            LimitsAndAdHeaderRow()
-        } else {
-            TagSelectionModeHeaderRow()
-        }
+        HeaderRow(
+            uiStateFlow = viewModel.uiState
+        )
 
         SortVariantsRow(
             modifier = Modifier
