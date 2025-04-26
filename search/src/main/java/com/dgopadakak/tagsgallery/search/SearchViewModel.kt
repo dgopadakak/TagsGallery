@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.search
 
 import android.net.Uri
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
@@ -22,6 +23,7 @@ class SearchViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
+    @Stable
     data class SearchUiState(
         val tags: List<Tag> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,

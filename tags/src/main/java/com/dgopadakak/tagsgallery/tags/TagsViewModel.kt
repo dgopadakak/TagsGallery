@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.tags
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
@@ -20,16 +21,31 @@ class TagsViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
+    @Stable
     data class UiState(
         val sortBy: SortVariant = SortVariant.NAME,
         val filterBy: Tag.Color? = null,
-        val tags: List<Tag> = emptyList()
+        val tags: List<Tag> = emptyList(),
+        val selectedTagIds: List<Long> = emptyList()
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
 
     init {
+        // Очистка от несуществующих id в случае их удаления
+        viewModelScope.launch {
+            repository.getAllTags().collect{ tagList ->
+                val existingIds = tagList.map { it.id }.toSet()
+                val updatedSelectedIds = _uiState.value.selectedTagIds.filter { it in existingIds }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        selectedTagIds = updatedSelectedIds
+                    )
+                }
+            }
+        }
+
         viewModelScope.launch {
             combine(
                 repository.getAllTags(),
@@ -74,7 +90,20 @@ class TagsViewModel @Inject constructor(
         }
     }
 
-    fun deleteTag(tag: Tag) {
+    fun onTagSelect(tagId: Long) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                selectedTagIds = if (currentState.selectedTagIds.contains(tagId)) {
+                    currentState.selectedTagIds - tagId
+                } else {
+                    currentState.selectedTagIds + tagId
+                }
+            )
+        }
+    }
+
+    fun deleteSelectedTags(tag: Tag) {
+        // TODO: обеспечить удаление всех выбранных тегов одной транзакцией
         viewModelScope.launch {
             repository.deleteTagAndRelations(tag)
         }

@@ -1,11 +1,14 @@
 package com.dgopadakak.tagsgallery.tags
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -15,18 +18,20 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +45,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
@@ -71,6 +77,12 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     }
 
     Column {
+        if (uiState.selectedTagIds.isEmpty()) {
+            LimitsAndAdHeaderRow()
+        } else {
+            TagSelectionModeHeaderRow()
+        }
+
         SortVariantsRow(
             modifier = Modifier
                 .padding(start = 12.dp),
@@ -105,11 +117,13 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 items(uiState.tags, key = { it.id }) { tag ->
                     TagCard(
                         tag = tag,
+                        isSelectMode = uiState.selectedTagIds.isNotEmpty(),
+                        selected = uiState.selectedTagIds.contains(tag.id),
                         onEdit = {
                             tagToEdit = tag
                             showDialog = true
                         },
-                        onDelete = { viewModel.deleteTag(tag) },
+                        onSelect = { viewModel.onTagSelect(tag.id) },
                         isScrollInProgress = gridState.isScrollInProgress
                     )
                 }
@@ -128,10 +142,45 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 }
 
 @Composable
+fun LimitsAndAdHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(horizontal = 8.dp),
+            text = "TODO: Limits And Ad"
+        )
+    }
+}
+
+@Composable
+fun TagSelectionModeHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(horizontal = 8.dp),
+            text = "TODO: Selection Management"
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
 fun TagCard(
     tag: Tag,
+    isSelectMode: Boolean,
+    selected: Boolean,
     onEdit: () -> Unit,
-    onDelete: () -> Unit,
+    onSelect: () -> Unit,
     isScrollInProgress: Boolean
 ) {
     val baseColor = CardDefaults.cardColors().containerColor
@@ -141,31 +190,43 @@ fun TagCard(
     Card(
         modifier = Modifier
             .animatePlacement(enabled = !isScrollInProgress)
-            .fillMaxSize()
+            .fillMaxWidth()
+            .height(56.dp)
             .padding(4.dp)
-            .clickable(onClick = onEdit),
+            .combinedClickable(
+                onClick = if (isSelectMode) onSelect else onEdit,
+                onLongClick = onSelect
+            ),
         colors = CardDefaults.cardColors(containerColor = blendedColor),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            if (isSelectMode) {
+                // TODO: Сделать плавное появление и не Checkbox, а кружочек, в котором стоит галочка, если selected
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                    Checkbox(
+                        modifier = Modifier.padding(start = 12.dp),
+                        checked = selected,
+                        onCheckedChange = { onSelect() }
+                    )
+                }
+            }
+
             Box {
                 Text(
-                    modifier = Modifier.width(130.dp),
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .width(if (isSelectMode) 120.dp else 150.dp),
                     text = tag.name,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Tag")
             }
         }
     }
