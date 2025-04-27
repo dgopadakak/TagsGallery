@@ -10,6 +10,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.tags.TagsViewModel
 import com.dgopadakak.tagsgallery.tags.ui.body.TagsGrid
@@ -44,6 +47,8 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     var tagToEdit by remember { mutableStateOf<Tag?>(null) }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     if (showEditDialog) {
         TagDialog(
@@ -120,6 +125,20 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Tag")
             }
+
+            SnackbarHost(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    // TODO: Сделать маленький отступ снизу и справа при горизонтальном положении
+                    .padding(bottom = 80.dp),
+                hostState = snackbarHostState
+            )
+        }
+    }
+
+    LaunchedEffect(key1 = uiState.needToShowHint) {
+        if (uiState.needToShowHint) {
+            snackbarHostState.showSnackbar(Hints.TAGS_MAIN_HINT.text)
         }
     }
 }

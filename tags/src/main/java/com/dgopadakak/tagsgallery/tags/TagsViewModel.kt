@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,8 @@ class TagsViewModel @Inject constructor(
         val sortBy: SortVariant = SortVariant.NAME,
         val filterBy: Tag.Color? = null,
         val tags: List<Tag> = emptyList(),
-        val selectedTagIds: List<Long> = emptyList()
+        val selectedTagIds: List<Long> = emptyList(),
+        val needToShowHint: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -61,6 +63,15 @@ class TagsViewModel @Inject constructor(
                 }
                 _uiState.update { it.copy(tags = filteredAndSortedTags) }
             }.collect {}
+        }
+
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    needToShowHint = !repository.isHintShown(Hints.TAGS_MAIN_HINT)
+                )
+            }
+            repository.setHintShown(Hints.TAGS_MAIN_HINT)
         }
     }
 
