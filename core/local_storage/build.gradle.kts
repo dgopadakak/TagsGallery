@@ -41,6 +41,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
 
+    implementation(libs.datastore.preferences)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.coroutinesExtensions)
