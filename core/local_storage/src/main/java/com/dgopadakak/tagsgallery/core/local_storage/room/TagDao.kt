@@ -1,7 +1,6 @@
 package com.dgopadakak.tagsgallery.core.local_storage.room
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -34,14 +33,16 @@ interface TagDao {
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
 
     @Transaction
-    suspend fun deleteTagAndRelations(tag: Tag) {
-        deleteMediaTagCrossRefsByTagId(tag.id)
-        deleteTag(tag)
+    suspend fun deleteTagsAndRelations(tagIds: List<Long>) {
+        tagIds.forEach { tagId ->
+            deleteMediaTagCrossRefsByTagId(tagId)
+            deleteTagById(tagId)
+        }
     }
 
     @Query("DELETE FROM MediaTagCrossRef WHERE tagId = :tagId")
     suspend fun deleteMediaTagCrossRefsByTagId(tagId: Long)
 
-    @Delete
-    suspend fun deleteTag(tag: Tag)
+    @Query("DELETE FROM Tag WHERE id = :tagId")
+    suspend fun deleteTagById(tagId: Long)
 }

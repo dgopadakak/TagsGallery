@@ -36,8 +36,8 @@ class Repository(
         tagDao.updateTag(tag)
     }
 
-    suspend fun deleteTagAndRelations(tag: Tag) = withContext(Dispatchers.IO) {
-        tagDao.deleteTagAndRelations(tag)
+    suspend fun deleteTagsAndRelations(tagIds: List<Long>) = withContext(Dispatchers.IO) {
+        tagDao.deleteTagsAndRelations(tagIds)
     }
 
     fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?> = tagDao
