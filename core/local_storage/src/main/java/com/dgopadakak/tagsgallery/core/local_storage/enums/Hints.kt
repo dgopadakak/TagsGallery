@@ -8,6 +8,5 @@ enum class Hints(
     val prefKey: Preferences.Key<Boolean>
 ) {
     TAGS_MAIN_HINT("Tap tag to edit, hold to select and delete", booleanPreferencesKey("tags_main_hint")),
-    GALLERY_MAIN_HINT("Tap \"Add media\" to begin", booleanPreferencesKey("gallery_main_hint")),
-    SEARCH_MAIN_HINT("Here you can search via tags", booleanPreferencesKey("search_main_hint"))
+    SEARCH_MAIN_HINT("Here you can search for added media using tags", booleanPreferencesKey("search_main_hint"))
 }
