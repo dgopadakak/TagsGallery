@@ -49,8 +49,17 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         TagDialog(
             tag = tagToEdit,
             onDismiss = { showEditDialog = false; tagToEdit = null },
-            onSave = { id, name, color ->
-                viewModel.saveTag(id, name, color)
+            onSave = { name, color ->
+                if (tagToEdit == null) {
+                    viewModel.saveNewTag(name, color)
+                } else {
+                    viewModel.updateTag(
+                        tagToEdit!!.copy(
+                            name = name,
+                            color = color
+                        )
+                    )
+                }
                 showEditDialog = false
                 tagToEdit = null
             }
@@ -60,7 +69,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     if (showDeleteDialog) {
         DeleteDialog(
             numOfTags = uiState.selectedTagIds.size,
-            onAccept = { viewModel.deleteSelectedTags() },
+            onAccept = { viewModel.deleteSelectedTags(); showDeleteDialog = false },
             onDismiss = { showDeleteDialog = false }
         )
     }
@@ -119,7 +128,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
 private fun TagDialog(
     tag: Tag?,
     onDismiss: () -> Unit,
-    onSave: (Long?, String, Tag.Color) -> Unit
+    onSave: (String, Tag.Color) -> Unit
 ) {
     var name by remember { mutableStateOf(tag?.name ?: "") }
     var color by remember { mutableStateOf(tag?.color ?: Tag.Color.NO_COLOR) }
@@ -160,7 +169,7 @@ private fun TagDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { if (name.isNotBlank()) onSave(tag?.id, name, color) }
+                onClick = { if (name.isNotBlank()) onSave(name, color) }
             ) {
                 Text("Save")
             }

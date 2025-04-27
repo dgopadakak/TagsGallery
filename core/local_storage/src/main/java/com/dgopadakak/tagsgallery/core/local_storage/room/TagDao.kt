@@ -17,6 +17,9 @@ interface TagDao {
     @Query("SELECT * FROM Tag")
     fun getAllTags(): Flow<List<Tag>>
 
+    @Query("SELECT * FROM Tag WHERE id = :tagId")
+    suspend fun getTagById(tagId: Long): Tag?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTag(tag: Tag): Long
 

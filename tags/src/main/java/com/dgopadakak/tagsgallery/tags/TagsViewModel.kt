@@ -35,7 +35,7 @@ class TagsViewModel @Inject constructor(
     init {
         // Очистка от несуществующих id в случае их удаления
         viewModelScope.launch {
-            repository.getAllTags().collect{ tagList ->
+            repository.getAllTags().collect { tagList ->
                 val existingIds = tagList.map { it.id }.toSet()
                 val updatedSelectedIds = _uiState.value.selectedTagIds.filter { it in existingIds }
                 _uiState.update { currentState ->
@@ -64,27 +64,29 @@ class TagsViewModel @Inject constructor(
         }
     }
 
-    fun saveTag(id: Long?, name: String, color: Tag.Color) {
+    fun saveNewTag(name: String, color: Tag.Color) {
         viewModelScope.launch {
-            if (id == null) {
-                repository.insertTag(
-                    Tag(
-                        name = name.trim(),
-                        color = color
-                    )
+            repository.insertTag(
+                Tag(
+                    name = name.trim(),
+                    color = color
                 )
-            } else {
-                val oldTag = _uiState.value.tags.find { it.id == id }
-                oldTag?.let {
-                    if (it.name != name.trim() || it.color != color) {
-                        repository.updateTag(
-                            Tag(
-                                id = id,
-                                name = name.trim(),
-                                color = color
-                            )
+            )
+        }
+    }
+
+    fun updateTag(tag: Tag) {
+        viewModelScope.launch {
+            val oldTag = repository.getTagById(tag.id)
+            oldTag?.let {
+                if (it.name != tag.name.trim() || it.color != tag.color) {
+                    repository.updateTag(
+                        oldTag.copy(
+                            name = tag.name.trim(),
+                            lastModified = System.currentTimeMillis(),
+                            color = tag.color
                         )
-                    }
+                    )
                 }
             }
         }
