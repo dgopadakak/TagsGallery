@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.search
 
 import android.net.Uri
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
@@ -16,28 +17,31 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
+    @Stable
     data class SearchUiState(
         val tags: List<Tag> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
-        val foundedMediaUris: List<Uri> = emptyList()
+        val foundedMediaUris: List<Uri> = emptyList(),
+        val needToShowHint: Boolean = false
     )
 
-    private val _searchUiState = MutableStateFlow(SearchUiState())
-    val searchUiState = _searchUiState.asStateFlow()
+    private val _uiState = MutableStateFlow(SearchUiState())
+    val uiState = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             combine(
                 repository.getAllTags(),
-                _searchUiState.map { it.filterBy }.distinctUntilChanged(),
-                _searchUiState.map { it.sortBy }.distinctUntilChanged()
+                _uiState.map { it.filterBy }.distinctUntilChanged(),
+                _uiState.map { it.sortBy }.distinctUntilChanged()
             ) { tagList, filterVariant, sortVariant ->
                 val filteredTags =
                     filterVariant?.let { tagList.filter { it.color == filterVariant } } ?: tagList
@@ -46,12 +50,21 @@ class SearchViewModel @Inject constructor(
                     SortVariant.DATE -> filteredTags.sortedBy { it.lastModified }
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
-                _searchUiState.update {
+                _uiState.update {
                     it.copy(
                         tags = sortedAndFilteredTags
                     )
                 }
             }.collect {}
+        }
+
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    needToShowHint = !repository.isHintShown(Hints.SEARCH_MAIN_HINT)
+                )
+            }
+            repository.setHintShown(Hints.SEARCH_MAIN_HINT)
         }
     }
 
@@ -59,7 +72,7 @@ class SearchViewModel @Inject constructor(
     fun loadMediaForTag(tagId: Long) {
         viewModelScope.launch {
             repository.getTagWithMedia(tagId).collect { tagWithMedia ->
-                _searchUiState.update { currentState ->
+                _uiState.update { currentState ->
                     currentState.copy(foundedMediaUris = tagWithMedia?.media?.map { it.mediaId.toUri() } ?: emptyList<Uri>())
                 }
             }

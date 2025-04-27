@@ -1,28 +1,55 @@
 package com.dgopadakak.tagsgallery.core.local_storage
 
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.models.TagWithMedia
+import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 
-/**
- * По сути это класс-обертка, он создан для того, чтобы не взаимодействовать напрямую с TagDao, что
- * будет полезно при миграции проекта на KMP. Так как TagDao будет только для Android, а на других
- * платформах данный класс будет работать с другими источниками данных.
- */
-class Repository(private val tagDao: TagDao) {
+class Repository(
+    private val tagDao: TagDao,
+    private val preferencesRepository: PreferencesRepository,
+    private val dispatcher: CoroutineDispatcher
+) {
 
-    fun getAllTags(): Flow<List<Tag>> = tagDao.getAllTags()
+    fun getAllTags(): Flow<List<Tag>> = tagDao
+        .getAllTags()
+        .flowOn(dispatcher)
 
-    suspend fun insertTag(tag: Tag): Long = tagDao.insertTag(tag)
+    suspend fun getTagById(tagId: Long): Tag? = withContext(dispatcher) {
+        tagDao.getTagById(tagId)
+    }
 
-    suspend fun updateTag(tag: Tag) = tagDao.updateTag(tag)
+    suspend fun insertTag(tag: Tag) = withContext(dispatcher) {
+        tagDao.insertTag(tag)
+    }
 
-    suspend fun deleteTagAndRelations(tag: Tag) = tagDao.deleteTagAndRelations(tag)
+    suspend fun updateTag(tag: Tag) = withContext(dispatcher) {
+        tagDao.updateTag(tag)
+    }
 
-    fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?> = tagDao.getTagWithMedia(tagId)
+    suspend fun deleteTagsAndRelations(tagIds: List<Long>) = withContext(dispatcher) {
+        tagDao.deleteTagsAndRelations(tagIds)
+    }
 
-    suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) =
+    fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?> = tagDao
+        .getTagWithMedia(tagId)
+        .flowOn(dispatcher)
+
+    suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) = withContext(dispatcher) {
         tagDao.insertMediaTagCrossRef(crossRef)
+    }
+
+    suspend fun isHintShown(hint: Hints): Boolean = withContext(dispatcher) {
+        preferencesRepository.isHintShown(hint)
+    }
+
+    suspend fun setHintShown(hint: Hints) = withContext(dispatcher) {
+        preferencesRepository.setHintShown(hint)
+    }
 }

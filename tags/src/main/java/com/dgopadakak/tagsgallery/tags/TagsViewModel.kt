@@ -1,9 +1,11 @@
 package com.dgopadakak.tagsgallery.tags
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,16 +22,32 @@ class TagsViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
+    @Stable
     data class UiState(
         val sortBy: SortVariant = SortVariant.NAME,
         val filterBy: Tag.Color? = null,
-        val tags: List<Tag> = emptyList()
+        val tags: List<Tag> = emptyList(),
+        val selectedTagIds: List<Long> = emptyList(),
+        val needToShowHint: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
 
     init {
+        // Очистка от несуществующих id в случае их удаления
+        viewModelScope.launch {
+            repository.getAllTags().collect { tagList ->
+                val existingIds = tagList.map { it.id }.toSet()
+                val updatedSelectedIds = _uiState.value.selectedTagIds.filter { it in existingIds }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        selectedTagIds = updatedSelectedIds
+                    )
+                }
+            }
+        }
+
         viewModelScope.launch {
             combine(
                 repository.getAllTags(),
@@ -46,37 +64,64 @@ class TagsViewModel @Inject constructor(
                 _uiState.update { it.copy(tags = filteredAndSortedTags) }
             }.collect {}
         }
+
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    needToShowHint = !repository.isHintShown(Hints.TAGS_MAIN_HINT)
+                )
+            }
+            repository.setHintShown(Hints.TAGS_MAIN_HINT)
+        }
     }
 
-    fun saveTag(id: Long?, name: String, color: Tag.Color) {
+    fun saveNewTag(name: String, color: Tag.Color) {
         viewModelScope.launch {
-            if (id == null) {
-                repository.insertTag(
-                    Tag(
-                        name = name.trim(),
-                        color = color
-                    )
+            repository.insertTag(
+                Tag(
+                    name = name.trim(),
+                    color = color
                 )
-            } else {
-                val oldTag = _uiState.value.tags.find { it.id == id }
-                oldTag?.let {
-                    if (it.name != name.trim() || it.color != color) {
-                        repository.updateTag(
-                            Tag(
-                                id = id,
-                                name = name.trim(),
-                                color = color
-                            )
+            )
+        }
+    }
+
+    fun updateTag(tag: Tag) {
+        viewModelScope.launch {
+            val oldTag = repository.getTagById(tag.id)
+            oldTag?.let {
+                if (it.name != tag.name.trim() || it.color != tag.color) {
+                    repository.updateTag(
+                        oldTag.copy(
+                            name = tag.name.trim(),
+                            lastModified = System.currentTimeMillis(),
+                            color = tag.color
                         )
-                    }
+                    )
                 }
             }
         }
     }
 
-    fun deleteTag(tag: Tag) {
+    fun onTagSelect(tagId: Long) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                selectedTagIds = if (currentState.selectedTagIds.contains(tagId)) {
+                    currentState.selectedTagIds - tagId
+                } else {
+                    currentState.selectedTagIds + tagId
+                }
+            )
+        }
+    }
+
+    fun onResetSelection() {
+        _uiState.update { it.copy(selectedTagIds = emptyList()) }
+    }
+
+    fun deleteSelectedTags() {
         viewModelScope.launch {
-            repository.deleteTagAndRelations(tag)
+            repository.deleteTagsAndRelations(_uiState.value.selectedTagIds)
         }
     }
 

@@ -1,7 +1,6 @@
 package com.dgopadakak.tagsgallery.core.local_storage.room
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,8 +16,11 @@ interface TagDao {
     @Query("SELECT * FROM Tag")
     fun getAllTags(): Flow<List<Tag>>
 
+    @Query("SELECT * FROM Tag WHERE id = :tagId")
+    suspend fun getTagById(tagId: Long): Tag?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTag(tag: Tag): Long
+    suspend fun insertTag(tag: Tag)
 
     @Update
     suspend fun updateTag(tag: Tag)
@@ -31,14 +33,16 @@ interface TagDao {
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
 
     @Transaction
-    suspend fun deleteTagAndRelations(tag: Tag) {
-        deleteMediaTagCrossRefsByTagId(tag.id)
-        deleteTag(tag)
+    suspend fun deleteTagsAndRelations(tagIds: List<Long>) {
+        tagIds.forEach { tagId ->
+            deleteMediaTagCrossRefsByTagId(tagId)
+            deleteTagById(tagId)
+        }
     }
 
     @Query("DELETE FROM MediaTagCrossRef WHERE tagId = :tagId")
     suspend fun deleteMediaTagCrossRefsByTagId(tagId: Long)
 
-    @Delete
-    suspend fun deleteTag(tag: Tag)
+    @Query("DELETE FROM Tag WHERE id = :tagId")
+    suspend fun deleteTagById(tagId: Long)
 }

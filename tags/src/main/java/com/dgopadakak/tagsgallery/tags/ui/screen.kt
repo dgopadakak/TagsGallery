@@ -1,29 +1,17 @@
-package com.dgopadakak.tagsgallery.tags
+package com.dgopadakak.tagsgallery.tags.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,16 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
-import com.dgopadakak.tagsgallery.core.compose.ui.animatePlacement
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.tags.TagsViewModel
+import com.dgopadakak.tagsgallery.tags.ui.body.TagsGrid
+import com.dgopadakak.tagsgallery.tags.ui.header.HeaderRow
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,22 +43,49 @@ import java.util.Locale
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var tagToEdit by remember { mutableStateOf<Tag?>(null) }
 
-    if (showDialog) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    if (showEditDialog) {
         TagDialog(
             tag = tagToEdit,
-            onDismiss = { showDialog = false; tagToEdit = null },
-            onSave = { id, name, color ->
-                viewModel.saveTag(id, name, color)
-                showDialog = false
+            onDismiss = { showEditDialog = false; tagToEdit = null },
+            onSave = { name, color ->
+                if (tagToEdit == null) {
+                    viewModel.saveNewTag(name, color)
+                } else {
+                    viewModel.updateTag(
+                        tagToEdit!!.copy(
+                            name = name,
+                            color = color
+                        )
+                    )
+                }
+                showEditDialog = false
                 tagToEdit = null
             }
         )
     }
 
+    if (showDeleteDialog) {
+        DeleteDialog(
+            numOfTags = uiState.selectedTagIds.size,
+            onAccept = { viewModel.deleteSelectedTags(); showDeleteDialog = false },
+            onDismiss = { showDeleteDialog = false }
+        )
+    }
+
     Column {
+        HeaderRow(
+            uiStateFlow = viewModel.uiState,
+            onResetSelection = { viewModel.onResetSelection() },
+            onAcceptDeletion = { showDeleteDialog = true }
+        )
+
         SortVariantsRow(
             modifier = Modifier
                 .padding(start = 12.dp),
@@ -91,91 +106,48 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val gridState = rememberLazyGridState()
-
-            LazyVerticalGrid(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 8.dp, start = 8.dp, end = 8.dp),
-                state = gridState,
-                columns = GridCells.Adaptive(160.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(uiState.tags, key = { it.id }) { tag ->
-                    TagCard(
-                        tag = tag,
-                        onEdit = {
-                            tagToEdit = tag
-                            showDialog = true
-                        },
-                        onDelete = { viewModel.deleteTag(tag) },
-                        isScrollInProgress = gridState.isScrollInProgress
-                    )
+            TagsGrid(
+                uiStateFlow = viewModel.uiState,
+                onTagEdit = { tag ->
+                    tagToEdit = tag
+                    showEditDialog = true
+                },
+                onTagSelect = { id ->
+                    viewModel.onTagSelect(id)
                 }
-            }
+            )
 
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp),
-                onClick = { showDialog = true }
+                onClick = { showEditDialog = true }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Tag")
             }
+
+            SnackbarHost(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    // TODO: Сделать маленький отступ снизу и справа при горизонтальном положении
+                    .padding(bottom = 80.dp),
+                hostState = snackbarHostState
+            )
+        }
+    }
+
+    LaunchedEffect(key1 = uiState.needToShowHint) {
+        if (uiState.needToShowHint) {
+            snackbarHostState.showSnackbar(Hints.TAGS_MAIN_HINT.text)
         }
     }
 }
 
 @Composable
-fun TagCard(
-    tag: Tag,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    isScrollInProgress: Boolean
-) {
-    val baseColor = CardDefaults.cardColors().containerColor
-    val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
-    val blendedColor = lerp(baseColor, tagColor, 0.15f)
-
-    Card(
-        modifier = Modifier
-            .animatePlacement(enabled = !isScrollInProgress)
-            .fillMaxSize()
-            .padding(4.dp)
-            .clickable(onClick = onEdit),
-        colors = CardDefaults.cardColors(containerColor = blendedColor),
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Box {
-                Text(
-                    modifier = Modifier.width(130.dp),
-                    text = tag.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Tag")
-            }
-        }
-    }
-}
-
-@Composable
-fun TagDialog(
+private fun TagDialog(
     tag: Tag?,
     onDismiss: () -> Unit,
-    onSave: (Long?, String, Tag.Color) -> Unit
+    onSave: (String, Tag.Color) -> Unit
 ) {
     var name by remember { mutableStateOf(tag?.name ?: "") }
     var color by remember { mutableStateOf(tag?.color ?: Tag.Color.NO_COLOR) }
@@ -216,7 +188,7 @@ fun TagDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { if (name.isNotBlank()) onSave(tag?.id, name, color) }
+                onClick = { if (name.isNotBlank()) onSave(name, color) }
             ) {
                 Text("Save")
             }
@@ -231,4 +203,27 @@ fun TagDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+}
+
+@Composable
+private fun DeleteDialog(
+    numOfTags: Int,
+    onAccept: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete Tags?") },
+        text = { Text("Selected tags ($numOfTags) will be deleted") },
+        confirmButton = {
+            TextButton(onClick = onAccept) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
