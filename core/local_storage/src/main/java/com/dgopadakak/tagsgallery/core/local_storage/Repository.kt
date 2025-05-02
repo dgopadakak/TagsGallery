@@ -26,7 +26,7 @@ class Repository(
     }
 
     suspend fun insertTag(tag: Tag) = withContext(dispatcher) {
-        tagDao.insertTag(tag)
+        tagDao.insertAllTags(tag)
     }
 
     suspend fun updateTag(tag: Tag) = withContext(dispatcher) {
