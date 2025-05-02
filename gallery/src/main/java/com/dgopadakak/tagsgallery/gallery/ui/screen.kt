@@ -98,7 +98,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 Text(
                     modifier = Modifier
                         .fillMaxWidth(0.75f),
-                    text = "Click add media to start",
+                    text = "Click \"Add media\" to start",
                     textAlign = TextAlign.Center
                 )
             }
