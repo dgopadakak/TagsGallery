@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun TagsSegment(
-    uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
+    uiStateFlow: StateFlow<GalleryViewModel.UiState>,
     onCommonTagSelected: (Long) -> Unit,
     onSortVariantChanged: (SortVariant) -> Unit,
     onFilterVariantChanged: (Tag.Color?) -> Unit,

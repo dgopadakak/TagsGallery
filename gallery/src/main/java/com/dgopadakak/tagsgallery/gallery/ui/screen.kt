@@ -32,7 +32,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
     // TODO: избавиться от рекомпозиций данной функции из-за изменения в uiState не имеющих для нее
     //  значения параметров
-    val uiState by viewModel.galleryUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -56,7 +56,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         ButtonRow(
-            uiStateFlow = viewModel.galleryUiState,
+            uiStateFlow = viewModel.uiState,
             onClickSave = { viewModel.onClickSave() },
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
@@ -74,13 +74,13 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                     .weight(1f)
             ) {
                 MediaPreviewRow(
-                    uiStateStateFlow = viewModel.galleryUiState,
+                    uiStateStateFlow = viewModel.uiState,
                     onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
                     onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
                 )
 
                 TagsSegment(
-                    uiStateFlow = viewModel.galleryUiState,
+                    uiStateFlow = viewModel.uiState,
                     onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
                     onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
                     onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
@@ -94,7 +94,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
 @Composable
 private fun ButtonRow(
-    uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
+    uiStateFlow: StateFlow<GalleryViewModel.UiState>,
     onClickSave: () -> Unit,
     onClickReset: () -> Unit,
     onAddMediaClick: () -> Unit

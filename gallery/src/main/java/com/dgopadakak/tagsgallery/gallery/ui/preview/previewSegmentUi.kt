@@ -46,7 +46,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun MediaPreviewRow(
-    uiStateStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
+    uiStateStateFlow: StateFlow<GalleryViewModel.UiState>,
     onPreviewClick: (Uri) -> Unit,
     onRemoveMediaClick: (Uri) -> Unit
 ) {
