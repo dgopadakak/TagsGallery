@@ -37,7 +37,7 @@ class LocalStorageModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getInstance(context)
+        return AppDatabase.getInstance(context, "tags_gallery_db")
     }
 
     @Provides

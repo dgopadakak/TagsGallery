@@ -1,0 +1,5 @@
+<resources>
+    <string name="default_tag_dog">Food</string>
+    <string name="default_tag_forest">Travel</string>
+    <string name="default_tag_sky">Work</string>
+</resources>
