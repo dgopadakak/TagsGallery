@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
@@ -115,7 +117,12 @@ fun SimpleTagsSelectionView(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("You need to add tags on Tags screen to use them here")
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(0.75f),
+                text = "You need to add tags on Tags screen to use them here",
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
