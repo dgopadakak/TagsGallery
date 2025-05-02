@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
@@ -52,8 +54,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
             .padding(top = 8.dp)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),     // На всякий случай для маленьких экранов
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ButtonRow(
             uiStateFlow = viewModel.uiState,
@@ -86,6 +87,19 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                     onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
                     onIndividualTagToggle = { uri, tagId -> viewModel.onPerMediaTagToggle(uri, tagId) },
                     onIndividualTagAccept = { viewModel.setActiveUriForIndividualTags(null) }
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(0.75f),
+                    text = "Click add media to start",
+                    textAlign = TextAlign.Center
                 )
             }
         }
