@@ -66,10 +66,12 @@ class TagsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    needToShowHint = !repository.isHintShown(Hints.TAGS_MAIN_HINT)
-                )
+            if (!repository.isHintShown(Hints.TAGS_MAIN_HINT)) {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        needToShowHint = true
+                    )
+                }
             }
         }
     }

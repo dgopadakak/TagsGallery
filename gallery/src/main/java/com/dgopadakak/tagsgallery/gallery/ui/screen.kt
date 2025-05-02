@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
@@ -32,7 +34,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
     // TODO: избавиться от рекомпозиций данной функции из-за изменения в uiState не имеющих для нее
     //  значения параметров
-    val uiState by viewModel.galleryUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -52,11 +54,10 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
             .padding(top = 8.dp)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),     // На всякий случай для маленьких экранов
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ButtonRow(
-            uiStateFlow = viewModel.galleryUiState,
+            uiStateFlow = viewModel.uiState,
             onClickSave = { viewModel.onClickSave() },
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
@@ -74,18 +75,31 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                     .weight(1f)
             ) {
                 MediaPreviewRow(
-                    uiStateStateFlow = viewModel.galleryUiState,
+                    uiStateStateFlow = viewModel.uiState,
                     onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
                     onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
                 )
 
                 TagsSegment(
-                    uiStateFlow = viewModel.galleryUiState,
+                    uiStateFlow = viewModel.uiState,
                     onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
                     onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
                     onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
                     onIndividualTagToggle = { uri, tagId -> viewModel.onPerMediaTagToggle(uri, tagId) },
                     onIndividualTagAccept = { viewModel.setActiveUriForIndividualTags(null) }
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(0.75f),
+                    text = "Click \"Add media\" to start",
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -94,7 +108,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
 
 @Composable
 private fun ButtonRow(
-    uiStateFlow: StateFlow<GalleryViewModel.GalleryUiState>,
+    uiStateFlow: StateFlow<GalleryViewModel.UiState>,
     onClickSave: () -> Unit,
     onClickReset: () -> Unit,
     onAddMediaClick: () -> Unit

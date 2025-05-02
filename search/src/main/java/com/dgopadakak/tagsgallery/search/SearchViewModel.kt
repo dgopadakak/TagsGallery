@@ -25,7 +25,7 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
 
     @Stable
-    data class SearchUiState(
+    data class UiState(
         val tags: List<Tag> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
@@ -33,7 +33,7 @@ class SearchViewModel @Inject constructor(
         val needToShowHint: Boolean = false
     )
 
-    private val _uiState = MutableStateFlow(SearchUiState())
+    private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -59,10 +59,12 @@ class SearchViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    needToShowHint = !repository.isHintShown(Hints.SEARCH_MAIN_HINT)
-                )
+            if (!repository.isHintShown(Hints.SEARCH_MAIN_HINT)) {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        needToShowHint = true
+                    )
+                }
             }
         }
     }
