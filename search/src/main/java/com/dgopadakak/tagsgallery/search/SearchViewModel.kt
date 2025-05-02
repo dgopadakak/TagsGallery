@@ -64,6 +64,16 @@ class SearchViewModel @Inject constructor(
                     needToShowHint = !repository.isHintShown(Hints.SEARCH_MAIN_HINT)
                 )
             }
+        }
+    }
+
+    fun setHintShown() {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    needToShowHint = false
+                )
+            }
             repository.setHintShown(Hints.SEARCH_MAIN_HINT)
         }
     }

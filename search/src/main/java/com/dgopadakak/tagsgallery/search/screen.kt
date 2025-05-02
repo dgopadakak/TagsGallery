@@ -85,6 +85,7 @@ private fun TestMediaViewer(viewModel: SearchViewModel) {   // TODO: для те
     LaunchedEffect(key1 = uiState.needToShowHint) {
         if (uiState.needToShowHint) {
             snackbarHostState.showSnackbar(Hints.SEARCH_MAIN_HINT.text)
+            viewModel.setHintShown()
         }
     }
 }

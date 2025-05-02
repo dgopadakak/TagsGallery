@@ -37,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextOverflow
@@ -106,6 +107,7 @@ private fun TagCard(
             .fillMaxWidth()
             .height(56.dp)
             .padding(4.dp)
+            .clip(RoundedCornerShape(8.dp))
             .combinedClickable(
                 onClick = if (isSelectMode) onSelect else onEdit,
                 onLongClick = onSelect

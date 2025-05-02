@@ -71,7 +71,6 @@ class TagsViewModel @Inject constructor(
                     needToShowHint = !repository.isHintShown(Hints.TAGS_MAIN_HINT)
                 )
             }
-            repository.setHintShown(Hints.TAGS_MAIN_HINT)
         }
     }
 
@@ -131,5 +130,16 @@ class TagsViewModel @Inject constructor(
 
     fun setFilterBy(filterBy: Tag.Color?) {
         _uiState.update { it.copy(filterBy = filterBy) }
+    }
+
+    fun setHintShown() {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    needToShowHint = false
+                )
+            }
+            repository.setHintShown(Hints.TAGS_MAIN_HINT)
+        }
     }
 }

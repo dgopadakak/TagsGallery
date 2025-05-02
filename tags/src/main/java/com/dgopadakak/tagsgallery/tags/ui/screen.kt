@@ -139,6 +139,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     LaunchedEffect(key1 = uiState.needToShowHint) {
         if (uiState.needToShowHint) {
             snackbarHostState.showSnackbar(Hints.TAGS_MAIN_HINT.text)
+            viewModel.setHintShown()
         }
     }
 }
