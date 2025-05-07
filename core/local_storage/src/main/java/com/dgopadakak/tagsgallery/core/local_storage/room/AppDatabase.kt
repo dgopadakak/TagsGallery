@@ -12,11 +12,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun tagDao(): TagDao
 
     companion object {
-        fun getInstance(context: Context): AppDatabase {
+        fun getInstance(context: Context, name: String): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
-                "tags_gallery_db"
+                name
             ).build()
         }
     }

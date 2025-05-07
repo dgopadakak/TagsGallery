@@ -8,6 +8,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
 import com.dgopadakak.tagsgallery.core.local_storage.room.AppDatabase
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
+import com.dgopadakak.tagsgallery.core.local_storage.util.DatabaseInitializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +31,19 @@ class LocalStorageModule {
     }
 
     @Provides
+    fun provideDatabaseInitializer(
+        @ApplicationContext context: Context,
+        tagDao: TagDao,
+        dataStore: DataStore<Preferences>
+    ): DatabaseInitializer {
+        return DatabaseInitializer(
+            context = context,
+            tagDao = tagDao,
+            dataStore = dataStore
+        )
+    }
+
+    @Provides
     fun provideTagDao(database: AppDatabase): TagDao {
         return database.tagDao()
     }
@@ -37,7 +51,10 @@ class LocalStorageModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getInstance(context)
+        return AppDatabase.getInstance(
+            context = context,
+            name = "tags_gallery_db"
+        )
     }
 
     @Provides

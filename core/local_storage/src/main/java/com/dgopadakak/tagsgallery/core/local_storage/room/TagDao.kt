@@ -20,7 +20,7 @@ interface TagDao {
     suspend fun getTagById(tagId: Long): Tag?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTag(tag: Tag)
+    suspend fun insertAllTags(vararg tag: Tag)
 
     @Update
     suspend fun updateTag(tag: Tag)
