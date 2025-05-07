@@ -1,10 +1,6 @@
 package com.dgopadakak.tagsgallery.ui
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -13,14 +9,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.dgopadakak.tagsgallery.gallery.ui.GalleryScreen
-import com.dgopadakak.tagsgallery.search.SearchScreen
-import com.dgopadakak.tagsgallery.tags.ui.TagsScreen
+import com.dgopadakak.tagsgallery.navigation.Routes
 
 @Composable
 internal fun MainScreen() {
@@ -32,12 +27,12 @@ internal fun MainScreen() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "tags",
+            startDestination = Routes.TAGS.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("tags") { TagsScreen() }
-            composable("gallery") { GalleryScreen() }
-            composable("search") { SearchScreen() }
+            composable(route = Routes.TAGS.route, content = Routes.TAGS.screenMainFunction)
+            composable(route = Routes.GALLERY.route, content = Routes.GALLERY.screenMainFunction)
+            composable(route = Routes.SEARCH.route, content = Routes.SEARCH.screenMainFunction)
         }
     }
 }
@@ -49,46 +44,46 @@ fun NavigationBar(navController: NavController) {
 
     NavigationBar {
         NavigationBarItem(
-            selected = currentRoute == "tags",
+            selected = currentRoute == Routes.TAGS.route,
             onClick = {
-                if (currentRoute != "tags") {
-                    navController.navigate("tags") {
+                if (currentRoute != Routes.TAGS.route) {
+                    navController.navigate(Routes.TAGS.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 }
             },
-            icon = { Icon(Icons.Default.Menu, contentDescription = "Tags") },
-            label = { Text("Tags") }
+            icon = { Icon(Routes.TAGS.icon, contentDescription = null) },
+            label = { Text(stringResource(Routes.TAGS.screenNameResId)) }
         )
         NavigationBarItem(
-            selected = currentRoute == "gallery",
+            selected = currentRoute == Routes.GALLERY.route,
             onClick = {
-                if (currentRoute != "gallery") {
-                    navController.navigate("gallery") {
+                if (currentRoute != Routes.GALLERY.route) {
+                    navController.navigate(Routes.GALLERY.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 }
             },
-            icon = { Icon(Icons.Default.AccountBox, contentDescription = "Gallery") },
-            label = { Text("Gallery") }
+            icon = { Icon(Routes.GALLERY.icon, contentDescription = null) },
+            label = { Text(stringResource(Routes.GALLERY.screenNameResId)) }
         )
         NavigationBarItem(
-            selected = currentRoute == "search",
+            selected = currentRoute == Routes.SEARCH.route,
             onClick = {
-                if (currentRoute != "search") {
-                    navController.navigate("search") {
+                if (currentRoute != Routes.SEARCH.route) {
+                    navController.navigate(Routes.SEARCH.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 }
             },
-            icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            label = { Text("Search") }
+            icon = { Icon(Routes.SEARCH.icon, contentDescription = null) },
+            label = { Text(stringResource(Routes.SEARCH.screenNameResId)) }
         )
     }
 }
