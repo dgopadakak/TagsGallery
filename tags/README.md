@@ -10,12 +10,12 @@ tags/
 │   └── main/
 │       └── java/
 │           └── com/dgopadakak/tagsgallery/tags/
-│               ├── TagsViewModel.kt     # ViewModel, содержащий UiState
+│               ├── TagsViewModel.kt     # ViewModel, содержащая UiState
 │               └── ui/                  # Composable код
 ```
 
 ## Основные компоненты
-- TagsViewModel, взаимодействующий с репозиторием из модуля core/local_storage
+- TagsViewModel, взаимодействующая с репозиторием из модуля core/local_storage
 - UI компоненты
 
 ## Функционал
@@ -25,6 +25,7 @@ tags/
 - Удаление тегов
 
 ## Основные зависимости
+- Jetpack Compose для UI
 - Hilt для inject'а зависимостей
 - core/local_storage для работы с репозиторием
 - core/compose для переиспользования общих UI компонентов

@@ -26,6 +26,8 @@ TagsGallery - это Android-приложение для каталогизац�
 
 - Kotlin
 - Jetpack Compose
+- PhotoPicker
+- Coil
 - MVVM архитектура
 - Room, DataStore для локального хранения
 - Hilt для DI
