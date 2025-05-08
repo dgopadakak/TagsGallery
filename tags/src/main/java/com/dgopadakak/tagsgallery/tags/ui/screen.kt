@@ -1,8 +1,9 @@
 package com.dgopadakak.tagsgallery.tags.ui
 
-import androidx.compose.foundation.layout.Box
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -10,6 +11,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -21,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -39,6 +40,10 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 
+// Padding values внешнего Scaffold уже учтены в NavHost, внутренний не должен вносить изменений,
+//  так как точно не предназначен для отображения элементов, ограничивающих доступную область
+//  (таких как панель навигации).
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
@@ -58,12 +63,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 if (tagToEdit == null) {
                     viewModel.saveNewTag(name, color)
                 } else {
-                    viewModel.updateTag(
-                        tagToEdit!!.copy(
-                            name = name,
-                            color = color
-                        )
-                    )
+                    viewModel.updateTag(tagToEdit!!.copy(name = name, color = color))
                 }
                 showEditDialog = false
                 tagToEdit = null
@@ -79,33 +79,39 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         )
     }
 
-    Column {
-        HeaderRow(
-            uiStateFlow = viewModel.uiState,
-            onResetSelection = { viewModel.onResetSelection() },
-            onAcceptDeletion = { showDeleteDialog = true }
-        )
-
-        SortVariantsRow(
-            modifier = Modifier
-                .padding(start = 12.dp),
-            sortBy = uiState.sortBy
-        ) {
-            viewModel.setSortBy(it)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showEditDialog = true }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Tag")
+            }
+        },
+        // Необходимый хак, чтобы FAB знала высоту контента под ней и не улетала в космос
+        bottomBar = { Spacer(Modifier.height(0.dp)) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
+    ) {
+        Column {
+            HeaderRow(
+                uiStateFlow = viewModel.uiState,
+                onResetSelection = { viewModel.onResetSelection() },
+                onAcceptDeletion = { showDeleteDialog = true }
+            )
 
-        ColorFilterRow(
-            modifier = Modifier
-                .padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
-            filterBy = uiState.filterBy
-        ) {
-            viewModel.setFilterBy(it)
-        }
+            SortVariantsRow(
+                modifier = Modifier.padding(start = 12.dp),
+                sortBy = uiState.sortBy,
+                onSortVariantChanged = { viewModel.setSortBy(it) }
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+            ColorFilterRow(
+                modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
+                filterBy = uiState.filterBy,
+                onFilterVariantChanged = { viewModel.setFilterBy(it) }
+            )
+
             TagsGrid(
                 uiStateFlow = viewModel.uiState,
                 onTagEdit = { tag ->
@@ -116,27 +122,10 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                     viewModel.onTagSelect(id)
                 }
             )
-
-            FloatingActionButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                onClick = { showEditDialog = true }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Tag")
-            }
-
-            SnackbarHost(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    // TODO: Сделать маленький отступ снизу и справа при горизонтальном положении
-                    .padding(bottom = 80.dp),
-                hostState = snackbarHostState
-            )
         }
     }
 
-    LaunchedEffect(key1 = uiState.needToShowHint) {
+    LaunchedEffect(uiState.needToShowHint) {
         if (uiState.needToShowHint) {
             snackbarHostState.showSnackbar(Hints.TAGS_MAIN_HINT.text)
             viewModel.setHintShown()
