@@ -9,10 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -59,38 +56,28 @@ internal fun ColorChip(
     checked: Boolean,
     onClick: () -> Unit
 ) {
+    val chipColor = if (color.colorLong != null) {
+        lerp(Color.Gray, Color(color.colorLong!!), 0.6f)
+    } else {
+        lerp(Color.Gray, MaterialTheme.colorScheme.surfaceContainerHighest, 0.6f)
+    }
+
     Box(
         contentAlignment= Alignment.Center,
         modifier = modifier
             .size(30.dp)
             .border(
                 width = 2.dp,
-                color = if (checked)
-                    if (color.colorLong != null)
-                        lerp(Color.Gray, Color(color.colorLong!!), 0.6f)
-                    else
-                        LocalContentColor.current
-                else
-                    Color.Transparent,
+                color = if (checked) chipColor else Color.Transparent,
                 shape = CircleShape
             ),
     ) {
-        if (color.colorLong == null) {
-            Icon(
-                modifier = Modifier
-                    .size(22.dp)
-                    .clickable(onClick = onClick),
-                imageVector = Icons.Default.Close,
-                contentDescription = null
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(22.dp)
-                    .clip(CircleShape)
-                    .background(color = lerp(Color.Gray, Color(color.colorLong!!), 0.6f))
-                    .clickable(onClick = onClick)
-            )
-        }
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(color = chipColor)
+                .clickable(onClick = onClick)
+        )
     }
 }
