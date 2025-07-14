@@ -1,6 +1,9 @@
 package com.dgopadakak.tagsgallery.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -9,6 +12,8 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -48,22 +53,28 @@ fun NavigationRail(navController: NavController) {
         // Вместо этого отступы от Scaffold уже учтены в Row, в котором лежит этот компонент
         windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
-        Routes.entries.forEach { screenRoute ->
-            NavigationRailItem(
-                selected = currentRoute == screenRoute.route,
-                onClick = {
-                    if (currentRoute != screenRoute.route) {
-                        navController.navigate(screenRoute.route) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Routes.entries.forEach { screenRoute ->
+                NavigationRailItem(
+                    selected = currentRoute == screenRoute.route,
+                    onClick = {
+                        if (currentRoute != screenRoute.route) {
+                            navController.navigate(screenRoute.route) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
-                    }
-                },
-                icon = { Icon(screenRoute.icon, contentDescription = null) },
-                label = { Text(stringResource(screenRoute.screenNameResId)) },
-                alwaysShowLabel = false
-            )
+                    },
+                    icon = { Icon(screenRoute.icon, contentDescription = null) },
+                    label = { Text(stringResource(screenRoute.screenNameResId)) },
+                    alwaysShowLabel = false
+                )
+            }
         }
     }
 }
