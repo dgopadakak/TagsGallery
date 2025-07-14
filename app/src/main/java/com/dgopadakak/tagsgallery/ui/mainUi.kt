@@ -1,26 +1,27 @@
 package com.dgopadakak.tagsgallery.ui
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.dgopadakak.tagsgallery.navigation.Routes
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-internal fun MainScreen() {
+internal fun MainScreen(
+    windowSizeClass: WindowSizeClass
+) {
     val navController = rememberNavController()
-    val configuration = LocalConfiguration.current
-
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val isTablet = configuration.screenWidthDp >= 600
-    val useRail = isLandscape || isTablet
+    // TODO: при расширении на другие платформы - сделать больше, чем 2 варианта UI навигации
+    val useRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
     Scaffold(
         bottomBar = {
