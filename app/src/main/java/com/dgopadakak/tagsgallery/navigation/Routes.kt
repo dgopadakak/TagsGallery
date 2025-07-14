@@ -16,7 +16,7 @@ import com.dgopadakak.tagsgallery.tags.ui.TagsScreen
 
 enum class Routes(
     val route: String,
-    @StringRes val screenNameResId: Int,
+    @param:StringRes val screenNameResId: Int,
     val icon: ImageVector,
     val screenMainFunction: @Composable (AnimatedContentScope.(NavBackStackEntry) -> Unit)
 ) {
