@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.gallery.ui.preview
 
 import android.net.Uri
+import androidx.annotation.OptIn
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,6 +39,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.compose.PlayerSurface
+import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -111,22 +119,26 @@ private fun MediaPreview(
             .border(4.dp, borderColor, RoundedCornerShape(8.dp))
             .clickable{ onPreviewClick() }
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(uri)
-                .apply {
-                    if (isVideo) {
-                        videoFrameMillis(1000L) // Выбор кадра для превью видео
+        if (isVideo && isActiveForIndividualTagsEdit) {
+            AnimatedVideoPreview(uri)
+        } else {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(uri)
+                    .apply {
+                        if (isVideo) {
+                            videoFrameMillis(1000L) // Выбор кадра для превью видео
+                        }
                     }
-                }
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
-        if (isVideo) {
+        if (isVideo && !isActiveForIndividualTagsEdit) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
                 contentDescription = "Video",
@@ -187,4 +199,41 @@ private fun MediaPreview(
             }
         }
     }
+}
+
+@OptIn(UnstableApi::class)
+@Composable
+private fun AnimatedVideoPreview(
+    uri: Uri
+) {
+    val context = LocalContext.current
+
+    val mediaItem = remember(uri) {
+        MediaItem.fromUri(uri)
+    }
+
+    val player = remember(uri) {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(mediaItem)
+            prepare()
+            volume = 0f
+            repeatMode = Player.REPEAT_MODE_ONE
+        }
+    }.apply {
+        seekTo(0)
+        playWhenReady = true
+    }
+
+    DisposableEffect(uri) {
+        onDispose { player.release() }
+    }
+
+    // TODO: исследована куча альтернатив, которые позволяют сделать crop, но все они отброшены либо
+    //  по причине сложности/невозможности установки surfaceType. Если будет обновление, позволяющее
+    //  использовать crop в рамках PlayerSurface - заюзать.
+    PlayerSurface(
+        player = player,
+        // Важен именно этот surfaceType для работоспособности анимации затухания при навигации
+        surfaceType = SURFACE_TYPE_TEXTURE_VIEW
+    )
 }
