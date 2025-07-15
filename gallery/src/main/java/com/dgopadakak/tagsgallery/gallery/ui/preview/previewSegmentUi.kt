@@ -233,6 +233,7 @@ private fun AnimatedVideoPreview(
     //  использовать crop в рамках PlayerSurface - заюзать.
     PlayerSurface(
         player = player,
-        surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
+        // Важен именно этот surfaceType для работоспособности анимации затухания при навигации
+        surfaceType = SURFACE_TYPE_TEXTURE_VIEW
     )
 }
