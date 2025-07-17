@@ -21,6 +21,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,7 +37,10 @@ import com.dgopadakak.tagsgallery.gallery.ui.tags.TagsSegment
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
+fun GalleryScreen(
+    windowSizeClass: WindowSizeClass,
+    viewModel: GalleryViewModel = hiltViewModel()
+) {
 
     // TODO: избавиться от рекомпозиций данной функции из-за изменения в uiState не имеющих для нее
     //  значения параметров
