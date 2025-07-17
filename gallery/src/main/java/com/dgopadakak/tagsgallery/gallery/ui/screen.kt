@@ -8,12 +8,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -98,7 +104,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
                 Text(
                     modifier = Modifier
                         .fillMaxWidth(0.75f),
-                    text = "Click \"Add media\" to start",
+                    text = "Click \"Add\" to start",
                     textAlign = TextAlign.Center
                 )
             }
@@ -117,28 +123,30 @@ private fun ButtonRow(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .fillMaxWidth()
+            .padding(all = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
-            modifier = Modifier
-                .padding(start = 8.dp),
+        FilledTonalButton(
             onClick = onAddMediaClick
         ) {
-            Text("Add media")
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.width(6.dp))
+            Text("Add")
         }
-        Row {
-            Button(
-                modifier = Modifier
-                    .padding(end = 8.dp),
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
                 onClick = onClickReset,
                 enabled = uiState.selectedUris.isNotEmpty()
             ) {
-                Text("Clear all")
+                Text("Clear")
             }
-            Button(
-                modifier = Modifier
-                    .padding(end = 8.dp),
+
+            FilledTonalButton(
                 onClick = onClickSave,
                 enabled = uiState.selectedTagIds.isNotEmpty()
             ) {
