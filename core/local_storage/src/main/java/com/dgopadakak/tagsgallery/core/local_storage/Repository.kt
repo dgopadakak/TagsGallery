@@ -45,6 +45,10 @@ class Repository(
         tagDao.getTagIdsForMedia(mediaId)
     }
 
+    suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String) = withContext(dispatcher) {
+        tagDao.deleteMediaTagCrossRefsByMediaId(mediaId)
+    }
+
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) = withContext(dispatcher) {
         tagDao.insertMediaTagCrossRef(crossRef)
     }
