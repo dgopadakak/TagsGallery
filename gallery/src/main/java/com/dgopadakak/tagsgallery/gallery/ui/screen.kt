@@ -50,7 +50,7 @@ fun GalleryScreen(
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
-        viewModel.addSelectedMedia(uris.toMutableList())
+        viewModel.addSelectedMedia(uris)
         uris.forEach { uri ->
             context.contentResolver.takePersistableUriPermission(
                 uri,

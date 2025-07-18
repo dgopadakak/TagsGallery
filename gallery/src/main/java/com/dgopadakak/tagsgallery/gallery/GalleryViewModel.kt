@@ -38,6 +38,7 @@ class GalleryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
+    private val alreadyAddedMedia = mutableSetOf<String>()
 
     init {
         viewModelScope.launch {
@@ -81,14 +82,34 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    fun addSelectedMedia(uris: List<Uri>) {
-        _uiState.update { currentState ->
-            val updatedUris = (currentState.selectedUris + uris).distinct()
-            currentState.copy(selectedUris = updatedUris)
+    fun addSelectedMedia(uris: List<Uri>) = viewModelScope.launch {
+        var newUiState = _uiState.value.copy()
+        newUiState = newUiState.copy(
+            selectedUris = (newUiState.selectedUris + uris).distinct()
+        )
+
+        uris.forEach { uri ->
+            if (!alreadyAddedMedia.contains(uri.toString())) {
+                val alreadyAddedTagsId = repository.getTagIdsForMedia(uri.toString())
+                if (alreadyAddedTagsId.isNotEmpty()) {
+                    alreadyAddedMedia.add(uri.toString())
+                    newUiState = newUiState.copy(
+                        perMediaAddedTagIds = newUiState.perMediaAddedTagIds + mapOf(
+                            Pair(
+                                uri,
+                                alreadyAddedTagsId.filter { !newUiState.selectedTagIds.contains(it) }
+                            )
+                        )
+                    )
+                }
+            }
         }
+
+        _uiState.value = newUiState
     }
 
     fun removeSelectedMedia(uri: Uri) {
+        alreadyAddedMedia.remove(uri.toString())
         _uiState.update { currentState ->
             currentState.copy(
                 selectedUris = currentState.selectedUris - uri,
@@ -111,11 +132,11 @@ class GalleryViewModel @Inject constructor(
                 } else {
                     currentState.selectedTagIds - id
                 },
-                perMediaAddedTagIds = currentState.perMediaAddedTagIds.mapValues {
-                    it.value.filter { it != id }
+                perMediaAddedTagIds = currentState.perMediaAddedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it != id }
                 },
-                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds.mapValues {
-                    it.value.filter { it != id }
+                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it != id }
                 }
             )
         }
@@ -191,6 +212,7 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun resetScreen() {
+        alreadyAddedMedia.clear()
         _uiState.update { currentState ->
             currentState.copy(
                 selectedTagIds = emptyList(),
