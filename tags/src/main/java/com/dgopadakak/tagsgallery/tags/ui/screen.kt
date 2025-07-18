@@ -40,10 +40,6 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 
-// Padding values внешнего Scaffold уже учтены в NavHost, внутренний не должен вносить изменений,
-//  так как точно не предназначен для отображения элементов, ограничивающих доступную область
-//  (таких как панель навигации).
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
@@ -79,6 +75,10 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         )
     }
 
+    // Padding values внешнего Scaffold уже учтены в NavHost, внутренний не должен вносить изменений,
+    //  так как точно не предназначен для отображения элементов, ограничивающих доступную область
+    //  (таких как панель навигации).
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(

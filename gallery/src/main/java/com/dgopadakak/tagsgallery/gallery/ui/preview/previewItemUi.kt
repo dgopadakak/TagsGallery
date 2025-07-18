@@ -6,18 +6,11 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -27,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,46 +41,9 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
-import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-internal fun MediaPreviewRow(
-    uiStateStateFlow: StateFlow<GalleryViewModel.UiState>,
-    onPreviewClick: (Uri) -> Unit,
-    onRemoveMediaClick: (Uri) -> Unit
-) {
-    val uiState by uiStateStateFlow.collectAsState()
-
-    val previewSize = 120.dp
-    val previewRows = 2
-    val previewPadding = 8.dp
-
-    LazyHorizontalGrid(
-        modifier = Modifier
-            .height(previewSize * previewRows + previewPadding * previewRows)
-            .fillMaxWidth(),
-        rows = GridCells.Fixed(2),
-        contentPadding = PaddingValues(previewPadding),
-        verticalArrangement = Arrangement.spacedBy(previewPadding),
-        horizontalArrangement = Arrangement.spacedBy(previewPadding)
-    ) {
-        items(uiState.selectedUris) { uri ->
-            MediaPreview(
-                uri = uri,
-                previewSize = previewSize,
-                isActiveForIndividualTagsEdit = uiState.activeEditIndividualTags == uri,
-                individualAddedTagsNum = uiState.perMediaAddedTagIds.getOrDefault(uri, emptyList()).size,
-                individualRemovedTagsNum = uiState.perMediaRemovedTagIds.getOrDefault(uri, emptyList()).size,
-                onPreviewClick = { onPreviewClick(uri) },
-                onRemoveMediaClick = { onRemoveMediaClick(uri) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun MediaPreview(
+internal fun MediaPreview(
     uri: Uri,
     previewSize: Dp,
     isActiveForIndividualTagsEdit: Boolean,

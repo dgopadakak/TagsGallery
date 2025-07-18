@@ -43,9 +43,9 @@ internal fun MainScreen(
                 navController = navController,
                 startDestination = Routes.TAGS.route
             ) {
-                composable(route = Routes.TAGS.route, content = Routes.TAGS.screenMainFunction)
-                composable(route = Routes.GALLERY.route, content = Routes.GALLERY.screenMainFunction)
-                composable(route = Routes.SEARCH.route, content = Routes.SEARCH.screenMainFunction)
+                composable(route = Routes.TAGS.route) { Routes.TAGS.ScreenForRoute(windowSizeClass) }
+                composable(route = Routes.GALLERY.route) { Routes.GALLERY.ScreenForRoute(windowSizeClass) }
+                composable(route = Routes.SEARCH.route) { Routes.SEARCH.ScreenForRoute(windowSizeClass) }
             }
         }
     }

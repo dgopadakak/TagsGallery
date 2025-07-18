@@ -13,14 +13,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,12 +31,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
+import com.dgopadakak.tagsgallery.gallery.ui.preview.MediaPreviewGrid
 import com.dgopadakak.tagsgallery.gallery.ui.preview.MediaPreviewRow
 import com.dgopadakak.tagsgallery.gallery.ui.tags.TagsSegment
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
+fun GalleryScreen(
+    windowSizeClass: WindowSizeClass,
+    viewModel: GalleryViewModel = hiltViewModel()
+) {
 
     // TODO: избавиться от рекомпозиций данной функции из-за изменения в uiState не имеющих для нее
     //  значения параметров
@@ -58,8 +62,7 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .padding(top = 8.dp)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),     // На всякий случай для маленьких экранов
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ButtonRow(
@@ -76,24 +79,39 @@ fun GalleryScreen(viewModel: GalleryViewModel = hiltViewModel()) {
             }
         )
         if (uiState.selectedUris.isNotEmpty()) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
-                MediaPreviewRow(
-                    uiStateStateFlow = viewModel.uiState,
-                    onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
-                    onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
-                )
+            if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
+                Column {
+                    MediaPreviewRow(
+                        uiStateStateFlow = viewModel.uiState,
+                        onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
+                        onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
+                    )
 
-                TagsSegment(
-                    uiStateFlow = viewModel.uiState,
-                    onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
-                    onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
-                    onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
-                    onIndividualTagToggle = { uri, tagId -> viewModel.onPerMediaTagToggle(uri, tagId) },
-                    onIndividualTagAccept = { viewModel.setActiveUriForIndividualTags(null) }
-                )
+                    TagsSegment(
+                        uiStateFlow = viewModel.uiState,
+                        onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
+                        onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
+                        onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
+                        onIndividualTagToggle = { uri, tagId -> viewModel.onPerMediaTagToggle(uri, tagId) },
+                        onIndividualTagAccept = { viewModel.setActiveUriForIndividualTags(null) }
+                    )
+                }
+            } else {
+                Row {
+                    MediaPreviewGrid(
+                        uiStateStateFlow = viewModel.uiState,
+                        onPreviewClick = { uri -> viewModel.setActiveUriForIndividualTags(uri) },
+                        onRemoveMediaClick = { uri -> viewModel.removeSelectedMedia(uri) }
+                    )
+                    TagsSegment(
+                        uiStateFlow = viewModel.uiState,
+                        onCommonTagSelected = { id -> viewModel.onTagSelected(id) },
+                        onSortVariantChanged = { sortVariant -> viewModel.setSortBy(sortVariant) },
+                        onFilterVariantChanged = { filterVariant -> viewModel.setFilterBy(filterVariant) },
+                        onIndividualTagToggle = { uri, tagId -> viewModel.onPerMediaTagToggle(uri, tagId) },
+                        onIndividualTagAccept = { viewModel.setActiveUriForIndividualTags(null) }
+                    )
+                }
             }
         } else {
             Box(
