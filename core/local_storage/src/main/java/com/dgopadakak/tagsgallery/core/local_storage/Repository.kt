@@ -41,9 +41,9 @@ class Repository(
         .getTagWithMedia(tagId)
         .flowOn(dispatcher)
 
-    fun getTagsForMedia(mediaId: String): Flow<List<Tag>> = tagDao
-        .getTagsForMedia(mediaId)
-        .flowOn(dispatcher)
+    suspend fun getTagIdsForMedia(mediaId: String): List<Long> = withContext(dispatcher) {
+        tagDao.getTagIdsForMedia(mediaId)
+    }
 
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) = withContext(dispatcher) {
         tagDao.insertMediaTagCrossRef(crossRef)

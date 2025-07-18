@@ -32,12 +32,12 @@ interface TagDao {
     @Transaction
     @Query(
         """
-        SELECT Tag.* FROM Tag
+        SELECT Tag.id FROM Tag
         INNER JOIN MediaTagCrossRef ON Tag.id = MediaTagCrossRef.tagId
         WHERE MediaTagCrossRef.mediaId = :mediaId
         """
     )
-    fun getTagsForMedia(mediaId: String): Flow<List<Tag>>
+    suspend fun getTagIdsForMedia(mediaId: String): List<Long>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
