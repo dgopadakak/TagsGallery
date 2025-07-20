@@ -34,7 +34,7 @@ class GalleryViewModel @Inject constructor(
         val activeEditIndividualTags: Uri? = null,
         val perMediaAddedTagIds: Map<Uri, List<Long>> = emptyMap(),
         val perMediaRemovedTagIds: Map<Uri, List<Long>> = emptyMap(),
-        val alreadyAddedMedia: Set<Uri> = emptySet()
+        val alreadySavedMedia: Set<Uri> = emptySet()
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -46,11 +46,11 @@ class GalleryViewModel @Inject constructor(
             repository.getAllTags().collect { tagList ->
                 val existingIds = tagList.map { it.id }.toSet()
                 val updatedSelectedIds = _uiState.value.selectedTagIds.filter { it in existingIds }
-                val updatedPerMediaAddedTagIds = _uiState.value.perMediaAddedTagIds.mapValues {
-                    it.value.filter { it in existingIds }
+                val updatedPerMediaAddedTagIds = _uiState.value.perMediaAddedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it in existingIds }
                 }
-                val updatedPerMediaRemovedTagIds = _uiState.value.perMediaRemovedTagIds.mapValues {
-                    it.value.filter { it in existingIds }
+                val updatedPerMediaRemovedTagIds = _uiState.value.perMediaRemovedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it in existingIds }
                 }
                 _uiState.update { currentState ->
                     currentState.copy(
@@ -83,29 +83,24 @@ class GalleryViewModel @Inject constructor(
     }
 
     fun addSelectedMedia(uris: List<Uri>) = viewModelScope.launch {
-        var newUiState = _uiState.value.copy()
-        newUiState = newUiState.copy(
-            selectedUris = (newUiState.selectedUris + uris).distinct()
-        )
-
+        val updatedAlreadyAddedMedia = _uiState.value.alreadySavedMedia.toMutableSet()
+        val updatedPerMediaAddedTagIds = _uiState.value.perMediaAddedTagIds.toMutableMap()
         uris.forEach { uri ->
-            if (!newUiState.alreadyAddedMedia.contains(uri)) {
+            if (!_uiState.value.alreadySavedMedia.contains(uri)) {
                 val alreadyAddedTagsId = repository.getTagIdsForMedia(uri.toString())
                 if (alreadyAddedTagsId.isNotEmpty()) {
-                    newUiState = newUiState.copy(
-                        perMediaAddedTagIds = newUiState.perMediaAddedTagIds + mapOf(
-                            Pair(
-                                uri,
-                                alreadyAddedTagsId.filter { !newUiState.selectedTagIds.contains(it) }
-                            )
-                        ),
-                        alreadyAddedMedia = newUiState.alreadyAddedMedia + uri
-                    )
+                    updatedAlreadyAddedMedia.add(uri)
+                    updatedPerMediaAddedTagIds += uri to alreadyAddedTagsId.filter { !_uiState.value.selectedTagIds.contains(it) }
                 }
             }
         }
-
-        _uiState.value = newUiState
+        _uiState.update { currentState ->
+            currentState.copy(
+                selectedUris = (currentState.selectedUris + uris).distinct(),
+                alreadySavedMedia = updatedAlreadyAddedMedia,
+                perMediaAddedTagIds = updatedPerMediaAddedTagIds
+            )
+        }
     }
 
     fun removeSelectedMedia(uri: Uri) {
@@ -115,7 +110,7 @@ class GalleryViewModel @Inject constructor(
                 activeEditIndividualTags = null,
                 perMediaAddedTagIds = currentState.perMediaAddedTagIds - uri,
                 perMediaRemovedTagIds = currentState.perMediaRemovedTagIds - uri,
-                alreadyAddedMedia = currentState.alreadyAddedMedia - uri
+                alreadySavedMedia = currentState.alreadySavedMedia - uri
             )
         }
         if (_uiState.value.selectedUris.isEmpty()) {
@@ -149,7 +144,7 @@ class GalleryViewModel @Inject constructor(
             if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
             _uiState.update { currentState ->
                 currentState.copy(
-                    perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(Pair(uri, removed))
+                    perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(uri to removed)
                 )
             }
         } else {
@@ -157,7 +152,7 @@ class GalleryViewModel @Inject constructor(
             if (added.contains(tagId)) added.remove(tagId) else added.add(tagId)
             _uiState.update { currentState ->
                 currentState.copy(
-                    perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(Pair(uri, added))
+                    perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(uri to added)
                 )
             }
         }
@@ -183,8 +178,11 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    fun onClickSave() {
+    fun onClickSave() = viewModelScope.launch {
         with(_uiState.value) {
+            alreadySavedMedia.forEach { uri ->
+                repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
+            }
             selectedUris.forEach { uri ->
                 saveMediaTags(
                     mediaId = uri.toString(),
@@ -199,11 +197,9 @@ class GalleryViewModel @Inject constructor(
         resetScreen()
     }
 
-    private fun saveMediaTags(mediaId: String, selectedTagIds: List<Long>) {
-        viewModelScope.launch {
-            selectedTagIds.forEach { tagId ->
-                repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaId, tagId))
-            }
+    private suspend fun saveMediaTags(mediaId: String, selectedTagIds: List<Long>) {
+        selectedTagIds.forEach { tagId ->
+            repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaId, tagId))
         }
     }
 
@@ -212,6 +208,8 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun resetScreen() {
-        _uiState.value = UiState()
+        _uiState.value = UiState(
+            tags = _uiState.value.tags  // Только теги, подтянутые из БД и должны сохраниться
+        )
     }
 }

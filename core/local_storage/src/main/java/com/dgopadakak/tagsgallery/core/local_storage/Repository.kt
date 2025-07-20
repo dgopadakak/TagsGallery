@@ -46,10 +46,14 @@ class Repository(
     }
 
     suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String) = withContext(dispatcher) {
+        // TODO: если это не удаление всех связей с медиа из-за передобавления тегов, то нужно
+        //  освобождать разрешение на перманентный доступ к медиа
         tagDao.deleteMediaTagCrossRefsByMediaId(mediaId)
     }
 
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) = withContext(dispatcher) {
+        // TODO: сделать более закрытое решение - создавать объект MediaTagCrossRef здесь
+        // TODO: запрашивать разрешение на перманентный доступ к медиа только здесь
         tagDao.insertMediaTagCrossRef(crossRef)
     }
 

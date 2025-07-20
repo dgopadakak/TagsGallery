@@ -51,6 +51,7 @@ fun GalleryScreen(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         viewModel.addSelectedMedia(uris)
+        // TODO: убрать, реализовать в data-слое
         uris.forEach { uri ->
             context.contentResolver.takePersistableUriPermission(
                 uri,
@@ -71,6 +72,7 @@ fun GalleryScreen(
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
                 viewModel.setActiveUriForIndividualTags(null)
+                // TODO: реализовать защиту от многократного нажатия
                 photoPickerLauncher.launch(
                     PickVisualMediaRequest(
                         ActivityResultContracts.PickVisualMedia.ImageAndVideo

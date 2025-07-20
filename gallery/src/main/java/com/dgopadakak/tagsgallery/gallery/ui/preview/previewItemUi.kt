@@ -153,6 +153,8 @@ internal fun MediaPreview(
                 }
             }
         }
+
+        // TODO: предупреждение о редактировании
     }
 }
 
