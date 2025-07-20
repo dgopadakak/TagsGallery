@@ -1,6 +1,5 @@
 package com.dgopadakak.tagsgallery.gallery.ui
 
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,13 +50,6 @@ fun GalleryScreen(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         viewModel.addSelectedMedia(uris)
-        // TODO: убрать, реализовать в data-слое
-        uris.forEach { uri ->
-            context.contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-        }
     }
 
     Column(
@@ -68,7 +60,7 @@ fun GalleryScreen(
     ) {
         ButtonRow(
             uiStateFlow = viewModel.uiState,
-            onClickSave = { viewModel.onClickSave() },
+            onClickSave = { viewModel.onClickSave(context.contentResolver) },
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
                 viewModel.setActiveUriForIndividualTags(null)

@@ -52,8 +52,6 @@ class Repository(
     }
 
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) = withContext(dispatcher) {
-        // TODO: сделать более закрытое решение - создавать объект MediaTagCrossRef здесь
-        // TODO: запрашивать разрешение на перманентный доступ к медиа только здесь
         tagDao.insertMediaTagCrossRef(crossRef)
     }
 

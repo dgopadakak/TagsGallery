@@ -1,5 +1,7 @@
 package com.dgopadakak.tagsgallery.gallery
 
+import android.content.ContentResolver
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -178,28 +180,45 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    fun onClickSave() = viewModelScope.launch {
+    fun onClickSave(contentResolver: ContentResolver) = viewModelScope.launch {
         with(_uiState.value) {
             alreadySavedMedia.forEach { uri ->
                 repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
             }
             selectedUris.forEach { uri ->
                 saveMediaTags(
-                    mediaId = uri.toString(),
+                    mediaUri = uri,
                     selectedTagIds = calculateFinalTagIds(
                         selectedCommonTagIds = selectedTagIds,
                         individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
                         individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
-                    )
+                    ),
+                    contentResolver = contentResolver
                 )
             }
         }
         resetScreen()
     }
 
-    private suspend fun saveMediaTags(mediaId: String, selectedTagIds: List<Long>) {
+    private suspend fun saveMediaTags(
+        mediaUri: Uri,
+        selectedTagIds: List<Long>,
+        contentResolver: ContentResolver
+    ) {
+        if (!_uiState.value.alreadySavedMedia.contains(mediaUri)) {
+            contentResolver.takePersistableUriPermission(
+                mediaUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } else if (selectedTagIds.isEmpty()) {
+            // Удаление возможно и путем пустого предобавления - в этом случае тоже отпускаем разрешение
+            contentResolver.releasePersistableUriPermission(
+                mediaUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        }
         selectedTagIds.forEach { tagId ->
-            repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaId, tagId))
+            repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaUri.toString(), tagId))
         }
     }
 
