@@ -41,6 +41,7 @@ internal fun MediaPreviewRow(
             MediaPreview(
                 uri = uri,
                 previewSize = previewSize,
+                isAlreadySaved = uiState.alreadySavedMedia.contains(uri),
                 isActiveForIndividualTagsEdit = uiState.activeEditIndividualTags == uri,
                 individualAddedTagsNum = uiState.perMediaAddedTagIds.getOrDefault(uri, emptyList()).size,
                 individualRemovedTagsNum = uiState.perMediaRemovedTagIds.getOrDefault(uri, emptyList()).size,

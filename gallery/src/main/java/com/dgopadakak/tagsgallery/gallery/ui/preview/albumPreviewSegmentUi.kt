@@ -53,6 +53,7 @@ fun MediaPreviewGrid(
                 MediaPreview(
                     uri = uri,
                     previewSize = previewSize,
+                    isAlreadySaved = uiState.alreadySavedMedia.contains(uri),
                     isActiveForIndividualTagsEdit = uiState.activeEditIndividualTags == uri,
                     individualAddedTagsNum = uiState.perMediaAddedTagIds[uri]?.size ?: 0,
                     individualRemovedTagsNum = uiState.perMediaRemovedTagIds[uri]?.size ?: 0,

@@ -41,11 +41,13 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
+import com.dgopadakak.tagsgallery.core.compose.ui.EditModeWarningIcon
 
 @Composable
 internal fun MediaPreview(
     uri: Uri,
     previewSize: Dp,
+    isAlreadySaved: Boolean,
     isActiveForIndividualTagsEdit: Boolean,
     individualAddedTagsNum: Int,
     individualRemovedTagsNum: Int,
@@ -154,7 +156,14 @@ internal fun MediaPreview(
             }
         }
 
-        // TODO: предупреждение о редактировании
+        if (isAlreadySaved) {
+            EditModeWarningIcon(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(6.dp),
+                iconSize = 14.dp
+            )
+        }
     }
 }
 
