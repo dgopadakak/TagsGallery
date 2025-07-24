@@ -29,6 +29,19 @@ interface TagDao {
     @Query("SELECT * FROM Tag WHERE id = :tagId")
     fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?>
 
+    @Transaction
+    @Query(
+        """
+        SELECT Tag.id FROM Tag
+        INNER JOIN MediaTagCrossRef ON Tag.id = MediaTagCrossRef.tagId
+        WHERE MediaTagCrossRef.mediaId = :mediaId
+        """
+    )
+    suspend fun getTagIdsForMedia(mediaId: String): List<Long>
+
+    @Query("DELETE FROM MediaTagCrossRef WHERE mediaId = :mediaId")
+    suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
 

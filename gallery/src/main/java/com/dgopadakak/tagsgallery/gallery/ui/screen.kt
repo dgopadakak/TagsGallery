@@ -1,6 +1,5 @@
 package com.dgopadakak.tagsgallery.gallery.ui
 
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,8 +21,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +37,7 @@ import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
 import com.dgopadakak.tagsgallery.gallery.ui.preview.MediaPreviewGrid
 import com.dgopadakak.tagsgallery.gallery.ui.preview.MediaPreviewRow
 import com.dgopadakak.tagsgallery.gallery.ui.tags.TagsSegment
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -45,17 +49,21 @@ fun GalleryScreen(
     // TODO: избавиться от рекомпозиций данной функции из-за изменения в uiState не имеющих для нее
     //  значения параметров
     val uiState by viewModel.uiState.collectAsState()
+    var isPhotoPickerActive by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
-        viewModel.addSelectedMedia(uris.toMutableList())
-        uris.forEach { uri ->
-            context.contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+        isPhotoPickerActive = false
+        viewModel.addSelectedMedia(uris)
+    }
+
+    // На случай, если, например, из-за ошибки в PhotoPicker лямбда в photoPickerLauncher не вызовется
+    LaunchedEffect(key1 = isPhotoPickerActive) {
+        if (isPhotoPickerActive) {
+            delay(500)
+            isPhotoPickerActive = false
         }
     }
 
@@ -67,15 +75,18 @@ fun GalleryScreen(
     ) {
         ButtonRow(
             uiStateFlow = viewModel.uiState,
-            onClickSave = { viewModel.onClickSave() },
+            onClickSave = { viewModel.onClickSave(context.contentResolver) },
             onClickReset = { viewModel.onClickReset() },
             onAddMediaClick = {
-                viewModel.setActiveUriForIndividualTags(null)
-                photoPickerLauncher.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                if (!isPhotoPickerActive) {
+                    isPhotoPickerActive = true
+                    viewModel.setActiveUriForIndividualTags(null)
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                        )
                     )
-                )
+                }
             }
         )
         if (uiState.selectedUris.isNotEmpty()) {

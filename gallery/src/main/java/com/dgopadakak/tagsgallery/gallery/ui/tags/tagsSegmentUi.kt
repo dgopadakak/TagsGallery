@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
+import com.dgopadakak.tagsgallery.core.compose.ui.EditModeWarningIcon
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.compose.ui.SimpleTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
@@ -80,11 +81,23 @@ internal fun TagsSegment(
             } else {
                 Column {
                     Text(
-                        modifier = Modifier
-                            .padding(start = 8.dp),
+                        modifier = Modifier.padding(start = 8.dp),
                         text = "Tap on media to edit tags individually",
                         fontSize = 12.sp
                     )
+                    if (uiState.alreadySavedMedia.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier.padding(start = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            EditModeWarningIcon(iconSize = 12.dp)
+                            Text(
+                                modifier = Modifier.padding(start = 4.dp),
+                                text = "- already saved media, tags will be overwritten",
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                     FullTagsSelectionView(
                         modifier = Modifier.padding(start = 8.dp),
                         tags = uiState.tags,

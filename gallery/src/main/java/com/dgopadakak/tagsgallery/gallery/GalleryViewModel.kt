@@ -1,5 +1,7 @@
 package com.dgopadakak.tagsgallery.gallery
 
+import android.content.ContentResolver
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -32,8 +34,9 @@ class GalleryViewModel @Inject constructor(
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
         val activeEditIndividualTags: Uri? = null,
-        val perMediaAddedTagIds: Map<Uri, List<Long>> = mapOf(),
-        val perMediaRemovedTagIds: Map<Uri, List<Long>> = mapOf()
+        val perMediaAddedTagIds: Map<Uri, List<Long>> = emptyMap(),
+        val perMediaRemovedTagIds: Map<Uri, List<Long>> = emptyMap(),
+        val alreadySavedMedia: Set<Uri> = emptySet()
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -45,11 +48,11 @@ class GalleryViewModel @Inject constructor(
             repository.getAllTags().collect { tagList ->
                 val existingIds = tagList.map { it.id }.toSet()
                 val updatedSelectedIds = _uiState.value.selectedTagIds.filter { it in existingIds }
-                val updatedPerMediaAddedTagIds = _uiState.value.perMediaAddedTagIds.mapValues {
-                    it.value.filter { it in existingIds }
+                val updatedPerMediaAddedTagIds = _uiState.value.perMediaAddedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it in existingIds }
                 }
-                val updatedPerMediaRemovedTagIds = _uiState.value.perMediaRemovedTagIds.mapValues {
-                    it.value.filter { it in existingIds }
+                val updatedPerMediaRemovedTagIds = _uiState.value.perMediaRemovedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it in existingIds }
                 }
                 _uiState.update { currentState ->
                     currentState.copy(
@@ -81,10 +84,24 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    fun addSelectedMedia(uris: List<Uri>) {
+    fun addSelectedMedia(uris: List<Uri>) = viewModelScope.launch {
+        val updatedAlreadyAddedMedia = _uiState.value.alreadySavedMedia.toMutableSet()
+        val updatedPerMediaAddedTagIds = _uiState.value.perMediaAddedTagIds.toMutableMap()
+        uris.forEach { uri ->
+            if (!_uiState.value.alreadySavedMedia.contains(uri)) {
+                val alreadyAddedTagsId = repository.getTagIdsForMedia(uri.toString())
+                if (alreadyAddedTagsId.isNotEmpty()) {
+                    updatedAlreadyAddedMedia.add(uri)
+                    updatedPerMediaAddedTagIds += uri to alreadyAddedTagsId.filter { !_uiState.value.selectedTagIds.contains(it) }
+                }
+            }
+        }
         _uiState.update { currentState ->
-            val updatedUris = (currentState.selectedUris + uris).distinct()
-            currentState.copy(selectedUris = updatedUris)
+            currentState.copy(
+                selectedUris = (currentState.selectedUris + uris).distinct(),
+                alreadySavedMedia = updatedAlreadyAddedMedia,
+                perMediaAddedTagIds = updatedPerMediaAddedTagIds
+            )
         }
     }
 
@@ -94,7 +111,8 @@ class GalleryViewModel @Inject constructor(
                 selectedUris = currentState.selectedUris - uri,
                 activeEditIndividualTags = null,
                 perMediaAddedTagIds = currentState.perMediaAddedTagIds - uri,
-                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds - uri
+                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds - uri,
+                alreadySavedMedia = currentState.alreadySavedMedia - uri
             )
         }
         if (_uiState.value.selectedUris.isEmpty()) {
@@ -111,11 +129,11 @@ class GalleryViewModel @Inject constructor(
                 } else {
                     currentState.selectedTagIds - id
                 },
-                perMediaAddedTagIds = currentState.perMediaAddedTagIds.mapValues {
-                    it.value.filter { it != id }
+                perMediaAddedTagIds = currentState.perMediaAddedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it != id }
                 },
-                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds.mapValues {
-                    it.value.filter { it != id }
+                perMediaRemovedTagIds = currentState.perMediaRemovedTagIds.mapValues { mapEntry ->
+                    mapEntry.value.filter { it != id }
                 }
             )
         }
@@ -128,7 +146,7 @@ class GalleryViewModel @Inject constructor(
             if (removed.contains(tagId)) removed.remove(tagId) else removed.add(tagId)
             _uiState.update { currentState ->
                 currentState.copy(
-                    perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(Pair(uri, removed))
+                    perMediaRemovedTagIds = currentState.perMediaRemovedTagIds + mapOf(uri to removed)
                 )
             }
         } else {
@@ -136,7 +154,7 @@ class GalleryViewModel @Inject constructor(
             if (added.contains(tagId)) added.remove(tagId) else added.add(tagId)
             _uiState.update { currentState ->
                 currentState.copy(
-                    perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(Pair(uri, added))
+                    perMediaAddedTagIds = currentState.perMediaAddedTagIds + mapOf(uri to added)
                 )
             }
         }
@@ -162,27 +180,45 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
-    fun onClickSave() {
+    fun onClickSave(contentResolver: ContentResolver) = viewModelScope.launch {
         with(_uiState.value) {
+            alreadySavedMedia.forEach { uri ->
+                repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
+            }
             selectedUris.forEach { uri ->
                 saveMediaTags(
-                    mediaId = uri.toString(),
+                    mediaUri = uri,
                     selectedTagIds = calculateFinalTagIds(
                         selectedCommonTagIds = selectedTagIds,
                         individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
                         individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
-                    )
+                    ),
+                    contentResolver = contentResolver
                 )
             }
         }
         resetScreen()
     }
 
-    private fun saveMediaTags(mediaId: String, selectedTagIds: List<Long>) {
-        viewModelScope.launch {
-            selectedTagIds.forEach { tagId ->
-                repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaId, tagId))
-            }
+    private suspend fun saveMediaTags(
+        mediaUri: Uri,
+        selectedTagIds: List<Long>,
+        contentResolver: ContentResolver
+    ) {
+        if (!_uiState.value.alreadySavedMedia.contains(mediaUri)) {
+            contentResolver.takePersistableUriPermission(
+                mediaUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } else if (selectedTagIds.isEmpty()) {
+            // Удаление возможно и путем пустого предобавления - в этом случае тоже отпускаем разрешение
+            contentResolver.releasePersistableUriPermission(
+                mediaUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        }
+        selectedTagIds.forEach { tagId ->
+            repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaUri.toString(), tagId))
         }
     }
 
@@ -191,15 +227,8 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun resetScreen() {
-        _uiState.update { currentState ->
-            currentState.copy(
-                selectedTagIds = emptyList(),
-                selectedUris = emptyList(),
-                perMediaAddedTagIds = emptyMap(),
-                perMediaRemovedTagIds = emptyMap()
-            )
-        }
-        setSortBy(SortVariant.DEFAULT_SORT_VARIANT)
-        setFilterBy(null)
+        _uiState.value = UiState(
+            tags = _uiState.value.tags  // Только теги, подтянутые из БД и должны сохраниться
+        )
     }
 }
