@@ -93,7 +93,7 @@ internal fun TagsSegment(
                             EditModeWarningIcon(iconSize = 12.dp)
                             Text(
                                 modifier = Modifier.padding(start = 4.dp),
-                                text = "- already added media, tags will be overwritten",
+                                text = "- already saved media, tags will be overwritten",
                                 fontSize = 12.sp
                             )
                         }
