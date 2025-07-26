@@ -1,13 +1,16 @@
 package com.dgopadakak.tagsgallery.core.local_storage
 
+import android.net.Uri
+import androidx.core.net.toUri
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
-import com.dgopadakak.tagsgallery.core.local_storage.models.TagWithMedia
 import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
@@ -37,10 +40,6 @@ class Repository(
         tagDao.deleteTagsAndRelations(tagIds)
     }
 
-    fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?> = tagDao
-        .getTagWithMedia(tagId)
-        .flowOn(dispatcher)
-
     suspend fun getTagIdsForMedia(mediaId: String): List<Long> = withContext(dispatcher) {
         tagDao.getTagIdsForMedia(mediaId)
     }
@@ -62,4 +61,17 @@ class Repository(
     suspend fun setHintShown(hint: Hints) = withContext(dispatcher) {
         preferencesRepository.setHintShown(hint)
     }
+
+    fun getMediaUrisByAllTags(tagIds: List<Long>): Flow<List<Uri>> = flow {
+        if (tagIds.isEmpty()) {
+            emit(emptyList())
+        } else {
+            val tagToMediaMap = tagIds.map { tagId ->
+                tagDao.getTagWithMedia(tagId).firstOrNull()?.media?.map { it.mediaId }?.toSet() ?: emptySet()
+            }
+
+            val intersection = tagToMediaMap.reduceOrNull { acc, set -> acc.intersect(set) } ?: emptySet()
+            emit(intersection.map { it.toUri() })
+        }
+    }.flowOn(dispatcher)
 }
