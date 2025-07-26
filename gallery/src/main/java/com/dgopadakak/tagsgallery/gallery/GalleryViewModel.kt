@@ -28,7 +28,8 @@ class GalleryViewModel @Inject constructor(
 
     @Stable
     data class UiState(
-        val tags: List<Tag> = emptyList(),
+        val allTags: List<Tag> = emptyList(),
+        val sortedFilteredTags: List<Tag> = emptyList(),
         val selectedTagIds: List<Long> = emptyList(),
         val selectedUris: List<Uri> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
@@ -78,7 +79,10 @@ class GalleryViewModel @Inject constructor(
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
                 _uiState.update { currentState ->
-                    currentState.copy(tags = sortedAndFilteredTags)
+                    currentState.copy(
+                        allTags = tagList,
+                        sortedFilteredTags = sortedAndFilteredTags
+                    )
                 }
             }.collect {}
         }
@@ -227,8 +231,9 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun resetScreen() {
-        _uiState.value = UiState(
-            tags = _uiState.value.tags  // Только теги, подтянутые из БД и должны сохраниться
+        _uiState.value = UiState(   // Только теги, подтянутые из БД и должны сохраниться
+            allTags = _uiState.value.allTags,
+            sortedFilteredTags = _uiState.value.sortedFilteredTags
         )
     }
 }
