@@ -1,12 +1,21 @@
 package com.dgopadakak.tagsgallery.search
 
+import android.net.Uri
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -28,13 +37,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
@@ -44,18 +56,19 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        snackbarHostState = snackbarHostState
+    )
 
     val sheetPeekHeight = 128.dp
     val halfScreenHeight = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.height.toDp() / 2
     }
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        snackbarHostState = snackbarHostState
-    )
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = sheetPeekHeight,
+        sheetShape = RectangleShape,
         sheetContent = {
             val sheetState = scaffoldState.bottomSheetState
             val isExpanded = sheetState.targetValue == SheetValue.Expanded
@@ -88,7 +101,39 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
             }
         }
     ) { innerPadding ->
-        // TODO
+        if (uiState.foundedMediaUris.isEmpty()) {
+            // TODO: показывать все доступные медиа
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No media found for the selected tags.")
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 120.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentPadding = PaddingValues(4.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                items(uiState.foundedMediaUris, key = { it.toString() }) { uri ->
+                    SearchMediaPreviewItem(
+                        uri = uri,
+                        onItemClick = {
+                            // TODO
+                        },
+                        onItemLongClick = {
+                            // TODO
+                        }
+                    )
+                }
+            }
+        }
     }
 
     LaunchedEffect(key1 = uiState.needToShowHint) {
@@ -97,6 +142,26 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
             viewModel.setHintShown()
         }
     }
+}
+
+@Composable
+private fun SearchMediaPreviewItem(
+    uri: Uri,
+    modifier: Modifier = Modifier,
+    onItemClick: (Uri) -> Unit,
+    onItemLongClick: (Uri) -> Unit
+) {
+    AsyncImage(
+        model = uri,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+            .aspectRatio(1f)
+            .combinedClickable(
+                onClick = { onItemClick(uri) },
+                onLongClick = { onItemLongClick(uri) }
+            )
+    )
 }
 
 @Composable
