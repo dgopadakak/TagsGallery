@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.search
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +17,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -49,16 +49,13 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
     val halfScreenHeight = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.height.toDp() / 2
     }
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        snackbarHostState = snackbarHostState
+    )
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = sheetPeekHeight,
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState
-            )
-        },
         sheetContent = {
             val sheetState = scaffoldState.bottomSheetState
             val isExpanded = sheetState.targetValue == SheetValue.Expanded
@@ -66,24 +63,26 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(if (isExpanded) halfScreenHeight else sheetPeekHeight)
+                    .height(halfScreenHeight)
             ) {
-                if (isExpanded) {   // TODO: Crossfade
-                    FullTagsSelectionView(
-                        modifier = Modifier.padding(start = 8.dp),
-                        tags = uiState.sortedFilteredTags,
-                        selectedTagsIds = uiState.selectedTagIds,
-                        onTagClick = { viewModel.onTagToggle(it) },
-                        sortBy = uiState.sortBy,
-                        onSortVariantChanged = { viewModel.setSortBy(it) },
-                        filterBy = uiState.filterBy,
-                        onFilterVariantChanged = { viewModel.setFilterBy(it) }
-                    )
-                } else {
-                    SmallTagsRow(
-                        tags = uiState.allTags.filter { uiState.selectedTagIds.contains(it.id) }
-                    ) {
-                        viewModel.onTagToggle(it)
+                Crossfade(targetState = isExpanded, label = "BottomSheetContent") { expanded ->
+                    if (expanded) {
+                        FullTagsSelectionView(
+                            modifier = Modifier.padding(start = 8.dp),
+                            tags = uiState.sortedFilteredTags,
+                            selectedTagsIds = uiState.selectedTagIds,
+                            onTagClick = { viewModel.onTagToggle(it) },
+                            sortBy = uiState.sortBy,
+                            onSortVariantChanged = { viewModel.setSortBy(it) },
+                            filterBy = uiState.filterBy,
+                            onFilterVariantChanged = { viewModel.setFilterBy(it) }
+                        )
+                    } else {
+                        SmallTagsRow(
+                            tags = uiState.allTags.filter { uiState.selectedTagIds.contains(it.id) }
+                        ) {
+                            viewModel.onTagToggle(it)
+                        }
                     }
                 }
             }
