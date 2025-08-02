@@ -187,24 +187,31 @@ class GalleryViewModel @Inject constructor(
     fun onClickSave(contentResolver: ContentResolver) = viewModelScope.launch {
         with(_uiState.value) {
             alreadySavedMedia.forEach { uri ->
+                // FIXME: такое удаление приводит к рекомпозиции на экране Search: объединить все в одну транзакцию
                 repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
             }
+            val allMediaTagCrossRefs = arrayListOf<MediaTagCrossRef>()
             selectedUris.forEach { uri ->
-                saveMediaTags(
+                val finalTagIds = calculateFinalTagIds(
+                    selectedCommonTagIds = selectedTagIds,
+                    individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
+                    individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
+                )
+
+                takeOrReleasePersistableUriPermissionIfNeeded(
                     mediaUri = uri,
-                    selectedTagIds = calculateFinalTagIds(
-                        selectedCommonTagIds = selectedTagIds,
-                        individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
-                        individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
-                    ),
+                    selectedTagIds = finalTagIds,
                     contentResolver = contentResolver
                 )
+
+                allMediaTagCrossRefs += finalTagIds.map { MediaTagCrossRef(uri.toString(), it) }
             }
+            repository.insertMediaTagCrossRefs(allMediaTagCrossRefs)
         }
         resetScreen()
     }
 
-    private suspend fun saveMediaTags(
+    private fun takeOrReleasePersistableUriPermissionIfNeeded(
         mediaUri: Uri,
         selectedTagIds: List<Long>,
         contentResolver: ContentResolver
@@ -220,9 +227,6 @@ class GalleryViewModel @Inject constructor(
                 mediaUri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
-        }
-        selectedTagIds.forEach { tagId ->
-            repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaUri.toString(), tagId))
         }
     }
 

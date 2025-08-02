@@ -8,10 +8,12 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class Repository(
@@ -50,8 +52,8 @@ class Repository(
         tagDao.deleteMediaTagCrossRefsByMediaId(mediaId)
     }
 
-    suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef) = withContext(dispatcher) {
-        tagDao.insertMediaTagCrossRef(crossRef)
+    suspend fun insertMediaTagCrossRefs(crossRefs: List<MediaTagCrossRef>) = withContext(dispatcher) {
+        tagDao.insertMediaTagCrossRefs(crossRefs)
     }
 
     suspend fun isHintShown(hint: Hints): Boolean = withContext(dispatcher) {
@@ -62,16 +64,18 @@ class Repository(
         preferencesRepository.setHintShown(hint)
     }
 
-    fun getMediaUrisByAllTags(tagIds: List<Long>): Flow<List<Uri>> = flow {
-        if (tagIds.isEmpty()) {
-            emit(emptyList())
-        } else {
-            val tagToMediaMap = tagIds.map { tagId ->
-                tagDao.getTagWithMedia(tagId).firstOrNull()?.media?.map { it.mediaId }?.toSet() ?: emptySet()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getMediaUrisByAllTags(tagIdsFlow: Flow<List<Long>>): Flow<List<Uri>> {
+        return tagIdsFlow.flatMapLatest { tagIds ->
+            if (tagIds.isEmpty()) {
+                tagDao.getAllMediaIds()
+                    .map { ids -> ids.map { it.toUri() } }
+                    .distinctUntilChanged()
+            } else {
+                tagDao.getMediaIdsByAllTags(tagIds, tagIds.size)
+                    .map { ids -> ids.map { it.toUri() } }
+                    .distinctUntilChanged()
             }
-
-            val intersection = tagToMediaMap.reduceOrNull { acc, set -> acc.intersect(set) } ?: emptySet()
-            emit(intersection.map { it.toUri() })
-        }
-    }.flowOn(dispatcher)
+        }.distinctUntilChanged().flowOn(dispatcher)
+    }
 }

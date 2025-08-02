@@ -8,7 +8,6 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
-import com.dgopadakak.tagsgallery.core.local_storage.models.TagWithMedia
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -25,9 +24,19 @@ interface TagDao {
     @Update
     suspend fun updateTag(tag: Tag)
 
-    @Transaction
-    @Query("SELECT * FROM Tag WHERE id = :tagId")
-    fun getTagWithMedia(tagId: Long): Flow<TagWithMedia?>
+    @Query(
+        """
+        SELECT mediaId
+        FROM MediaTagCrossRef
+        WHERE tagId IN (:tagIds)
+        GROUP BY mediaId
+        HAVING COUNT(DISTINCT tagId) = :requiredCount
+        """
+    )
+    fun getMediaIdsByAllTags(tagIds: List<Long>, requiredCount: Int): Flow<List<String>>
+
+    @Query("SELECT DISTINCT mediaId FROM MediaTagCrossRef")
+    fun getAllMediaIds(): Flow<List<String>>
 
     @Transaction
     @Query(
@@ -43,7 +52,7 @@ interface TagDao {
     suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertMediaTagCrossRef(crossRef: MediaTagCrossRef)
+    suspend fun insertMediaTagCrossRefs(crossRefs: List<MediaTagCrossRef>)
 
     @Transaction
     suspend fun deleteTagsAndRelations(tagIds: List<Long>) {
