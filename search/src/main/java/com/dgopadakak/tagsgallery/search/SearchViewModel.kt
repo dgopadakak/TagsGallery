@@ -1,7 +1,6 @@
 package com.dgopadakak.tagsgallery.search
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -78,7 +77,6 @@ class SearchViewModel @Inject constructor(
             repository.getMediaUrisByAllTags(
                 tagIdsFlow = _uiState.map { it.selectedTagIds }.distinctUntilChanged()
             ).collect { mediaUris ->
-                Log.i("IWTSI", "Update")    // TODO: убрать после победы над рекомпозициями из-за нетранзакционности
                 _uiState.update { it.copy(foundedMediaUris = mediaUris) }
             }
         }

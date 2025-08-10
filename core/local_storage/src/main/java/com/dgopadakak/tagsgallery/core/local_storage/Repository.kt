@@ -46,14 +46,41 @@ class Repository(
         tagDao.getTagIdsForMedia(mediaId)
     }
 
+    /**
+     * Функция, удаляющая все связи с медиа из БД. В результате в БД не останется упоминаний о медиа
+     *
+     * При реализации использования этого метода всегда необходимо освобождать разрешение
+     * на перманентный доступ к медиа. Причина в том, что удаление связей с медиа для их
+     * пересоздания происходит в функции [deleteAndInsertMediaTagCrossRefs], а эта функция должна
+     * вызываться при окончательном удалении связей с медиа.
+     */
     suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String) = withContext(dispatcher) {
-        // TODO: если это не удаление всех связей с медиа из-за передобавления тегов, то нужно
-        //  освобождать разрешение на перманентный доступ к медиа
+        // TODO: учесть доку при использовании
         tagDao.deleteMediaTagCrossRefsByMediaId(mediaId)
     }
 
-    suspend fun insertMediaTagCrossRefs(crossRefs: List<MediaTagCrossRef>) = withContext(dispatcher) {
-        tagDao.insertMediaTagCrossRefs(crossRefs)
+    /**
+     * Функция, удаляющая все связи с медиа списка mediaIdsToDeleteCrossRefs из БД и создающая новые
+     * связи, опираясь на crossRefsToAdd. Основной сценария использования: добавление новых медиа и,
+     * опционально, редактирование связей старых путем предварительного удаления всех их старых
+     * связей (то есть медиа фигурирует в обоих параметрах).
+     *
+     * Но возможна ситуация, кода медиа находится только в списке mediaIdsToDeleteCrossRefs. Это
+     * означает, что его теги отредактированы таким образом, что добавлять нечего. Это нормальный
+     * сценарий эквивалентный полному удалению связей с медиа. Но такие случаи надо отлавливать в
+     * месте использования данного метода и, как и в случае с [deleteMediaTagCrossRefsByMediaId],
+     * необходимо освобождать разрешение на перманентный доступ к медиа. То есть при реализации
+     * использования этого метода надо проверить: останутся ли у него теги и освобождать разрешение
+     * на перманентный доступ к медиа, если нет.
+     */
+    suspend fun deleteAndInsertMediaTagCrossRefs(
+        mediaIdsToDeleteCrossRefs: Set<String>,
+        crossRefsToAdd: List<MediaTagCrossRef>
+    ) = withContext(dispatcher) {
+        tagDao.deleteAndInsertMediaTagCrossRefs(
+            mediaIdsToDeleteCrossRefs = mediaIdsToDeleteCrossRefs,
+            crossRefsToAdd = crossRefsToAdd
+        )
     }
 
     suspend fun isHintShown(hint: Hints): Boolean = withContext(dispatcher) {

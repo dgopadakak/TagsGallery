@@ -186,10 +186,6 @@ class GalleryViewModel @Inject constructor(
 
     fun onClickSave(contentResolver: ContentResolver) = viewModelScope.launch {
         with(_uiState.value) {
-            alreadySavedMedia.forEach { uri ->
-                // FIXME: такое удаление приводит к рекомпозиции на экране Search: объединить все в одну транзакцию
-                repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
-            }
             val allMediaTagCrossRefs = arrayListOf<MediaTagCrossRef>()
             selectedUris.forEach { uri ->
                 val finalTagIds = calculateFinalTagIds(
@@ -206,7 +202,10 @@ class GalleryViewModel @Inject constructor(
 
                 allMediaTagCrossRefs += finalTagIds.map { MediaTagCrossRef(uri.toString(), it) }
             }
-            repository.insertMediaTagCrossRefs(allMediaTagCrossRefs)
+            repository.deleteAndInsertMediaTagCrossRefs(
+                mediaIdsToDeleteCrossRefs = alreadySavedMedia.mapTo(HashSet()) { it.toString() },
+                crossRefsToAdd = allMediaTagCrossRefs
+            )
         }
         resetScreen()
     }
@@ -217,10 +216,12 @@ class GalleryViewModel @Inject constructor(
         contentResolver: ContentResolver
     ) {
         if (!_uiState.value.alreadySavedMedia.contains(mediaUri)) {
-            contentResolver.takePersistableUriPermission(
-                mediaUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+            if (selectedTagIds.isNotEmpty()) {
+                contentResolver.takePersistableUriPermission(
+                    mediaUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
         } else if (selectedTagIds.isEmpty()) {
             // Удаление возможно и путем пустого предобавления - в этом случае тоже отпускаем разрешение
             contentResolver.releasePersistableUriPermission(
