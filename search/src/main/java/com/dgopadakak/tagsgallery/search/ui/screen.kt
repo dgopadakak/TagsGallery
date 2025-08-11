@@ -1,4 +1,4 @@
-package com.dgopadakak.tagsgallery.search
+package com.dgopadakak.tagsgallery.search.ui
 
 import android.net.Uri
 import androidx.compose.animation.Crossfade
@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -50,10 +51,14 @@ import coil3.compose.AsyncImage
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.search.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
+fun SearchScreen(
+    fullscreenContentMutableState: MutableState<Uri?>,
+    viewModel: SearchViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -125,7 +130,7 @@ fun SearchScreen(viewModel: SearchViewModel = hiltViewModel()) {
                     SearchMediaPreviewItem(
                         uri = uri,
                         onItemClick = {
-                            // TODO
+                            fullscreenContentMutableState.value = uri
                         },
                         onItemLongClick = {
                             // TODO

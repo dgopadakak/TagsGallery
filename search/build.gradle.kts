@@ -57,6 +57,7 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
+    implementation(libs.telephoto.image)
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation)

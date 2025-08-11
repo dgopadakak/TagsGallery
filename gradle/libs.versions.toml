@@ -16,6 +16,7 @@ room = "2.7.2"
 ksp = "2.2.0-2.0.2"
 coil = "3.3.0"
 media3 = "1.8.0"
+telephoto = "0.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 room-coroutinesExtensions = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil" }
+telephoto-image = { group = "me.saket.telephoto", name = "zoomable-image-coil3", version.ref = "telephoto" }
 androidx-media3-ui-compose = { group = "androidx.media3", name = "media3-ui-compose", version.ref = "media3" }
 androidx-media3-exoPlayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 
