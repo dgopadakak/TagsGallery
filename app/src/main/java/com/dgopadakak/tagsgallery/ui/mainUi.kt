@@ -1,6 +1,5 @@
 package com.dgopadakak.tagsgallery.ui
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +21,7 @@ import com.dgopadakak.tagsgallery.navigation.LocalFullScreenContentState
 import com.dgopadakak.tagsgallery.navigation.LocalWindowSizeClass
 import com.dgopadakak.tagsgallery.navigation.Routes
 import com.dgopadakak.tagsgallery.search.ui.FullScreenMediaView
+import com.dgopadakak.tagsgallery.search.ui.FullscreenContentModel
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
@@ -32,11 +32,12 @@ internal fun MainScreen(
     // TODO: при расширении на другие платформы - сделать больше, чем 2 варианта UI навигации
     val useRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
-    val mediaUriForFullScreen: MutableState<Uri?> = rememberSaveable { mutableStateOf(null) }
+    val contentForFullScreen: MutableState<FullscreenContentModel?> =
+        rememberSaveable { mutableStateOf(null) }
 
     CompositionLocalProvider(
         LocalWindowSizeClass provides windowSizeClass,
-        LocalFullScreenContentState provides mediaUriForFullScreen
+        LocalFullScreenContentState provides contentForFullScreen
     ) {
         // Box - правильный контейнер для накладываемых друг на друга Composable. Это первый уровень
         // иерархии Composable, так что без него происходят артефакты вроде залипания FullScreenMediaView
@@ -68,10 +69,10 @@ internal fun MainScreen(
                 }
             }
 
-            mediaUriForFullScreen.value?.let { uri ->
+            contentForFullScreen.value?.let { content ->
                 FullScreenMediaView(
-                    uri = uri,
-                    onClose = { mediaUriForFullScreen.value = null }
+                    content,
+                    onClose = { contentForFullScreen.value = null }
                 )
             }
         }

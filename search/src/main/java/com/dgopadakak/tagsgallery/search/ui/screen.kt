@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -56,7 +56,7 @@ import com.dgopadakak.tagsgallery.search.SearchViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    fullscreenContentMutableState: MutableState<Uri?>,
+    fullscreenContentMutableState: MutableState<FullscreenContentModel?>,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -126,11 +126,14 @@ fun SearchScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                items(uiState.foundedMediaUris, key = { it.toString() }) { uri ->
+                itemsIndexed(uiState.foundedMediaUris, key = { _, uri -> uri }) { index, uri ->
                     SearchMediaPreviewItem(
                         uri = uri,
                         onItemClick = {
-                            fullscreenContentMutableState.value = uri
+                            fullscreenContentMutableState.value = FullscreenContentModel(
+                                startIndex = index,
+                                uriList = uiState.foundedMediaUris
+                            )
                         },
                         onItemLongClick = {
                             // TODO

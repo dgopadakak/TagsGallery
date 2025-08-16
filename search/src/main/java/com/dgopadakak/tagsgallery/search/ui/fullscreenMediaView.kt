@@ -13,6 +13,8 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,9 +30,14 @@ import kotlin.math.roundToInt
 
 @Composable
 fun FullScreenMediaView(
-    uri: Uri,
+    contentModel: FullscreenContentModel,
     onClose: () -> Unit
 ) {
+
+    val pagerState = rememberPagerState(initialPage = contentModel.startIndex) {
+        contentModel.uriList.size
+    }
+
 
     val offsetY = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -53,7 +60,7 @@ fun FullScreenMediaView(
             onDragStopped = { velocity ->
                 scope.launch {
                     // Если большое смещение или быстрый свайп
-                    if (abs(offsetY.value) > 370f || abs(velocity) > 2000f) {
+                    if (abs(offsetY.value) > 400f || abs(velocity) > 2000f) {
                         onClose()
                     } else {
                         offsetY.animateTo(
@@ -66,13 +73,23 @@ fun FullScreenMediaView(
         ),
         contentAlignment = Alignment.Center
     ) {
-        ZoomableAsyncImage(
-            model = uri,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxSize()
-                .offset { IntOffset(0, offsetY.value.roundToInt()) }
-        )
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            ZoomableAsyncImage(
+                model = contentModel.uriList[page],
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset { IntOffset(0, offsetY.value.roundToInt()) }
+            )
+        }
     }
 }
+
+data class FullscreenContentModel(
+    val startIndex: Int,
+    val uriList: List<Uri>
+)
