@@ -37,10 +37,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
@@ -60,6 +66,7 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberBottomSheetScaffoldState(
         snackbarHostState = snackbarHostState
@@ -117,6 +124,20 @@ fun SearchScreen(
                 Text("No media found for the selected tags.")
             }
         } else {
+
+            // ZoomableAsyncImage в FullScreenMediaView сам запрашивает лучшее качество, но не факт,
+            // нужен тест, на Samsung ведет себя неоднозначно, но там в целом есть проблемы с системой
+            val requestsList = remember {
+                uiState.foundedMediaUris.map { uriToConvert ->
+                    ImageRequest.Builder(context)
+                        .data(uriToConvert)
+                        .crossfade(true)
+                        .memoryCacheKey(uriToConvert.toString())
+                        .size(250)
+                        .build()
+                }
+            }
+
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 120.dp),
                 modifier = Modifier
@@ -127,12 +148,19 @@ fun SearchScreen(
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 itemsIndexed(uiState.foundedMediaUris, key = { _, uri -> uri }) { index, uri ->
+                    var itemBounds: Rect? = null
                     SearchMediaPreviewItem(
+                        modifier = Modifier
+                            .onGloballyPositioned { coordinates ->
+                                itemBounds = coordinates.boundsInWindow()
+                            },
                         uri = uri,
+                        request = requestsList[index],
                         onItemClick = {
                             fullscreenContentMutableState.value = FullscreenContentModel(
                                 startIndex = index,
-                                uriList = uiState.foundedMediaUris
+                                placeholderImgRequests = requestsList,
+                                startAnimationCoordinates = itemBounds!!
                             )
                         },
                         onItemLongClick = {
@@ -154,13 +182,14 @@ fun SearchScreen(
 
 @Composable
 private fun SearchMediaPreviewItem(
-    uri: Uri,
     modifier: Modifier = Modifier,
+    uri: Uri,
+    request: ImageRequest,
     onItemClick: (Uri) -> Unit,
     onItemLongClick: (Uri) -> Unit
 ) {
     AsyncImage(
-        model = uri,
+        model = request,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier

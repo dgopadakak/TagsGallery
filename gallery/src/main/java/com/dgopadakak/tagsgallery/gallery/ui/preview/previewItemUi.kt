@@ -88,6 +88,7 @@ internal fun MediaPreview(
                         }
                     }
                     .crossfade(true)
+                    .size(250)
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
