@@ -144,7 +144,8 @@ fun SearchScreen(
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 itemsIndexed(uiState.foundedMediaUris, key = { _, uri -> uri }) { index, uri ->
-                    var itemBounds: Rect? = null
+                    // Инициализирующее значение лучше нуллабельности. в случае чего будет кривая анимация, а не NPE
+                    var itemBounds = Rect(0f, 0f, 0f, 0f)
                     SearchMediaPreviewItem(
                         modifier = Modifier
                             .onGloballyPositioned { coordinates ->
@@ -156,7 +157,7 @@ fun SearchScreen(
                             fullscreenContentMutableState.value = FullscreenContentModel(
                                 startIndex = index,
                                 placeholderImgRequests = requestsList,
-                                startAnimationCoordinates = itemBounds!!
+                                startAnimationCoordinates = itemBounds
                             )
                         },
                         onItemLongClick = {

@@ -3,6 +3,7 @@ package com.dgopadakak.tagsgallery.search.ui
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -45,11 +46,17 @@ fun FullScreenMediaView(
         contentModel.placeholderImgRequests.size
     }
 
+    val screenHeight = LocalWindowInfo.current.containerSize.height.toFloat()
+    val closingAnimDuration = 150
+
     val offsetY = remember { Animatable(0f) }
     val animProgress = remember { Animatable(0f) }
+    val backgroundAnimClosing = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
 
-    val backgroundAlpha = (1f - (abs(offsetY.value) / 1000f).coerceIn(0f, 0.7f)) * animProgress.value
+    val backgroundAlphaByPosition = (1f - (abs(offsetY.value) / 1000f).coerceIn(0f, 0.7f))
+    val fullCalculatedBackgroundAlfa =
+        backgroundAlphaByPosition * animProgress.value * backgroundAnimClosing.value
 
     BackHandler { onClose(); Log.i("IWTSI", "onClose") }
 
@@ -63,28 +70,48 @@ fun FullScreenMediaView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = backgroundAlpha))
-            .draggable(     // TODO: починить отпускание при небольшом движении пальца по горизонтали
-            orientation = Orientation.Vertical, // TODO: добить анимацию закрытия эффектом уезда за верхнюю/нижнюю границу
-            state = rememberDraggableState { delta ->
-                scope.launch {
-                    offsetY.snapTo(offsetY.value + delta)
-                }
-            },
-            onDragStopped = { velocity ->
-                scope.launch {
-                    // Если большое смещение или быстрый свайп
-                    if (abs(offsetY.value) > 450f || abs(velocity) > 2000f) {
-                        onClose()
-                    } else {
-                        offsetY.animateTo(
-                            0f,
-                            spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                        )
+            .background(Color.Black.copy(alpha = fullCalculatedBackgroundAlfa))
+            .draggable(
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { delta ->
+                    scope.launch {
+                        offsetY.snapTo(offsetY.value + delta)
+                    }
+                },
+                onDragStopped = { velocity ->
+                    scope.launch {
+                        // Если большое смещение или быстрый свайп
+                        if (abs(offsetY.value) > 450f || abs(velocity) > 2000f) {
+                            val sign = if (offsetY.value >= 0f) 1 else -1
+                            val target = sign * screenHeight
+                            launch {
+                                offsetY.animateTo(
+                                    targetValue = target,
+                                    animationSpec = tween(
+                                        durationMillis = closingAnimDuration,
+                                        easing = LinearEasing
+                                    )
+                                )
+                                onClose()
+                            }
+                            launch {
+                                backgroundAnimClosing.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = tween(
+                                        durationMillis = closingAnimDuration,
+                                        easing = LinearEasing
+                                    )
+                                )
+                            }
+                        } else {
+                            offsetY.animateTo(
+                                0f,
+                                spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                            )
+                        }
                     }
                 }
-            }
-        ),
+            ),
         contentAlignment = Alignment.Center
     ) {
         // TODO: изменить анимацию листания
