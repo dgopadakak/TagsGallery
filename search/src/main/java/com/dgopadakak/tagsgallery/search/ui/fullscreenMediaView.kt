@@ -26,10 +26,8 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
@@ -58,7 +56,7 @@ fun FullScreenMediaView(
     LaunchedEffect(Unit) {
         animProgress.animateTo(
             1f,
-            animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+            animationSpec = tween(durationMillis = 350, easing = LinearOutSlowInEasing)
         )
     }
 
@@ -94,15 +92,11 @@ fun FullScreenMediaView(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-
             // вычисляем начальные параметры из startAnimationCoordinates
             val startRect = contentModel.startAnimationCoordinates
-            val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-            val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-            val density = LocalDensity.current
 
-            val screenWidthPx = with(density) { screenWidth.toPx() }
-            val screenHeightPx = with(density) { screenHeight.toPx() }
+            val screenWidthPx = LocalWindowInfo.current.containerSize.width
+            val screenHeightPx = LocalWindowInfo.current.containerSize.height
 
             val startWidth = startRect.width
             val startHeight = startRect.height

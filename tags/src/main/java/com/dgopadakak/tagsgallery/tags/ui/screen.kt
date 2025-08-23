@@ -36,6 +36,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.tags.TagsViewModel
 import com.dgopadakak.tagsgallery.tags.ui.body.TagsGrid
 import com.dgopadakak.tagsgallery.tags.ui.header.HeaderRow
+import kotlinx.coroutines.android.awaitFrame
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -191,6 +192,7 @@ private fun TagDialog(
     )
 
     LaunchedEffect(Unit) {
+        awaitFrame()
         focusRequester.requestFocus()
     }
 }

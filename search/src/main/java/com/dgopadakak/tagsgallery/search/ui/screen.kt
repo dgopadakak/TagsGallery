@@ -124,18 +124,14 @@ fun SearchScreen(
                 Text("No media found for the selected tags.")
             }
         } else {
-
-            // ZoomableAsyncImage в FullScreenMediaView сам запрашивает лучшее качество, но не факт,
-            // нужен тест, на Samsung ведет себя неоднозначно, но там в целом есть проблемы с системой
-            val requestsList = remember {
-                uiState.foundedMediaUris.map { uriToConvert ->
-                    ImageRequest.Builder(context)
-                        .data(uriToConvert)
-                        .crossfade(true)
-                        .memoryCacheKey(uriToConvert.toString())
-                        .size(250)
-                        .build()
-                }
+            // ZoomableAsyncImage в FullScreenMediaView сам запрашивает лучшее качество
+            val requestsList = uiState.foundedMediaUris.map { uriToConvert ->
+                ImageRequest.Builder(context)
+                    .data(uriToConvert)
+                    .crossfade(true)
+                    .memoryCacheKey(uriToConvert.toString())
+                    .size(250)
+                    .build()
             }
 
             LazyVerticalGrid(
