@@ -61,6 +61,7 @@ import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.search.SearchViewModel
+import com.dgopadakak.tagsgallery.search.ui.fullscreen.FullscreenContentModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,6 +183,7 @@ fun SearchScreen(
                         onItemClick = {
                             fullscreenContentMutableState.value = FullscreenContentModel(
                                 startIndex = index,
+                                uris = uiState.foundedMediaUris,
                                 placeholderImgRequests = requestsList,
                                 startAnimationCoordinates = itemBounds
                             )

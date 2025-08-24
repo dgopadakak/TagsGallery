@@ -20,8 +20,8 @@ import androidx.navigation.compose.rememberNavController
 import com.dgopadakak.tagsgallery.navigation.LocalFullScreenContentState
 import com.dgopadakak.tagsgallery.navigation.LocalWindowSizeClass
 import com.dgopadakak.tagsgallery.navigation.Routes
-import com.dgopadakak.tagsgallery.search.ui.FullScreenMediaView
-import com.dgopadakak.tagsgallery.search.ui.FullscreenContentModel
+import com.dgopadakak.tagsgallery.search.ui.fullscreen.FullScreenMediaView
+import com.dgopadakak.tagsgallery.search.ui.fullscreen.FullscreenContentModel
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable

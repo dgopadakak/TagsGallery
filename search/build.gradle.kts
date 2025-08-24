@@ -58,6 +58,11 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
     implementation(libs.telephoto.image)
+
+    implementation(libs.androidx.media3.ui.compose)
+    implementation(libs.androidx.media3.exoPlayer)
+    implementation(libs.androidx.media3.common)
+
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation)
