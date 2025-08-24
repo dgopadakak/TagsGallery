@@ -2,6 +2,7 @@ package com.dgopadakak.tagsgallery.search.ui
 
 import android.net.Uri
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.BottomSheetScaffold
@@ -72,7 +75,7 @@ fun SearchScreen(
         snackbarHostState = snackbarHostState
     )
 
-    val sheetPeekHeight = 128.dp
+    val sheetPeekHeight = 100.dp
     val halfScreenHeight = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.height.toDp() / 2
     }
@@ -81,9 +84,33 @@ fun SearchScreen(
         scaffoldState = scaffoldState,
         sheetPeekHeight = sheetPeekHeight,
         sheetShape = RectangleShape,
+        sheetDragHandle = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .size(width = 40.dp, height = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            shape = RoundedCornerShape(2.dp)
+                        )
+                )
+                if (scaffoldState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
+                    && uiState.selectedTagIds.isNotEmpty()
+                ) {
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = "Tap to remove tag, swipe up to add",
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        },
         sheetContent = {
-            val sheetState = scaffoldState.bottomSheetState
-            val isExpanded = sheetState.targetValue == SheetValue.Expanded
+            val isExpanded = scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
 
             Box(
                 modifier = Modifier
@@ -114,14 +141,13 @@ fun SearchScreen(
         }
     ) { innerPadding ->
         if (uiState.foundedMediaUris.isEmpty()) {
-            // TODO: показывать все доступные медиа
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No media found for the selected tags.")
+                Text("No media found for the selected tags")
             }
         } else {
             // ZoomableAsyncImage в FullScreenMediaView сам запрашивает лучшее качество
@@ -204,49 +230,42 @@ private fun SmallTagsRow(
     onTagClick: (Long) -> Unit
 ) {
     if (tags.isNotEmpty()) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+        LazyRow(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                modifier = Modifier.padding(start = 8.dp),
-                text = "Tap to remove tag, swipe up to add",
-                fontSize = 12.sp
-            )
-            LazyRow(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(items = tags, key = { it.id }) { tag ->
-                    val baseColor = MaterialTheme.colorScheme.surface
-                    val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
-                    val blendedColor = lerp(baseColor, tagColor, 0.2f)
+            items(items = tags, key = { it.id }) { tag ->
+                val baseColor = MaterialTheme.colorScheme.surface
+                val tagColor = tag.color.colorLong?.let { Color(it) } ?: baseColor
+                val blendedColor = lerp(baseColor, tagColor, 0.2f)
 
-                    FilterChip(
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        selected = false,
-                        onClick = { onTagClick(tag.id) },
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = tag.name,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = blendedColor
+                FilterChip(
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                    selected = false,
+                    onClick = { onTagClick(tag.id) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null
                         )
+                    },
+                    label = {
+                        Text(
+                            text = tag.name,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = blendedColor
                     )
-                }
+                )
             }
         }
     } else {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp),
             contentAlignment = Alignment.Center
         ) {
             Text("Swipe up here to choose tags for search")
