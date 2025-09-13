@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
