@@ -24,7 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -255,7 +255,7 @@ private fun VideoPlayerWithControls(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-//                IconButton(onClick = {        // TODO иконки + проверить расстояние
+//                IconButton(onClick = {        // TODO иконки + проверить расстояние перемотки
 //                    exoPlayer.seekBack() // по дефолту 5s, можно настроить
 //                }) {
 //                    Icon(Icons.Default.Replay5, contentDescription = "Назад 5с")
@@ -265,13 +265,13 @@ private fun VideoPlayerWithControls(
                     if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                 }) {
                     if (playerState.value) {
-                        Icon(Icons.Default.Menu, contentDescription = "Пауза")  // TODO иконки
+                        Icon(Icons.Default.Pause, contentDescription = "Пауза")
                     } else {
                         Icon(Icons.Default.PlayArrow, contentDescription = "Плей")
                     }
                 }
 
-//                IconButton(onClick = {    // TODO иконки + проверить расстояние
+//                IconButton(onClick = {    // TODO иконки + проверить расстояние перемотки
 //                    exoPlayer.seekForward() // по дефолту 5s
 //                }) {
 //                    Icon(Icons.Default.Forward5, contentDescription = "Вперёд 5с")
