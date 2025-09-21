@@ -1,7 +1,6 @@
 package com.dgopadakak.tagsgallery.search.ui.fullscreen
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -19,16 +18,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay5
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,8 +56,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -78,7 +86,7 @@ fun FullScreenMediaView(
     val fullCalculatedBackgroundAlfa =
         backgroundAlphaByPosition * animProgress.value * backgroundAnimClosing.value
 
-    BackHandler { onClose(); Log.i("IWTSI", "onClose") }
+    BackHandler { onClose() }
 
     LaunchedEffect(Unit) {
         animProgress.animateTo(
@@ -196,26 +204,35 @@ private fun VideoPlayerWithControls(
 ) {
     val context = LocalContext.current
 
-    // ExoPlayer
     val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(uri))
-            prepare()
-        }
+        ExoPlayer.Builder(context)
+            .setSeekBackIncrementMs(5_000L)
+            .setSeekForwardIncrementMs(5_000L)
+            .build().apply {
+                setMediaItem(MediaItem.fromUri(uri))
+                prepare()
+                volume = 0f
+            }
     }
 
     val playerState = remember { mutableStateOf(exoPlayer.isPlaying) }
-    val isMuted = remember { mutableStateOf(false) }
+    val isMuted = remember { mutableStateOf(true) }
     val duration = remember { mutableLongStateOf(0L) }
     val position = remember { mutableLongStateOf(0L) }
 
-    // слушаем обновления позиции
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
                 duration.longValue = player.duration.coerceAtLeast(0L)
                 position.longValue = player.currentPosition.coerceAtLeast(0L)
                 playerState.value = player.isPlaying
+            }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED) {
+                    exoPlayer.seekTo(0)
+                    exoPlayer.pause() // или сразу play(), если нужен автоповтор
+                }
             }
         }
         exoPlayer.addListener(listener)
@@ -225,70 +242,104 @@ private fun VideoPlayerWithControls(
         }
     }
 
+    LaunchedEffect(exoPlayer) {
+        while (true) {
+            position.longValue = exoPlayer.currentPosition.coerceAtLeast(0L)
+            delay(200L)
+        }
+    }
+
     Box(modifier = modifier) {
-        // само видео
         PlayerSurface(
             player = exoPlayer,
             modifier = Modifier.fillMaxSize()
         )
 
-        // кастомные контролы
+        // TODO: скрывать контролы по таймауту и по клику в любую часть экрана
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .background(Color.Black.copy(alpha = 0.4f))
-                .padding(8.dp)
+                .padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 16.dp)
+                .navigationBarsPadding()
         ) {
-            // таймлайн
-            Slider(
-                value = position.longValue.toFloat(),
-                onValueChange = {
-                    exoPlayer.seekTo(it.toLong())
-                },
-                valueRange = 0f..duration.longValue.toFloat(),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = formatTime(position.longValue),
+                    color = Color.White,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+
+                Slider(
+                    value = position.longValue.toFloat(),
+                    onValueChange = {
+                        exoPlayer.seekTo(it.toLong())
+                    },
+                    valueRange = 0f..duration.longValue.toFloat(),
+                    modifier = Modifier.weight(1f)
+                )
+
+                Text(
+                    text = formatTime(duration.longValue),
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+
+                IconButton(onClick = {
+                    isMuted.value = !isMuted.value
+                    exoPlayer.volume = if (isMuted.value) 0f else 1f
+                }) {
+                    if (isMuted.value) {
+                        Icon(imageVector = Icons.AutoMirrored.Default.VolumeOff, tint = Color.White, contentDescription = "Без звука")
+                    } else {
+                        Icon(imageVector = Icons.AutoMirrored.Default.VolumeUp, tint = Color.White, contentDescription = "Со звуком")
+                    }
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-//                IconButton(onClick = {        // TODO иконки + проверить расстояние перемотки
-//                    exoPlayer.seekBack() // по дефолту 5s, можно настроить
-//                }) {
-//                    Icon(Icons.Default.Replay5, contentDescription = "Назад 5с")
-//                }
+                IconButton(onClick = {
+                    exoPlayer.seekBack()
+                }) {
+                    Icon(modifier = Modifier.size(32.dp), imageVector = Icons.Default.Replay5, tint = Color.White, contentDescription = "Назад 5с")
+                }
 
                 IconButton(onClick = {
                     if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                 }) {
                     if (playerState.value) {
-                        Icon(Icons.Default.Pause, contentDescription = "Пауза")
+                        Icon(modifier = Modifier.size(50.dp), imageVector = Icons.Default.Pause, tint = Color.White, contentDescription = "Пауза")
                     } else {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "Плей")
+                        Icon(modifier = Modifier.size(50.dp), imageVector = Icons.Default.PlayArrow, tint = Color.White, contentDescription = "Плей")
                     }
                 }
 
-//                IconButton(onClick = {    // TODO иконки + проверить расстояние перемотки
-//                    exoPlayer.seekForward() // по дефолту 5s
-//                }) {
-//                    Icon(Icons.Default.Forward5, contentDescription = "Вперёд 5с")
-//                }
-
-//                IconButton(onClick = { // TODO иконки
-//                    isMuted.value = !isMuted.value
-//                    exoPlayer.volume = if (isMuted.value) 0f else 1f
-//                }) {
-//                    if (isMuted.value) {
-//                        Icon(Icons.Default.VolumeOff, contentDescription = "Без звука")
-//                    } else {
-//                        Icon(Icons.Default.VolumeUp, contentDescription = "Со звуком")
-//                    }
-//                }
+                IconButton(onClick = {
+                    exoPlayer.seekForward()
+                }) {
+                    Icon(modifier = Modifier.size(32.dp), imageVector = Icons.Default.Forward5, tint = Color.White, contentDescription = "Вперёд 5с")
+                }
             }
         }
     }
 }
 
+private fun formatTime(ms: Long): String {
+    val totalSeconds = ms / 1000
+    val seconds = (totalSeconds % 60).toInt()
+    val minutes = ((totalSeconds / 60) % 60).toInt()
+    val hours = (totalSeconds / 3600).toInt()
+    return if (hours > 0) {
+        String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+    }
+}

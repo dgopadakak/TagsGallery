@@ -213,6 +213,7 @@ private fun SearchMediaPreviewItem(
     onItemClick: (Uri) -> Unit,
     onItemLongClick: (Uri) -> Unit
 ) {
+    // TODO: длительность в углу для видео
     AsyncImage(
         model = request,
         contentDescription = null,
