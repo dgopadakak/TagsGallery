@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowInsetsControllerCompat
 import com.dgopadakak.tagsgallery.ui.MainScreen
 import com.dgopadakak.tagsgallery.ui.theme.TagsGalleryTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,7 +21,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             TagsGalleryTheme {
                 MainScreen(
-                    windowSizeClass = calculateWindowSizeClass(this)
+                    windowSizeClass = calculateWindowSizeClass(this),
+                    windowInsetsControllerCompat = WindowInsetsControllerCompat(window, LocalView.current) // TODO: Точно такая вьюшка?
                 )
             }
         }

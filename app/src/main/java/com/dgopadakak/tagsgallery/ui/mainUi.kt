@@ -14,6 +14,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,7 +28,8 @@ import com.dgopadakak.tagsgallery.search.ui.fullscreen.FullscreenContentModel
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 internal fun MainScreen(
-    windowSizeClass: WindowSizeClass
+    windowSizeClass: WindowSizeClass,
+    windowInsetsControllerCompat: WindowInsetsControllerCompat
 ) {
     val navController = rememberNavController()
     // TODO: при расширении на другие платформы - сделать больше, чем 2 варианта UI навигации
@@ -71,8 +74,12 @@ internal fun MainScreen(
 
             contentForFullScreen.value?.let { content ->
                 FullScreenMediaView(
-                    content,
-                    onClose = { contentForFullScreen.value = null }
+                    contentModel = content,
+                    windowInsetsControllerCompat = windowInsetsControllerCompat,
+                    onClose = {
+                        windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
+                        contentForFullScreen.value = null
+                    }
                 )
             }
         }

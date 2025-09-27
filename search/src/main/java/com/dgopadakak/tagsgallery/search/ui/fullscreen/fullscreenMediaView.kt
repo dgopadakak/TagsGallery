@@ -6,9 +6,11 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -16,9 +18,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,13 +54,17 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
@@ -66,6 +75,7 @@ import kotlin.math.roundToInt
 @Composable
 fun FullScreenMediaView(
     contentModel: FullscreenContentModel,
+    windowInsetsControllerCompat: WindowInsetsControllerCompat,
     onClose: () -> Unit
 ) {
 
@@ -85,6 +95,25 @@ fun FullScreenMediaView(
     val backgroundAlphaByPosition = (1f - (abs(offsetY.value) / 1000f).coerceIn(0f, 0.7f))
     val fullCalculatedBackgroundAlfa =
         backgroundAlphaByPosition * animProgress.value * backgroundAnimClosing.value
+
+    // Механизм управления системными барами
+    val controlsVisible = remember { mutableStateOf(true) }
+    LaunchedEffect(controlsVisible.value) {
+        if (controlsVisible.value) {
+            windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
+        } else {
+            windowInsetsControllerCompat.hide(WindowInsetsCompat.Type.systemBars())
+            windowInsetsControllerCompat.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    // Механизм учета размера только открытого NavBar TODO: распространить на все приложение, чтоб при закрытии просмотрщика все приложение не прыгало
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val navBarPadding = remember { mutableStateOf(0.dp) }
+    LaunchedEffect(bottomInset) {
+        if (controlsVisible.value && bottomInset > navBarPadding.value) navBarPadding.value = bottomInset
+    }
 
     BackHandler { onClose() }
 
@@ -183,6 +212,8 @@ fun FullScreenMediaView(
             if (isVideo) {
                 VideoPlayerWithControls(
                     uri = uri,
+                    controlsVisible = controlsVisible,
+                    navBarOpenPadding = navBarPadding.value,
                     modifier = animatedModifier
                 )
             } else {
@@ -190,7 +221,8 @@ fun FullScreenMediaView(
                     model = contentModel.placeholderImgRequests[page],
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
-                    modifier = animatedModifier
+                    modifier = animatedModifier,
+                    onClick = { controlsVisible.value = !controlsVisible.value }
                 )
             }
         }
@@ -200,9 +232,12 @@ fun FullScreenMediaView(
 @Composable
 private fun VideoPlayerWithControls(
     uri: Uri,
+    controlsVisible: MutableState<Boolean>,
+    navBarOpenPadding: Dp,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
@@ -212,8 +247,15 @@ private fun VideoPlayerWithControls(
                 setMediaItem(MediaItem.fromUri(uri))
                 prepare()
                 volume = 0f
+                play()
             }
     }
+
+    val controlsAlpha = animateFloatAsState(
+        targetValue = if (controlsVisible.value) 1f else 0f,
+        animationSpec = tween(durationMillis = 500)
+    )
+    val hideByTimeoutJob = remember { mutableStateOf<Job?>(null) }
 
     val playerState = remember { mutableStateOf(exoPlayer.isPlaying) }
     val isMuted = remember { mutableStateOf(true) }
@@ -239,6 +281,7 @@ private fun VideoPlayerWithControls(
         onDispose {
             exoPlayer.removeListener(listener)
             exoPlayer.release()
+            hideByTimeoutJob.value?.cancel()
         }
     }
 
@@ -249,20 +292,47 @@ private fun VideoPlayerWithControls(
         }
     }
 
-    Box(modifier = modifier) {
-        PlayerSurface(
+    fun restartHideTimer() {
+        hideByTimeoutJob.value?.cancel()
+        hideByTimeoutJob.value = scope.launch {
+            delay(5000L)
+            controlsVisible.value = false
+        }
+    }
+
+    fun showControls() {
+        controlsVisible.value = true
+        restartHideTimer()
+    }
+
+    fun hideControls() {
+        controlsVisible.value = false
+        hideByTimeoutJob.value?.cancel()
+    }
+
+    LaunchedEffect(Unit) { restartHideTimer() } // TODO: просто разобраться почему при долистывании до видео не срабатывает (так и должно быть, срабатывает при прямом открытии видео)
+
+    Box(
+        modifier = modifier
+            .clickable(
+                indication = null,
+                interactionSource = null,
+                onClick = if (controlsVisible.value) ::hideControls else ::showControls
+            )
+    ) {
+        PlayerSurface(      // FIXME: пережимает соотношение сторон
             player = exoPlayer,
             modifier = Modifier.fillMaxSize()
         )
 
-        // TODO: скрывать контролы по таймауту и по клику в любую часть экрана
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .clickable(indication = null, interactionSource = null, onClick = ::showControls)
+                .graphicsLayer { alpha = controlsAlpha.value }
                 .background(Color.Black.copy(alpha = 0.4f))
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 16.dp)
-                .navigationBarsPadding()
+                .padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 16.dp + navBarOpenPadding)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -277,6 +347,7 @@ private fun VideoPlayerWithControls(
                 Slider(
                     value = position.longValue.toFloat(),
                     onValueChange = {
+                        showControls()
                         exoPlayer.seekTo(it.toLong())
                     },
                     valueRange = 0f..duration.longValue.toFloat(),
@@ -290,6 +361,7 @@ private fun VideoPlayerWithControls(
                 )
 
                 IconButton(onClick = {
+                    showControls()
                     isMuted.value = !isMuted.value
                     exoPlayer.volume = if (isMuted.value) 0f else 1f
                 }) {
@@ -307,12 +379,14 @@ private fun VideoPlayerWithControls(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
+                    showControls()
                     exoPlayer.seekBack()
                 }) {
                     Icon(modifier = Modifier.size(32.dp), imageVector = Icons.Default.Replay5, tint = Color.White, contentDescription = "Назад 5с")
                 }
 
                 IconButton(onClick = {
+                    showControls()
                     if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                 }) {
                     if (playerState.value) {
@@ -323,6 +397,7 @@ private fun VideoPlayerWithControls(
                 }
 
                 IconButton(onClick = {
+                    showControls()
                     exoPlayer.seekForward()
                 }) {
                     Icon(modifier = Modifier.size(32.dp), imageVector = Icons.Default.Forward5, tint = Color.White, contentDescription = "Вперёд 5с")
