@@ -1,4 +1,4 @@
-package com.dgopadakak.tagsgallery.search.ui.fullscreen
+package com.dgopadakak.tagsgallery.core.compose.models
 
 import android.net.Uri
 import androidx.compose.ui.geometry.Rect

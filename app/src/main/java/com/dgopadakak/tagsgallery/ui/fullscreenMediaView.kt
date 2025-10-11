@@ -1,4 +1,4 @@
-package com.dgopadakak.tagsgallery.search.ui.fullscreen
+package com.dgopadakak.tagsgallery.ui
 
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -64,6 +64,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
+import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
