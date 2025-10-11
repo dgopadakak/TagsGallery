@@ -13,13 +13,21 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor() : ViewModel() {
     @Stable
     data class UiState(
-        val fullscreenContent: FullscreenContentModel? = null
+        val fullscreenContent: FullscreenContentModel? = null,
+        val fullscreenAnimated: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
 
     fun setFullscreenContent(fullscreenContent: FullscreenContentModel?) {
-        _uiState.update { it.copy(fullscreenContent = fullscreenContent) }
+        _uiState.update { it.copy(
+            fullscreenContent = fullscreenContent,
+            fullscreenAnimated = false
+        ) }
+    }
+
+    fun setAnimated(animated: Boolean) {
+        _uiState.update { it.copy(fullscreenAnimated = animated) }
     }
 }

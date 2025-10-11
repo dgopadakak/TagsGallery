@@ -61,8 +61,8 @@ internal fun MainScreen(
                         navController = navController,
                         startDestination = Routes.TAGS.route
                     ) {
-                        composable(route = Routes.TAGS.route) { Routes.TAGS.ScreenForRoute {} }
-                        composable(route = Routes.GALLERY.route) { Routes.GALLERY.ScreenForRoute {} }
+                        composable(route = Routes.TAGS.route) { Routes.TAGS.ScreenForRoute() }
+                        composable(route = Routes.GALLERY.route) { Routes.GALLERY.ScreenForRoute() }
                         composable(route = Routes.SEARCH.route) { Routes.SEARCH.ScreenForRoute { viewModel.setFullscreenContent(it) } }
                     }
                 }
@@ -72,6 +72,8 @@ internal fun MainScreen(
                 FullScreenMediaView(
                     contentModel = content,
                     windowInsetsControllerCompat = windowInsetsControllerCompat,
+                    alreadyAnimated = uiState.fullscreenAnimated,
+                    onAnimated = { viewModel.setAnimated(true) },
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
                         viewModel.setFullscreenContent(null)

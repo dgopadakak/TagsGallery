@@ -24,7 +24,7 @@ enum class Routes(
 
     @Composable
     fun ScreenForRoute(
-        onFullscreenContentSelected: (FullscreenContentModel) -> Unit
+        onFullscreenContentSelected: (FullscreenContentModel) -> Unit = { }
     ) {
         when (this) {
             TAGS -> TagsScreen()

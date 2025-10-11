@@ -77,6 +77,8 @@ import kotlin.math.roundToInt
 fun FullScreenMediaView(
     contentModel: FullscreenContentModel,
     windowInsetsControllerCompat: WindowInsetsControllerCompat,
+    alreadyAnimated: Boolean,
+    onAnimated: () -> Unit,
     onClose: () -> Unit
 ) {
 
@@ -119,10 +121,15 @@ fun FullScreenMediaView(
     BackHandler { onClose() }
 
     LaunchedEffect(Unit) {
-        animProgress.animateTo(
-            1f,
-            animationSpec = tween(durationMillis = 350, easing = LinearOutSlowInEasing)
-        )
+        if (alreadyAnimated) {
+            animProgress.snapTo(1f)
+        } else {
+            animProgress.animateTo(
+                1f,
+                animationSpec = tween(durationMillis = 350, easing = LinearOutSlowInEasing)
+            )
+            onAnimated()
+        }
     }
 
     Box(
