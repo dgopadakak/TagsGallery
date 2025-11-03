@@ -74,6 +74,12 @@ internal fun MainScreen(
                     windowInsetsControllerCompat = windowInsetsControllerCompat,
                     alreadyAnimated = uiState.fullscreenAnimated,
                     onAnimated = { viewModel.setAnimated(true) },
+                    savedIsPlaying = uiState.savedIsPlaying,
+                    onIsPlayingSave = { viewModel.setSavedIsPlaying(it) },
+                    savedIsSoundOn = uiState.savedIsSoundOn,
+                    savedVideoTime = uiState.savedVideoTime,
+                    onIsSoundOnSave = { viewModel.setSavedIsSoundOn(it) },
+                    onCurrentVideoTimeSave = { viewModel.setSavedVideoTime(it) },
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
                         viewModel.setFullscreenContent(null)

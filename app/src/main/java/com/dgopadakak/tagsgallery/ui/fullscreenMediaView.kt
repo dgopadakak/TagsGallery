@@ -79,6 +79,12 @@ fun FullScreenMediaView(
     windowInsetsControllerCompat: WindowInsetsControllerCompat,
     alreadyAnimated: Boolean,
     onAnimated: () -> Unit,
+    savedIsPlaying: Boolean?,
+    onIsPlayingSave: (Boolean) -> Unit,
+    savedIsSoundOn: Boolean?,
+    onIsSoundOnSave: (Boolean) -> Unit,
+    savedVideoTime: Long?,
+    onCurrentVideoTimeSave: (Long) -> Unit,
     onClose: () -> Unit
 ) {
 
@@ -221,6 +227,12 @@ fun FullScreenMediaView(
                 VideoPlayerWithControls(
                     uri = uri,
                     controlsVisible = controlsVisible,
+                    savedIsPlaying = savedIsPlaying,
+                    onIsPlayingSave = onIsPlayingSave,
+                    savedIsSoundOn = savedIsSoundOn,
+                    onIsSoundOnSave = onIsSoundOnSave,
+                    savedVideoTime = savedVideoTime,
+                    onCurrentVideoTimeSave = onCurrentVideoTimeSave,
                     navBarOpenPadding = navBarPadding.value,
                     modifier = animatedModifier
                 )
@@ -241,6 +253,12 @@ fun FullScreenMediaView(
 private fun VideoPlayerWithControls(
     uri: Uri,
     controlsVisible: MutableState<Boolean>,
+    savedIsPlaying: Boolean?,
+    onIsPlayingSave: (Boolean) -> Unit,
+    savedIsSoundOn: Boolean?,
+    onIsSoundOnSave: (Boolean) -> Unit,
+    savedVideoTime: Long?,
+    onCurrentVideoTimeSave: (Long) -> Unit,
     navBarOpenPadding: Dp,
     modifier: Modifier = Modifier
 ) {
@@ -254,8 +272,14 @@ private fun VideoPlayerWithControls(
             .build().apply {
                 setMediaItem(MediaItem.fromUri(uri))
                 prepare()
-                volume = 0f
-                play()
+                playWhenReady = savedIsPlaying ?: true
+
+                if (savedIsSoundOn != null) {
+                    volume = if (savedIsSoundOn) 1f else 0f
+                }
+                if (savedVideoTime != null) {
+                    seekTo(savedVideoTime)
+                }
             }
     }
 
@@ -266,7 +290,7 @@ private fun VideoPlayerWithControls(
     val hideByTimeoutJob = remember { mutableStateOf<Job?>(null) }
 
     val playerState = remember { mutableStateOf(exoPlayer.isPlaying) }
-    val isMuted = remember { mutableStateOf(true) }
+    val isMuted = remember { mutableStateOf(!(savedIsSoundOn ?: false)) }
     val duration = remember { mutableLongStateOf(0L) }
     val position = remember { mutableLongStateOf(0L) }
 
@@ -286,7 +310,12 @@ private fun VideoPlayerWithControls(
             }
         }
         exoPlayer.addListener(listener)
+
         onDispose {
+            onIsPlayingSave(exoPlayer.isPlaying)
+            onCurrentVideoTimeSave(exoPlayer.currentPosition)
+            onIsSoundOnSave(!isMuted.value)
+
             exoPlayer.removeListener(listener)
             exoPlayer.release()
             hideByTimeoutJob.value?.cancel()
