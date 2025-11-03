@@ -68,7 +68,6 @@ fun VideoPlayerWithControls(
         mutableStateOf(VideoState())
     }
 
-
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -98,6 +97,7 @@ fun VideoPlayerWithControls(
     val duration = remember { mutableLongStateOf(0L) }
     val position = remember { mutableLongStateOf(0L) }
 
+    // TODO: разобраться, почему listener создается в теле DisposableEffect и можно ли было его создать в LaunchedEffect
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
@@ -109,7 +109,7 @@ fun VideoPlayerWithControls(
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == Player.STATE_ENDED) {
                     exoPlayer.seekTo(0)
-                    exoPlayer.pause() // или сразу play(), если нужен автоповтор
+                    exoPlayer.pause()
                 }
             }
 
@@ -134,13 +134,6 @@ fun VideoPlayerWithControls(
         }
     }
 
-    LaunchedEffect(exoPlayer) {
-        while (true) {
-            position.longValue = exoPlayer.currentPosition.coerceAtLeast(0L)
-            delay(200L)
-        }
-    }
-
     fun restartHideTimer() {
         hideByTimeoutJob.value?.cancel()
         hideByTimeoutJob.value = scope.launch {
@@ -159,7 +152,13 @@ fun VideoPlayerWithControls(
         hideByTimeoutJob.value?.cancel()
     }
 
-    LaunchedEffect(Unit) { restartHideTimer() }
+    LaunchedEffect(Unit) {
+        restartHideTimer()
+        while (true) {
+            position.longValue = exoPlayer.currentPosition.coerceAtLeast(0L)
+            delay(200L)
+        }
+    }
 
     Box(
         modifier = modifier
