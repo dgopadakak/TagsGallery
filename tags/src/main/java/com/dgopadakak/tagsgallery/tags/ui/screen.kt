@@ -2,8 +2,7 @@ package com.dgopadakak.tagsgallery.tags.ui
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -88,8 +87,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 Icon(Icons.Default.Add, contentDescription = "Add Tag")
             }
         },
-        // Необходимый хак, чтобы FAB знала высоту контента под ней и не улетала в космос
-        bottomBar = { Spacer(Modifier.height(0.dp)) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
