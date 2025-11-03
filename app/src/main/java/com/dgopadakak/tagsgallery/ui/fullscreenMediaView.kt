@@ -16,17 +16,20 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -55,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -368,11 +372,10 @@ private fun VideoPlayerWithControls(
         contentAlignment = Alignment.Center
     ) {
         if (aspectRatio.floatValue > 0f) {
-            PlayerSurface(
+            PlayerSurfaceFitted(
                 player = exoPlayer,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(aspectRatio.floatValue)
+                aspectRatio = aspectRatio.floatValue,
+                modifier = Modifier.fillMaxSize()
             )
         }
 
@@ -484,6 +487,45 @@ private fun VideoPlayerWithControls(
             }
         }
     }
+}
+
+@Composable
+private fun PlayerSurfaceFitted(
+    player: ExoPlayer,
+    aspectRatio: Float,
+    modifier: Modifier = Modifier
+) {
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val parentWidth = constraints.maxWidth.toFloat()
+        val parentHeight = constraints.maxHeight.toFloat()
+
+        // ожидаемое соотношение сторон контейнера
+        val containerRatio = parentWidth / parentHeight
+        val videoModifier = if (aspectRatio > containerRatio) {
+            // видео более широкое, чем контейнер -> ограничиваем по ширине
+            Modifier
+                .fillMaxWidth()
+                .height((parentWidth / aspectRatio).toDp())
+        } else {
+            // видео более высокое -> ограничиваем по высоте
+            Modifier
+                .fillMaxHeight()
+                .width((parentHeight * aspectRatio).toDp())
+        }
+
+        PlayerSurface(
+            player = player,
+            modifier = videoModifier
+        )
+    }
+}
+
+@Composable
+private fun Float.toDp(): Dp {
+    return with(LocalDensity.current) { this@toDp.toDp() }
 }
 
 private fun formatTime(ms: Long): String {
