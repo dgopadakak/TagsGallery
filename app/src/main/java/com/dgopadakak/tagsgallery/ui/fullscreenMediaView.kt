@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -43,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +64,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
@@ -274,14 +277,14 @@ private fun VideoPlayerWithControls(
                 prepare()
                 playWhenReady = savedIsPlaying ?: true
 
-                if (savedIsSoundOn != null) {
-                    volume = if (savedIsSoundOn) 1f else 0f
-                }
+                volume = if (savedIsSoundOn == true) 1f else 0f
                 if (savedVideoTime != null) {
                     seekTo(savedVideoTime)
                 }
             }
     }
+
+    val aspectRatio = remember { mutableFloatStateOf(16f / 9f) }
 
     val controlsAlpha = animateFloatAsState(
         targetValue = if (controlsVisible.value) 1f else 0f,
@@ -306,6 +309,12 @@ private fun VideoPlayerWithControls(
                 if (state == Player.STATE_ENDED) {
                     exoPlayer.seekTo(0)
                     exoPlayer.pause() // или сразу play(), если нужен автоповтор
+                }
+            }
+
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                if (videoSize.height != 0) {
+                    aspectRatio.floatValue = videoSize.width.toFloat() / videoSize.height.toFloat()
                 }
             }
         }
@@ -355,12 +364,17 @@ private fun VideoPlayerWithControls(
                 indication = null,
                 interactionSource = null,
                 onClick = if (controlsVisible.value) ::hideControls else ::showControls
-            )
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        PlayerSurface(      // FIXME: пережимает соотношение сторон
-            player = exoPlayer,
-            modifier = Modifier.fillMaxSize()
-        )
+        if (aspectRatio.floatValue > 0f) {
+            PlayerSurface(
+                player = exoPlayer,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(aspectRatio.floatValue)
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -403,9 +417,17 @@ private fun VideoPlayerWithControls(
                     exoPlayer.volume = if (isMuted.value) 0f else 1f
                 }) {
                     if (isMuted.value) {
-                        Icon(imageVector = Icons.AutoMirrored.Default.VolumeOff, tint = Color.White, contentDescription = "Без звука")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.VolumeOff,
+                            tint = Color.White,
+                            contentDescription = "Без звука"
+                        )
                     } else {
-                        Icon(imageVector = Icons.AutoMirrored.Default.VolumeUp, tint = Color.White, contentDescription = "Со звуком")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.VolumeUp,
+                            tint = Color.White,
+                            contentDescription = "Со звуком"
+                        )
                     }
                 }
             }
@@ -419,7 +441,12 @@ private fun VideoPlayerWithControls(
                     showControls()
                     exoPlayer.seekBack()
                 }) {
-                    Icon(modifier = Modifier.size(32.dp), imageVector = Icons.Default.Replay5, tint = Color.White, contentDescription = "Назад 5с")
+                    Icon(
+                        modifier = Modifier.size(32.dp),
+                        imageVector = Icons.Default.Replay5,
+                        tint = Color.White,
+                        contentDescription = "Назад 5с"
+                    )
                 }
 
                 IconButton(onClick = {
@@ -427,9 +454,19 @@ private fun VideoPlayerWithControls(
                     if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                 }) {
                     if (playerState.value) {
-                        Icon(modifier = Modifier.size(50.dp), imageVector = Icons.Default.Pause, tint = Color.White, contentDescription = "Пауза")
+                        Icon(
+                            modifier = Modifier.size(50.dp),
+                            imageVector = Icons.Default.Pause,
+                            tint = Color.White,
+                            contentDescription = "Пауза"
+                        )
                     } else {
-                        Icon(modifier = Modifier.size(50.dp), imageVector = Icons.Default.PlayArrow, tint = Color.White, contentDescription = "Плей")
+                        Icon(
+                            modifier = Modifier.size(50.dp),
+                            imageVector = Icons.Default.PlayArrow,
+                            tint = Color.White,
+                            contentDescription = "Плей"
+                        )
                     }
                 }
 
@@ -437,7 +474,12 @@ private fun VideoPlayerWithControls(
                     showControls()
                     exoPlayer.seekForward()
                 }) {
-                    Icon(modifier = Modifier.size(32.dp), imageVector = Icons.Default.Forward5, tint = Color.White, contentDescription = "Вперёд 5с")
+                    Icon(
+                        modifier = Modifier.size(32.dp),
+                        imageVector = Icons.Default.Forward5,
+                        tint = Color.White,
+                        contentDescription = "Вперёд 5с"
+                    )
                 }
             }
         }
