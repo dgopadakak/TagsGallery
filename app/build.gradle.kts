@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
 
     implementation(libs.coil.compose)
+    implementation(libs.coil.video)
     implementation(libs.telephoto.image)
 
     implementation(libs.androidx.media3.ui.compose)

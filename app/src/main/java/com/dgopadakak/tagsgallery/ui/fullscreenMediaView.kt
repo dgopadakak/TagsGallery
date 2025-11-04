@@ -36,6 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.ui.videoPlayer.VideoPlayerWithControls
 import kotlinx.coroutines.launch
@@ -196,7 +200,17 @@ fun FullScreenMediaView(
                         modifier = animatedModifier
                     )
                 } else {
-                    // TODO: превью для пролистывания (ФОТО)
+                    // Превью для пролистывания
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(uri)
+                            .videoFrameMillis(1000L)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = animatedModifier
+                    )
                 }
             } else {
                 ZoomableAsyncImage(
