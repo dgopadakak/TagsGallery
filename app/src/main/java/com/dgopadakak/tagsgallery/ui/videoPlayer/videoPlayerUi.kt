@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,7 +61,7 @@ import java.util.Locale
 fun VideoPlayerWithControls(
     uri: Uri,
     controlsVisible: MutableState<Boolean>,
-    navBarOpenPadding: Dp,
+    navBarOpenPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
 
@@ -184,7 +185,8 @@ fun VideoPlayerWithControls(
                 .clickable(indication = null, interactionSource = null, onClick = ::showControls)
                 .graphicsLayer { alpha = controlsAlpha.value }
                 .background(Color.Black.copy(alpha = 0.4f))
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 16.dp + navBarOpenPadding)
+                .padding(navBarOpenPadding)
+                .padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
