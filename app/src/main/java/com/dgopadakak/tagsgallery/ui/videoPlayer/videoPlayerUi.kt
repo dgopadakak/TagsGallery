@@ -201,11 +201,15 @@ fun VideoPlayerWithControls(
                 Slider(
                     value = position.longValue.toFloat(),
                     onValueChange = {
-                        showControls()
-                        exoPlayer.seekTo(it.toLong())
+                        if (controlsVisible.value) {    // FIXME: (минор) создает небольшую зону, клик в которой не приводит к появлению контролов
+                            exoPlayer.seekTo(it.toLong())
+                            showControls()
+                        }
                     },
                     valueRange = 0f..duration.longValue.toFloat(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(25.dp)
                 )
 
                 Text(
@@ -214,10 +218,13 @@ fun VideoPlayerWithControls(
                     modifier = Modifier.padding(start = 8.dp)
                 )
 
+                // TODO: включать звук по нажатию кнопки громкости
                 IconButton(onClick = {
+                    if (controlsVisible.value) {
+                        isMuted.value = !isMuted.value
+                        exoPlayer.volume = if (isMuted.value) 0f else 1f
+                    }
                     showControls()
-                    isMuted.value = !isMuted.value
-                    exoPlayer.volume = if (isMuted.value) 0f else 1f
                 }) {
                     if (isMuted.value) {
                         Icon(
@@ -241,8 +248,10 @@ fun VideoPlayerWithControls(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
+                    if (controlsVisible.value) {
+                        exoPlayer.seekBack()
+                    }
                     showControls()
-                    exoPlayer.seekBack()
                 }) {
                     Icon(
                         modifier = Modifier.size(32.dp),
@@ -253,8 +262,10 @@ fun VideoPlayerWithControls(
                 }
 
                 IconButton(onClick = {
+                    if (controlsVisible.value) {
+                        if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                    }
                     showControls()
-                    if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                 }) {
                     if (playerState.value) {
                         Icon(
@@ -274,8 +285,10 @@ fun VideoPlayerWithControls(
                 }
 
                 IconButton(onClick = {
+                    if (controlsVisible.value) {
+                        exoPlayer.seekForward()
+                    }
                     showControls()
-                    exoPlayer.seekForward()
                 }) {
                     Icon(
                         modifier = Modifier.size(32.dp),
