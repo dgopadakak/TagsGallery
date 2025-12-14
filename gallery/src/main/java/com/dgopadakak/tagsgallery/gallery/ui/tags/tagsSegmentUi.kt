@@ -71,7 +71,7 @@ internal fun TagsSegment(
         ) { uri ->
             if (uri != null) {
                 IndividualTagsSelector(
-                    tags = uiState.tags.sortedBy { it.name },
+                    tags = uiState.allTags.sortedBy { it.name },
                     selectedCommonTagIds = uiState.selectedTagIds,
                     individualAddedTagIds = uiState.perMediaAddedTagIds.getOrDefault(uri, emptyList()),
                     individualRemovedTagIds = uiState.perMediaRemovedTagIds.getOrDefault(uri, emptyList()),
@@ -100,7 +100,7 @@ internal fun TagsSegment(
                     }
                     FullTagsSelectionView(
                         modifier = Modifier.padding(start = 8.dp),
-                        tags = uiState.tags,
+                        tags = uiState.sortedFilteredTags,
                         selectedTagsIds = uiState.selectedTagIds,
                         onTagClick = onCommonTagSelected,
                         sortBy = uiState.sortBy,

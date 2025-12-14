@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
+import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +17,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.core.net.toUri
-import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -26,9 +25,11 @@ class SearchViewModel @Inject constructor(
 
     @Stable
     data class UiState(
-        val tags: List<Tag> = emptyList(),
+        val allTags: List<Tag> = emptyList(),
+        val sortedFilteredTags: List<Tag> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
+        val selectedTagIds: List<Long> = emptyList(),
         val foundedMediaUris: List<Uri> = emptyList(),
         val needToShowHint: Boolean = false
     )
@@ -37,6 +38,19 @@ class SearchViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            // Очистка от несуществующих id в случае их удаления на экране Tags
+            repository.getAllTags().collect { tagList ->
+                val existingIds = tagList.map { it.id }.toSet()
+                val updatedSelectedIds = _uiState.value.selectedTagIds.filter { it in existingIds }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        selectedTagIds = updatedSelectedIds
+                    )
+                }
+            }
+        }
+
         viewModelScope.launch {
             combine(
                 repository.getAllTags(),
@@ -52,10 +66,19 @@ class SearchViewModel @Inject constructor(
                 }
                 _uiState.update {
                     it.copy(
-                        tags = sortedAndFilteredTags
+                        allTags = tagList,
+                        sortedFilteredTags = sortedAndFilteredTags
                     )
                 }
             }.collect {}
+        }
+
+        viewModelScope.launch {
+            repository.getMediaUrisByAllTags(
+                tagIdsFlow = _uiState.map { it.selectedTagIds }.distinctUntilChanged()
+            ).collect { mediaUris ->
+                _uiState.update { it.copy(foundedMediaUris = mediaUris) }
+            }
         }
 
         viewModelScope.launch {
@@ -80,16 +103,20 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    ////////////////////////////// Для теста! Удалить. //////////////////////////////
-    fun loadMediaForTag(tagId: Long) {
-        viewModelScope.launch {
-            repository.getTagWithMedia(tagId).collect { tagWithMedia ->
-                _uiState.update { currentState ->
-                    currentState.copy(foundedMediaUris = tagWithMedia?.media?.map { it.mediaId.toUri() } ?: emptyList<Uri>())
-                }
-            }
+    fun onTagToggle(tagId: Long) {
+        val updatedSelection = if (_uiState.value.selectedTagIds.contains(tagId)) {
+            _uiState.value.selectedTagIds - tagId
+        } else {
+            _uiState.value.selectedTagIds + tagId
         }
+        _uiState.update { it.copy(selectedTagIds = updatedSelection) }
     }
-    /////////////////////////////////////////////////////////////////////////////////
 
+    fun setSortBy(sortBy: SortVariant) {
+        _uiState.update { it.copy(sortBy = sortBy) }
+    }
+
+    fun setFilterBy(filterBy: Tag.Color?) {
+        _uiState.update { it.copy(filterBy = filterBy) }
+    }
 }

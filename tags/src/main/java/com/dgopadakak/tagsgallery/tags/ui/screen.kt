@@ -2,8 +2,7 @@ package com.dgopadakak.tagsgallery.tags.ui
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -27,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
@@ -36,6 +35,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.tags.TagsViewModel
 import com.dgopadakak.tagsgallery.tags.ui.body.TagsGrid
 import com.dgopadakak.tagsgallery.tags.ui.header.HeaderRow
+import kotlinx.coroutines.android.awaitFrame
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -87,8 +87,7 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
                 Icon(Icons.Default.Add, contentDescription = "Add Tag")
             }
         },
-        // Необходимый хак, чтобы FAB знала высоту контента под ней и не улетала в космос
-        bottomBar = { Spacer(Modifier.height(0.dp)) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
@@ -191,6 +190,7 @@ private fun TagDialog(
     )
 
     LaunchedEffect(Unit) {
+        awaitFrame()
         focusRequester.requestFocus()
     }
 }

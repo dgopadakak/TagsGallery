@@ -28,7 +28,8 @@ class GalleryViewModel @Inject constructor(
 
     @Stable
     data class UiState(
-        val tags: List<Tag> = emptyList(),
+        val allTags: List<Tag> = emptyList(),
+        val sortedFilteredTags: List<Tag> = emptyList(),
         val selectedTagIds: List<Long> = emptyList(),
         val selectedUris: List<Uri> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
@@ -78,7 +79,10 @@ class GalleryViewModel @Inject constructor(
                     SortVariant.COLOR -> filteredTags.sortedBy { it.color.compareToken }
                 }
                 _uiState.update { currentState ->
-                    currentState.copy(tags = sortedAndFilteredTags)
+                    currentState.copy(
+                        allTags = tagList,
+                        sortedFilteredTags = sortedAndFilteredTags
+                    )
                 }
             }.collect {}
         }
@@ -182,43 +186,48 @@ class GalleryViewModel @Inject constructor(
 
     fun onClickSave(contentResolver: ContentResolver) = viewModelScope.launch {
         with(_uiState.value) {
-            alreadySavedMedia.forEach { uri ->
-                repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
-            }
+            val allMediaTagCrossRefs = arrayListOf<MediaTagCrossRef>()
             selectedUris.forEach { uri ->
-                saveMediaTags(
+                val finalTagIds = calculateFinalTagIds(
+                    selectedCommonTagIds = selectedTagIds,
+                    individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
+                    individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
+                )
+
+                takeOrReleasePersistableUriPermissionIfNeeded(
                     mediaUri = uri,
-                    selectedTagIds = calculateFinalTagIds(
-                        selectedCommonTagIds = selectedTagIds,
-                        individualAddedTagIds = perMediaAddedTagIds.getOrDefault(uri, emptyList()),
-                        individualRemovedTagIds = perMediaRemovedTagIds.getOrDefault(uri, emptyList())
-                    ),
+                    selectedTagIds = finalTagIds,
                     contentResolver = contentResolver
                 )
+
+                allMediaTagCrossRefs += finalTagIds.map { MediaTagCrossRef(uri.toString(), it) }
             }
+            repository.deleteAndInsertMediaTagCrossRefs(
+                mediaIdsToDeleteCrossRefs = alreadySavedMedia.mapTo(HashSet()) { it.toString() },
+                crossRefsToAdd = allMediaTagCrossRefs
+            )
         }
         resetScreen()
     }
 
-    private suspend fun saveMediaTags(
+    private fun takeOrReleasePersistableUriPermissionIfNeeded(
         mediaUri: Uri,
         selectedTagIds: List<Long>,
         contentResolver: ContentResolver
     ) {
         if (!_uiState.value.alreadySavedMedia.contains(mediaUri)) {
-            contentResolver.takePersistableUriPermission(
-                mediaUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+            if (selectedTagIds.isNotEmpty()) {
+                contentResolver.takePersistableUriPermission(
+                    mediaUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
         } else if (selectedTagIds.isEmpty()) {
             // Удаление возможно и путем пустого предобавления - в этом случае тоже отпускаем разрешение
             contentResolver.releasePersistableUriPermission(
                 mediaUri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
-        }
-        selectedTagIds.forEach { tagId ->
-            repository.insertMediaTagCrossRef(MediaTagCrossRef(mediaUri.toString(), tagId))
         }
     }
 
@@ -227,8 +236,9 @@ class GalleryViewModel @Inject constructor(
     }
 
     private fun resetScreen() {
-        _uiState.value = UiState(
-            tags = _uiState.value.tags  // Только теги, подтянутые из БД и должны сохраниться
+        _uiState.value = UiState(   // Только теги, подтянутые из БД и должны сохраниться
+            allTags = _uiState.value.allTags,
+            sortedFilteredTags = _uiState.value.sortedFilteredTags
         )
     }
 }

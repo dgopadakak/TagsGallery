@@ -56,6 +56,7 @@ dependencies {
 
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.windowSizes)
+    implementation(libs.androidx.material.icons.extended)
 
     implementation(libs.coil.compose)
     implementation(libs.coil.video)

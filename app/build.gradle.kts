@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":tags"))
     implementation(project(":gallery"))
     implementation(project(":search"))
+    implementation(project(":core:compose"))
     implementation(project(":core:local_storage"))
 
     implementation(libs.androidx.core.ktx)
@@ -62,11 +63,21 @@ dependencies {
 
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.windowSizes)
+    implementation(libs.androidx.material.icons.extended)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.video)
+    implementation(libs.telephoto.image)
+
+    implementation(libs.androidx.media3.ui.compose)
+    implementation(libs.androidx.media3.exoPlayer)
+    implementation(libs.androidx.media3.common)
 
     implementation(libs.androidx.compose.navigation)
 
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation)
 
     implementation(libs.datastore.preferences)
     implementation(libs.room.runtime)
