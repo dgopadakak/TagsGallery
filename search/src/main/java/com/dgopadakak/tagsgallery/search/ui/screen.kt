@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -57,11 +61,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.search.SearchViewModel
+import com.dgopadakak.tagsgallery.search.util.getVideoDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,7 +177,7 @@ fun SearchScreen(
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 itemsIndexed(uiState.foundedMediaUris, key = { _, uri -> uri }) { index, uri ->
-                    // Инициализирующее значение лучше нуллабельности. в случае чего будет кривая анимация, а не NPE
+                    // Инициализирующее значение - лучше нуллабельности. В случае чего будет кривая анимация, а не NPE
                     var itemBounds = Rect(0f, 0f, 0f, 0f)
                     SearchMediaPreviewItem(
                         modifier = Modifier
@@ -216,18 +221,69 @@ private fun SearchMediaPreviewItem(
     onItemClick: (Uri) -> Unit,
     onItemLongClick: (Uri) -> Unit
 ) {
-    // TODO: длительность в углу для видео
-    AsyncImage(
-        model = request,
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
+    val context = LocalContext.current
+    val isVideo = remember(uri) {
+        val type = context.contentResolver.getType(uri)
+        type?.startsWith("video") == true
+    }
+    val duration = if (isVideo) {
+        getVideoDuration(context, uri)
+    } else {
+        null
+    }
+
+    Box(
         modifier = modifier
             .aspectRatio(1f)
             .combinedClickable(
                 onClick = { onItemClick(uri) },
                 onLongClick = { onItemLongClick(uri) }
             )
-    )
+    ) {
+        AsyncImage(
+            model = request,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        if (isVideo && duration != null) {
+            VideoDurationOverlay(
+                duration = duration,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(6.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun VideoDurationOverlay(
+    duration: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .background(
+                color = Color.Black.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = duration,
+            color = Color.White,
+            fontSize = 11.sp
+        )
+    }
 }
 
 @Composable
