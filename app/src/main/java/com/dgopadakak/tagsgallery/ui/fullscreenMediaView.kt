@@ -31,9 +31,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.core.view.WindowInsetsCompat
@@ -89,6 +89,7 @@ fun FullScreenMediaView(
 
     // Механизм учета размера только открытого NavBar TODO: распространить на все приложение, чтоб при закрытии просмотрщика все приложение не прыгало
     val inset = WindowInsets.navigationBars.asPaddingValues()
+    val layoutDirection = LocalLayoutDirection.current
     val navBarPadding = remember { mutableStateOf(PaddingValues(0.dp)) }
     LaunchedEffect(inset.calculateBottomPadding()) {
         if (controlsVisible.value && inset.calculateBottomPadding() > navBarPadding.value.calculateBottomPadding())
@@ -99,21 +100,21 @@ fun FullScreenMediaView(
                 bottom = inset.calculateBottomPadding()
             )
     }
-    LaunchedEffect(inset.calculateLeftPadding(LayoutDirection.Ltr)) {
-        if (controlsVisible.value && inset.calculateLeftPadding(LayoutDirection.Ltr) > navBarPadding.value.calculateLeftPadding(LayoutDirection.Ltr))
+    LaunchedEffect(inset.calculateLeftPadding(layoutDirection)) {
+        if (controlsVisible.value && inset.calculateLeftPadding(layoutDirection) > navBarPadding.value.calculateLeftPadding(layoutDirection))
             navBarPadding.value = PaddingValues(
-                start = inset.calculateLeftPadding(LayoutDirection.Ltr),
+                start = inset.calculateLeftPadding(layoutDirection),
                 top = 0.dp,
                 end = 0.dp,
                 bottom = 0.dp
             )
     }
-    LaunchedEffect(inset.calculateRightPadding(LayoutDirection.Ltr)) {
-        if (controlsVisible.value && inset.calculateRightPadding(LayoutDirection.Ltr) > navBarPadding.value.calculateRightPadding(LayoutDirection.Ltr))
+    LaunchedEffect(inset.calculateRightPadding(layoutDirection)) {
+        if (controlsVisible.value && inset.calculateRightPadding(layoutDirection) > navBarPadding.value.calculateRightPadding(layoutDirection))
             navBarPadding.value = PaddingValues(
                 start = 0.dp,
                 top = 0.dp,
-                end = inset.calculateRightPadding(LayoutDirection.Ltr),
+                end = inset.calculateRightPadding(layoutDirection),
                 bottom = 0.dp
             )
     }
