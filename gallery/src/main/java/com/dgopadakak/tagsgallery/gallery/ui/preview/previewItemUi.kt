@@ -7,9 +7,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
@@ -84,7 +89,7 @@ internal fun MediaPreview(
                     .data(uri)
                     .apply {
                         if (isVideo) {
-                            videoFrameMillis(1000L) // Выбор кадра для превью видео
+                            videoFrameMillis(0L)    // Выбор кадра для превью видео
                         }
                     }
                     .crossfade(true)
@@ -178,6 +183,7 @@ private fun AnimatedVideoPreview(
     val mediaItem = remember(uri) {
         MediaItem.fromUri(uri)
     }
+    val aspectRatio = remember { mutableFloatStateOf(1f) }
 
     val player = remember(uri) {
         ExoPlayer.Builder(context).build().apply {
@@ -185,22 +191,49 @@ private fun AnimatedVideoPreview(
             prepare()
             volume = 0f
             repeatMode = Player.REPEAT_MODE_ONE
+            playWhenReady = true
         }
-    }.apply {
-        seekTo(0)
-        playWhenReady = true
     }
 
     DisposableEffect(uri) {
-        onDispose { player.release() }
+        val listener = object : Player.Listener {
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                if (videoSize.width > 0 && videoSize.height > 0) {
+                    aspectRatio.value = videoSize.width.toFloat() / videoSize.height.toFloat()
+                }
+            }
+        }
+
+        player.addListener(listener)
+        onDispose {
+            player.removeListener(listener)
+            player.release()
+        }
     }
 
-    // TODO: исследована куча альтернатив, которые позволяют сделать crop, но все они отброшены либо
-    //  по причине сложности/невозможности установки surfaceType. Если будет обновление, позволяющее
-    //  использовать crop в рамках PlayerSurface - заюзать.
-    PlayerSurface(
-        player = player,
-        // Важен именно этот surfaceType для работоспособности анимации затухания при навигации
-        surfaceType = SURFACE_TYPE_TEXTURE_VIEW
-    )
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        val windowWidth = maxWidth
+        val windowHeight = maxHeight
+
+        val videoModifier =             // Для достижения эффекта CROP, не заложенного в PlayerSurface
+            if (aspectRatio.value > 1f) {
+                // Видео широкое -> делаем шире окна
+                Modifier
+                    .requiredHeight(windowHeight)
+                    .requiredWidth(windowHeight * aspectRatio.value)
+            } else {
+                // Видео высокое -> делаем выше окна
+                Modifier
+                    .requiredWidth(windowWidth)
+                    .requiredHeight(windowWidth / aspectRatio.value)
+            }
+
+        PlayerSurface(
+            player = player,
+            surfaceType = SURFACE_TYPE_TEXTURE_VIEW,    // Важен именно этот surfaceType для работоспособности анимации затухания при навигации
+            modifier = videoModifier.align(Alignment.Center)
+        )
+    }
 }

@@ -87,7 +87,7 @@ fun FullScreenMediaView(
         }
     }
 
-    // Механизм учета размера только открытого NavBar TODO: распространить на все приложение, чтоб при закрытии просмотрщика все приложение не прыгало
+    // Механизм учета размера только открытого NavBar
     val inset = WindowInsets.navigationBars.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
     val navBarPadding = remember { mutableStateOf(PaddingValues(0.dp)) }
@@ -231,7 +231,7 @@ fun FullScreenMediaView(
                     AsyncImage(
                         model = ImageRequest.Builder(context)
                             .data(uri)
-                            .videoFrameMillis(1000L)
+                            .videoFrameMillis(0L)
                             .crossfade(true)
                             .build(),
                         contentDescription = null,
