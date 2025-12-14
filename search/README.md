@@ -10,8 +10,9 @@ tags/
 │   └── main/
 │       └── java/
 │           └── com/dgopadakak/tagsgallery/search/
-│               ├── screen.kt             # Composable код
-│               └── SearchViewModel.kt    # ViewModel, содержащая UiState
+│               ├── SearchViewModel.kt    # ViewModel, содержащая UiState
+│               ├── ui/                   # UI компоненты
+│               └── util/                 # Вспомогательные утилиты 
 
 ```
 
