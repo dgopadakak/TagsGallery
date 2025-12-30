@@ -15,7 +15,8 @@ class MainViewModel : ViewModel() {
     @Stable
     data class UiState(
         val fullscreenContent: FullscreenContentModel? = null,
-        val fullscreenAnimated: Boolean = false
+        val fullscreenAnimated: Boolean = false,
+        val isMuted: Boolean = true
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -30,7 +31,8 @@ class MainViewModel : ViewModel() {
     fun setFullscreenContent(fullscreenContent: FullscreenContentModel?) {
         _uiState.update { it.copy(
             fullscreenContent = fullscreenContent,
-            fullscreenAnimated = false
+            fullscreenAnimated = false,
+            isMuted = true
         ) }
     }
 
@@ -38,6 +40,16 @@ class MainViewModel : ViewModel() {
         _uiState.update { it.copy(fullscreenAnimated = animated) }
     }
 
+    fun setMuted(muted: Boolean) {
+        _uiState.update { it.copy(isMuted = muted) }
+    }
+
+    /**
+     * Этот метод не устанавливает isMuted напрямую, так как в нем мы не можем проверить, какой тип
+     * медиа отображается в данный момент, а unmute при просмотре фото неуместен. Поэтому через этот
+     * метод при помощи [volumeKeyEvents] информация о нажатии попадает в просмотрщик, а уже из него
+     * может быть вызван метод [setMuted], который и установит isMuted.
+     */
     fun onVolumeKeyPressed() {
         viewModelScope.launch {
             _volumeKeyEvents.emit(Unit)

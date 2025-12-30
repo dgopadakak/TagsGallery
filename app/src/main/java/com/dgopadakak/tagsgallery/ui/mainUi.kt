@@ -73,7 +73,9 @@ internal fun MainScreen(
                     windowInsetsControllerCompat = windowInsetsControllerCompat,
                     alreadyAnimated = uiState.fullscreenAnimated,
                     volumeKeyEvents = viewModel.volumeKeyEvents,
+                    isMuted = uiState.isMuted,
                     onAnimated = { viewModel.setAnimated(true) },
+                    onSetMuted = { viewModel.setMuted(it) },
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
                         viewModel.setFullscreenContent(null)

@@ -56,7 +56,9 @@ fun FullScreenMediaView(
     windowInsetsControllerCompat: WindowInsetsControllerCompat,
     alreadyAnimated: Boolean,
     volumeKeyEvents: SharedFlow<Unit>,
+    isMuted: Boolean,
     onAnimated: () -> Unit,
+    onSetMuted: (Boolean) -> Unit,
     onClose: () -> Unit
 ) {
 
@@ -227,6 +229,8 @@ fun FullScreenMediaView(
                         controlsVisible = controlsVisible,
                         navBarOpenPadding = navBarPadding.value,
                         volumeKeyEvents = volumeKeyEvents,
+                        isMuted = isMuted,
+                        onSetMuted = onSetMuted,
                         modifier = animatedModifier
                     )
                 } else {

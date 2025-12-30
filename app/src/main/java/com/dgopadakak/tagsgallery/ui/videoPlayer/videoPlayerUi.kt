@@ -64,11 +64,13 @@ fun VideoPlayerWithControls(
     controlsVisible: MutableState<Boolean>,
     navBarOpenPadding: PaddingValues,
     volumeKeyEvents: SharedFlow<Unit>,
+    isMuted: Boolean,
+    onSetMuted: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val videoUiState = rememberSaveable(uri) {
-        mutableStateOf(VideoState())
+        mutableStateOf(VideoState(isMuted = isMuted))
     }
 
     val context = LocalContext.current
@@ -155,6 +157,12 @@ fun VideoPlayerWithControls(
         hideByTimeoutJob.value?.cancel()
     }
 
+    fun setMuted(muted: Boolean) {
+        isMuted.value = muted
+        exoPlayer.volume = if (muted) 0f else 1f
+        onSetMuted(muted)
+    }
+
     LaunchedEffect(Unit) {
         restartHideTimer()
         while (true) {
@@ -166,8 +174,7 @@ fun VideoPlayerWithControls(
     LaunchedEffect(Unit) {
         volumeKeyEvents.collect {
             if (isMuted.value) {
-                isMuted.value = false
-                exoPlayer.volume = 1f
+                setMuted(false)
             }
         }
     }
@@ -231,8 +238,7 @@ fun VideoPlayerWithControls(
 
                 IconButton(onClick = {
                     if (controlsVisible.value) {
-                        isMuted.value = !isMuted.value
-                        exoPlayer.volume = if (isMuted.value) 0f else 1f
+                        setMuted(!isMuted.value)
                     }
                     showControls()
                 }) {
