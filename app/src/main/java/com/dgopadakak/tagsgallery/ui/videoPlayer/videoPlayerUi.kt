@@ -54,6 +54,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -62,11 +63,14 @@ fun VideoPlayerWithControls(
     uri: Uri,
     controlsVisible: MutableState<Boolean>,
     navBarOpenPadding: PaddingValues,
+    volumeKeyEvents: SharedFlow<Unit>,
+    isMuted: Boolean,
+    onSetMuted: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val videoUiState = rememberSaveable(uri) {
-        mutableStateOf(VideoState())
+        mutableStateOf(VideoState(isMuted = isMuted))
     }
 
     val context = LocalContext.current
@@ -153,11 +157,25 @@ fun VideoPlayerWithControls(
         hideByTimeoutJob.value?.cancel()
     }
 
+    fun setMuted(muted: Boolean) {
+        isMuted.value = muted
+        exoPlayer.volume = if (muted) 0f else 1f
+        onSetMuted(muted)
+    }
+
     LaunchedEffect(Unit) {
         restartHideTimer()
         while (true) {
             position.longValue = exoPlayer.currentPosition.coerceAtLeast(0L)
             delay(200L)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        volumeKeyEvents.collect {
+            if (isMuted.value) {
+                setMuted(false)
+            }
         }
     }
 
@@ -218,11 +236,9 @@ fun VideoPlayerWithControls(
                     modifier = Modifier.padding(start = 8.dp)
                 )
 
-                // TODO: включать звук по нажатию кнопки громкости
                 IconButton(onClick = {
                     if (controlsVisible.value) {
-                        isMuted.value = !isMuted.value
-                        exoPlayer.volume = if (isMuted.value) 0f else 1f
+                        setMuted(!isMuted.value)
                     }
                     showControls()
                 }) {

@@ -44,6 +44,7 @@ import coil3.request.crossfade
 import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.ui.videoPlayer.VideoPlayerWithControls
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import kotlin.math.abs
@@ -54,7 +55,10 @@ fun FullScreenMediaView(
     contentModel: FullscreenContentModel,
     windowInsetsControllerCompat: WindowInsetsControllerCompat,
     alreadyAnimated: Boolean,
+    volumeKeyEvents: SharedFlow<Unit>,
+    isMuted: Boolean,
     onAnimated: () -> Unit,
+    onSetMuted: (Boolean) -> Unit,
     onClose: () -> Unit
 ) {
 
@@ -224,6 +228,9 @@ fun FullScreenMediaView(
                         uri = uri,
                         controlsVisible = controlsVisible,
                         navBarOpenPadding = navBarPadding.value,
+                        volumeKeyEvents = volumeKeyEvents,
+                        isMuted = isMuted,
+                        onSetMuted = onSetMuted,
                         modifier = animatedModifier
                     )
                 } else {
