@@ -54,6 +54,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -62,6 +63,7 @@ fun VideoPlayerWithControls(
     uri: Uri,
     controlsVisible: MutableState<Boolean>,
     navBarOpenPadding: PaddingValues,
+    volumeKeyEvents: SharedFlow<Unit>,
     modifier: Modifier = Modifier
 ) {
 
@@ -161,6 +163,15 @@ fun VideoPlayerWithControls(
         }
     }
 
+    LaunchedEffect(Unit) {
+        volumeKeyEvents.collect {
+            if (isMuted.value) {
+                isMuted.value = false
+                exoPlayer.volume = 1f
+            }
+        }
+    }
+
     Box(
         modifier = modifier
             .clickable(
@@ -218,7 +229,6 @@ fun VideoPlayerWithControls(
                     modifier = Modifier.padding(start = 8.dp)
                 )
 
-                // TODO: включать звук по нажатию кнопки громкости
                 IconButton(onClick = {
                     if (controlsVisible.value) {
                         isMuted.value = !isMuted.value

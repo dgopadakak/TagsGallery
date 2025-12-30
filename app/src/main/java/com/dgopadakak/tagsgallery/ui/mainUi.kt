@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -27,7 +26,7 @@ import com.dgopadakak.tagsgallery.navigation.Routes
 internal fun MainScreen(
     windowSizeClass: WindowSizeClass,
     windowInsetsControllerCompat: WindowInsetsControllerCompat,
-    viewModel: MainViewModel = hiltViewModel()
+    viewModel: MainViewModel
 ) {
     val navController = rememberNavController()
     // TODO: при расширении на другие платформы - сделать больше, чем 2 варианта UI навигации
@@ -73,6 +72,7 @@ internal fun MainScreen(
                     contentModel = content,
                     windowInsetsControllerCompat = windowInsetsControllerCompat,
                     alreadyAnimated = uiState.fullscreenAnimated,
+                    volumeKeyEvents = viewModel.volumeKeyEvents,
                     onAnimated = { viewModel.setAnimated(true) },
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
