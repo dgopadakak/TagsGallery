@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.core.local_storage
 
+import android.content.ContentResolver
 import android.net.Uri
 import androidx.core.net.toUri
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
@@ -7,6 +8,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
+import com.dgopadakak.tagsgallery.core.local_storage.util.uriExists
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -92,16 +94,36 @@ class Repository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getMediaUrisByAllTags(tagIdsFlow: Flow<List<Long>>): Flow<List<Uri>> {
+    fun getMediaUrisByAllTags(
+        tagIdsFlow: Flow<List<Long>>,
+        contentResolver: ContentResolver
+    ): Flow<List<Uri>> {
         return tagIdsFlow.flatMapLatest { tagIds ->
-            if (tagIds.isEmpty()) {
-                tagDao.getAllMediaIds()
-                    .map { ids -> ids.map { it.toUri() } }
-                    .distinctUntilChanged()
+            val mediaIdsFlow = if (tagIds.isEmpty()) {
+                tagDao.getAllMediaIds().distinctUntilChanged()
             } else {
-                tagDao.getMediaIdsByAllTags(tagIds, tagIds.size)
-                    .map { ids -> ids.map { it.toUri() } }
-                    .distinctUntilChanged()
+                tagDao.getMediaIdsByAllTags(tagIds, tagIds.size).distinctUntilChanged()
+            }
+
+            mediaIdsFlow.map { mediaIds ->
+                val validUris = mutableListOf<Uri>()
+                val invalidMediaIds = mutableListOf<String>()
+
+                mediaIds.forEach { mediaId ->
+                    val uri = mediaId.toUri()
+                    if (contentResolver.uriExists(uri)) {
+                        validUris += uri
+                    } else {
+                        invalidMediaIds += mediaId
+                    }
+                }
+
+                // Чистим БД
+                invalidMediaIds.forEach {
+                    tagDao.deleteMediaTagCrossRefsByMediaId(it)
+                }
+
+                validUris
             }
         }.distinctUntilChanged().flowOn(dispatcher)
     }

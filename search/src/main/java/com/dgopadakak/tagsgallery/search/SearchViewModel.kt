@@ -1,5 +1,7 @@
 package com.dgopadakak.tagsgallery.search
 
+import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -9,6 +11,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,7 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val repository: Repository
+    private val repository: Repository,
+    @ApplicationContext applicationContext: Context
 ) : ViewModel() {
 
     @Stable
@@ -36,6 +40,8 @@ class SearchViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
+
+    private val contentResolver: ContentResolver = applicationContext.contentResolver
 
     init {
         viewModelScope.launch {
@@ -75,7 +81,8 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             repository.getMediaUrisByAllTags(
-                tagIdsFlow = _uiState.map { it.selectedTagIds }.distinctUntilChanged()
+                tagIdsFlow = _uiState.map { it.selectedTagIds }.distinctUntilChanged(),
+                contentResolver = contentResolver
             ).collect { mediaUris ->
                 _uiState.update { it.copy(foundedMediaUris = mediaUris) }
             }
