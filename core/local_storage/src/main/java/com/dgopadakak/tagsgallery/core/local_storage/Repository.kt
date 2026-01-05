@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.core.local_storage
 
 import android.content.ContentResolver
+import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
@@ -8,6 +9,7 @@ import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
 import com.dgopadakak.tagsgallery.core.local_storage.room.TagDao
+import com.dgopadakak.tagsgallery.core.local_storage.util.hasPersistedReadPermission
 import com.dgopadakak.tagsgallery.core.local_storage.util.uriExists
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -118,9 +120,15 @@ class Repository(
                     }
                 }
 
-                // Чистим БД
+                // Чистим БД и безопасно отпускаем разрешение
                 invalidMediaIds.forEach {
                     tagDao.deleteMediaTagCrossRefsByMediaId(it)
+                    if (contentResolver.hasPersistedReadPermission(it.toUri())) {
+                        contentResolver.releasePersistableUriPermission(
+                            it.toUri(),
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    }
                 }
 
                 validUris

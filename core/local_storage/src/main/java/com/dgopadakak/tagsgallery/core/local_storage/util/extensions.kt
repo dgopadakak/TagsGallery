@@ -11,3 +11,8 @@ fun ContentResolver.uriExists(uri: Uri): Boolean {
     }
 }
 
+fun ContentResolver.hasPersistedReadPermission(uri: Uri): Boolean {
+    return persistedUriPermissions.any {
+        it.uri == uri && it.isReadPermission
+    }
+}
