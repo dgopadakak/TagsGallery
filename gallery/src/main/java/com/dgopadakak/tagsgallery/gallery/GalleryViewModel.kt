@@ -10,6 +10,7 @@ import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.util.hasPersistedReadPermission
 import com.dgopadakak.tagsgallery.gallery.util.calculateFinalTagIds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -224,10 +225,12 @@ class GalleryViewModel @Inject constructor(
             }
         } else if (selectedTagIds.isEmpty()) {
             // Удаление возможно и путем пустого предобавления - в этом случае тоже отпускаем разрешение
-            contentResolver.releasePersistableUriPermission(
-                mediaUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+            if (contentResolver.hasPersistedReadPermission(mediaUri)) {
+                contentResolver.releasePersistableUriPermission(
+                    mediaUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
         }
     }
 
