@@ -75,6 +75,9 @@ dependencies {
 
     implementation(libs.androidx.compose.navigation)
 
+    // Temporary hilt-kotlin compatibility workaround
+    kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0-Beta1")
+
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation)

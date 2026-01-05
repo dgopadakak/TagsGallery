@@ -58,6 +58,9 @@ dependencies {
     implementation(libs.androidx.material3.windowSizes)
     implementation(libs.androidx.material.icons.extended)
 
+    // Temporary hilt-kotlin compatibility workaround
+    kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0-Beta1")
+
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
     implementation(libs.androidx.media3.ui.compose)
