@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -13,13 +14,20 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.LabelOff
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -43,6 +50,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.ui.util.NavBarPaddingEditor
+import com.dgopadakak.tagsgallery.ui.util.StatusBarPaddingEditor
 import com.dgopadakak.tagsgallery.ui.videoPlayer.VideoPlayerWithControls
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
@@ -91,37 +100,10 @@ fun FullScreenMediaView(
         }
     }
 
-    // Механизм учета размера только открытого NavBar
-    val inset = WindowInsets.navigationBars.asPaddingValues()
-    val layoutDirection = LocalLayoutDirection.current
     val navBarPadding = remember { mutableStateOf(PaddingValues(0.dp)) }
-    LaunchedEffect(inset.calculateBottomPadding()) {
-        if (controlsVisible.value && inset.calculateBottomPadding() > navBarPadding.value.calculateBottomPadding())
-            navBarPadding.value = PaddingValues(
-                start = 0.dp,
-                top = 0.dp,
-                end = 0.dp,
-                bottom = inset.calculateBottomPadding()
-            )
-    }
-    LaunchedEffect(inset.calculateLeftPadding(layoutDirection)) {
-        if (controlsVisible.value && inset.calculateLeftPadding(layoutDirection) > navBarPadding.value.calculateLeftPadding(layoutDirection))
-            navBarPadding.value = PaddingValues(
-                start = inset.calculateLeftPadding(layoutDirection),
-                top = 0.dp,
-                end = 0.dp,
-                bottom = 0.dp
-            )
-    }
-    LaunchedEffect(inset.calculateRightPadding(layoutDirection)) {
-        if (controlsVisible.value && inset.calculateRightPadding(layoutDirection) > navBarPadding.value.calculateRightPadding(layoutDirection))
-            navBarPadding.value = PaddingValues(
-                start = 0.dp,
-                top = 0.dp,
-                end = inset.calculateRightPadding(layoutDirection),
-                bottom = 0.dp
-            )
-    }
+    NavBarPaddingEditor(navBarPadding, controlsVisible)
+    val statusBarPadding = remember { mutableStateOf(PaddingValues(0.dp)) }
+    StatusBarPaddingEditor(statusBarPadding, controlsVisible)
 
     BackHandler { onClose() }
 
@@ -181,8 +163,7 @@ fun FullScreenMediaView(
                         }
                     }
                 }
-            ),
-        contentAlignment = Alignment.Center
+            )
     ) {
         // TODO: изменить анимацию листания
         HorizontalPager(
@@ -255,6 +236,70 @@ fun FullScreenMediaView(
                     onClick = { controlsVisible.value = !controlsVisible.value }
                 )
             }
+        }
+
+        TopQuickActions(
+            visible = controlsVisible.value,
+            offset = IntOffset(0, offsetY.value.roundToInt()),
+            statusBarPadding = statusBarPadding.value,
+            navBarPadding = navBarPadding.value,
+            onBack = onClose,
+            onShare = { /* TODO */ },
+            onClearTags = { /* TODO */ }
+        )
+    }
+}
+
+@Composable
+private fun TopQuickActions(
+    visible: Boolean,
+    offset: IntOffset,
+    statusBarPadding: PaddingValues,
+    navBarPadding: PaddingValues,
+    onBack: () -> Unit,
+    onShare: () -> Unit,
+    onClearTags: () -> Unit
+) {
+    val alpha = animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(durationMillis = 500)
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset { offset }
+            .graphicsLayer { this.alpha = alpha.value }
+            .background(Color.Black.copy(alpha = 0.4f))
+            .padding(statusBarPadding)
+            .padding(navBarPadding)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                tint = Color.White,
+                contentDescription = "Back"
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        IconButton(onClick = onShare) {
+            Icon(
+                imageVector = Icons.Default.Share,
+                tint = Color.White,
+                contentDescription = "Share"
+            )
+        }
+
+        IconButton(onClick = onClearTags) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.LabelOff,   // TODO: заменить на более очевидную
+                tint = Color.White,
+                contentDescription = "Remove all tags"
+            )
         }
     }
 }
