@@ -24,7 +24,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.LabelOff
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +49,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.ui.util.NavBarPaddingEditor
 import com.dgopadakak.tagsgallery.ui.util.StatusBarPaddingEditor
 import com.dgopadakak.tagsgallery.ui.videoPlayer.VideoPlayerWithControls
@@ -295,11 +295,7 @@ private fun TopQuickActions(
         }
 
         IconButton(onClick = onClearTags) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.LabelOff,   // TODO: заменить на более очевидную
-                tint = Color.White,
-                contentDescription = "Remove all tags"
-            )
+            RemoveAllTagsIcon()
         }
     }
 }

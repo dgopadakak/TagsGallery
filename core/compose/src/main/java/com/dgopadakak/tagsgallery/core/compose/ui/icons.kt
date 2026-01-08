@@ -4,8 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmarks
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -35,6 +38,40 @@ fun EditModeWarningIcon(
                 .align(Alignment.Center)
                 .padding(2.dp)
                 .size(iconSize)
+        )
+    }
+}
+
+@Composable
+fun RemoveAllTagsIcon(
+    modifier: Modifier = Modifier,
+    tagIconSize: Dp = 20.dp,
+    closeIconSize: Dp = 12.dp,
+    tint: Color = Color.White
+) {
+    Box(
+        modifier = modifier.size(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Bookmarks,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .size(tagIconSize)
+        )
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(closeIconSize)
+                .background(
+                    color = Color.Black.copy(alpha = 0.4f),
+                    shape = CircleShape
+                )
         )
     }
 }
