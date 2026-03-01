@@ -78,6 +78,7 @@ fun FullScreenMediaView(
     val screenHeight = LocalWindowInfo.current.containerSize.height.toFloat()
     val closingAnimDuration = 150
 
+    val isSwipe = remember { mutableStateOf(false) }
     val offsetY = remember { Animatable(0f) }
     val animProgress = remember { Animatable(0f) }
     val backgroundAnimClosing = remember { Animatable(1f) }
@@ -130,6 +131,7 @@ fun FullScreenMediaView(
                         offsetY.snapTo(offsetY.value + delta)
                     }
                 },
+                onDragStarted = { isSwipe.value = true },
                 onDragStopped = { velocity ->
                     scope.launch {
                         // Если большое смещение или быстрый свайп
@@ -156,6 +158,7 @@ fun FullScreenMediaView(
                                 )
                             }
                         } else {
+                            isSwipe.value = false
                             offsetY.animateTo(
                                 0f,
                                 spring(dampingRatio = Spring.DampingRatioMediumBouncy)
@@ -240,7 +243,7 @@ fun FullScreenMediaView(
 
         TopQuickActions(
             visible = controlsVisible.value,
-            offset = IntOffset(0, offsetY.value.roundToInt()),
+            isSwipe = isSwipe.value,
             statusBarPadding = statusBarPadding.value,
             navBarPadding = navBarPadding.value,
             onBack = onClose,
@@ -253,26 +256,29 @@ fun FullScreenMediaView(
 @Composable
 private fun TopQuickActions(
     visible: Boolean,
-    offset: IntOffset,
+    isSwipe: Boolean,
     statusBarPadding: PaddingValues,
     navBarPadding: PaddingValues,
     onBack: () -> Unit,
     onShare: () -> Unit,
     onClearTags: () -> Unit
 ) {
-    val alpha = animateFloatAsState(
+    val alpha1 = animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(durationMillis = 500)
+    )
+    val alpha2 = animateFloatAsState(
+        targetValue = if (!isSwipe) 1f else 0f,
+        animationSpec = tween(durationMillis = 300)
     )
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .offset { offset }
-            .graphicsLayer { this.alpha = alpha.value }
+            .graphicsLayer { this.alpha = alpha1.value * alpha2.value }
             .background(Color.Black.copy(alpha = 0.4f))
             .padding(statusBarPadding)
-            .padding(navBarPadding)
+            .padding(if (navBarPadding.calculateBottomPadding() == 0.dp) navBarPadding else PaddingValues())
             .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
