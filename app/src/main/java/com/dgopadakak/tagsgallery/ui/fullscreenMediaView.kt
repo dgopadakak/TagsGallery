@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.ui
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -247,7 +248,17 @@ fun FullScreenMediaView(
             statusBarPadding = statusBarPadding.value,
             navBarPadding = navBarPadding.value,
             onBack = onClose,
-            onShare = { /* TODO */ },
+            onShare = {
+                val uri = contentModel.uris[pagerState.currentPage]
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = context.contentResolver.getType(uri)
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                val chooser = Intent.createChooser(shareIntent, "Поделиться через")
+                context.startActivity(chooser)
+            },
             onClearTags = { /* TODO */ }
         )
     }
