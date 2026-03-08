@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -21,7 +20,6 @@ import androidx.navigation.compose.rememberNavController
 import com.dgopadakak.tagsgallery.navigation.LocalWindowSizeClass
 import com.dgopadakak.tagsgallery.navigation.Routes
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 internal fun MainScreen(
     windowSizeClass: WindowSizeClass,
@@ -76,6 +74,12 @@ internal fun MainScreen(
                     isMuted = uiState.isMuted,
                     onAnimated = { viewModel.setAnimated(true) },
                     onSetMuted = { viewModel.setMuted(it) },
+                    onDeleteMedia = { uri ->
+                        windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
+                        viewModel.deleteMedia(uri)
+                        viewModel.setFullscreenContent(null)
+                        // TODO: вместо закрытия продумать и протестить поведение при удалении не последнего медиа, последнего медиа (и так же под фильтром)
+                    },
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
                         viewModel.setFullscreenContent(null)

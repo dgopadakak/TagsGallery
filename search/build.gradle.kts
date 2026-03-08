@@ -2,9 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    kotlin("kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -58,11 +57,8 @@ dependencies {
 
     implementation(libs.coil.compose)
 
-    // Temporary hilt-kotlin compatibility workaround
-    kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0-Beta1")
-
     implementation(libs.hilt)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation)
 
     testImplementation(libs.junit)
@@ -72,8 +68,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
-
-kapt {
-    correctErrorTypes = true
 }

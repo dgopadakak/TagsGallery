@@ -5,15 +5,14 @@
 
 ## Структура
 ```
-tags/
+search/
 ├── src/
 │   └── main/
 │       └── java/
 │           └── com/dgopadakak/tagsgallery/search/
 │               ├── SearchViewModel.kt    # ViewModel, содержащая UiState
 │               ├── ui/                   # UI компоненты
-│               └── util/                 # Вспомогательные утилиты 
-
+│               └── util/                 # Вспомогательные утилиты
 ```
 
 ## Основные компоненты

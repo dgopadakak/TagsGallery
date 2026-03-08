@@ -1,17 +1,29 @@
 package com.dgopadakak.tagsgallery.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.core.local_storage.Repository
+import com.dgopadakak.tagsgallery.core.local_storage.util.hasPersistedReadPermission
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val repository: Repository,
+    @param:ApplicationContext private val appContext: Context
+) : ViewModel() {
     @Stable
     data class UiState(
         val fullscreenContent: FullscreenContentModel? = null,
@@ -53,6 +65,21 @@ class MainViewModel : ViewModel() {
     fun onVolumeKeyPressed() {
         viewModelScope.launch {
             _volumeKeyEvents.emit(Unit)
+        }
+    }
+
+    fun deleteMedia(uri: Uri) {
+        viewModelScope.launch {
+            val mediaId = uri.toString()
+            repository.deleteMediaTagCrossRefsByMediaId(mediaId)
+
+            val contentResolver = appContext.contentResolver
+            if (contentResolver.hasPersistedReadPermission(uri)) {
+                contentResolver.releasePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
         }
     }
 }
