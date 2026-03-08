@@ -59,7 +59,6 @@ class Repository(
      * вызываться при окончательном удалении связей с медиа.
      */
     suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String) = withContext(dispatcher) {
-        // TODO: учесть доку при использовании (Пока не используется метод на будущее)
         tagDao.deleteMediaTagCrossRefsByMediaId(mediaId)
     }
 

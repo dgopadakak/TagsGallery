@@ -74,6 +74,12 @@ internal fun MainScreen(
                     isMuted = uiState.isMuted,
                     onAnimated = { viewModel.setAnimated(true) },
                     onSetMuted = { viewModel.setMuted(it) },
+                    onDeleteMedia = { uri ->
+                        windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
+                        viewModel.deleteMedia(uri)
+                        viewModel.setFullscreenContent(null)
+                        // TODO: вместо закрытия продумать и протестить поведение при удалении не последнего медиа, последнего медиа (и так же под фильтром)
+                    },
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
                         viewModel.setFullscreenContent(null)

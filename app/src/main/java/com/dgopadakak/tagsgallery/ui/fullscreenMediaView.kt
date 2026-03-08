@@ -49,6 +49,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
+import android.net.Uri
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.ui.util.NavBarPaddingEditor
@@ -69,6 +70,7 @@ fun FullScreenMediaView(
     isMuted: Boolean,
     onAnimated: () -> Unit,
     onSetMuted: (Boolean) -> Unit,
+    onDeleteMedia: (Uri) -> Unit,
     onClose: () -> Unit
 ) {
 
@@ -259,7 +261,9 @@ fun FullScreenMediaView(
                 val chooser = Intent.createChooser(shareIntent, "Поделиться через")
                 context.startActivity(chooser)
             },
-            onClearTags = { /* TODO */ }
+            onClearTags = {
+                onDeleteMedia(contentModel.uris[pagerState.currentPage])
+            }
         )
     }
 }
