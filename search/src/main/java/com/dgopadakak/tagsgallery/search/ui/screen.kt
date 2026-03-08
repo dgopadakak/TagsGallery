@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.search.ui
 
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -23,25 +24,34 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -63,6 +73,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
+import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.search.SearchViewModel
@@ -77,6 +88,7 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState(
         snackbarHostState = snackbarHostState
     )
@@ -166,41 +178,82 @@ fun SearchScreen(
                     .size(250)
                     .build()
             }
+            val selectedUris = uiState.selectedMediaUris
+            val inSelectionMode = selectedUris.isNotEmpty()
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 120.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(4.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                itemsIndexed(uiState.foundedMediaUris, key = { _, uri -> uri }) { index, uri ->
-                    // Инициализирующее значение - лучше нуллабельности. В случае чего будет кривая анимация, а не NPE
-                    var itemBounds = Rect(0f, 0f, 0f, 0f)
-                    SearchMediaPreviewItem(
-                        modifier = Modifier
-                            .onGloballyPositioned { coordinates ->
-                                itemBounds = coordinates.boundsInWindow()
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 120.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    itemsIndexed(uiState.foundedMediaUris, key = { _, uri -> uri }) { index, uri ->
+                        var itemBounds = Rect(0f, 0f, 0f, 0f)
+                        SearchMediaPreviewItem(
+                            modifier = Modifier
+                                .onGloballyPositioned { coordinates ->
+                                    itemBounds = coordinates.boundsInWindow()
+                                },
+                            uri = uri,
+                            request = requestsList[index],
+                            isSelected = uri in selectedUris,
+                            onItemClick = {
+                                if (inSelectionMode) {
+                                    viewModel.toggleMediaSelection(uri)
+                                } else {
+                                    onFullscreenContentSelected(
+                                        FullscreenContentModel(
+                                            startIndex = index,
+                                            uris = uiState.foundedMediaUris,
+                                            placeholderImgRequests = requestsList,
+                                            startAnimationCoordinates = itemBounds
+                                        )
+                                    )
+                                }
                             },
-                        uri = uri,
-                        request = requestsList[index],
-                        onItemClick = {
-                            onFullscreenContentSelected(
-                                FullscreenContentModel(
-                                    startIndex = index,
-                                    uris = uiState.foundedMediaUris,
-                                    placeholderImgRequests = requestsList,
-                                    startAnimationCoordinates = itemBounds
-                                )
-                            )
+                            onItemLongClick = { viewModel.toggleMediaSelection(uri) }
+                        )
+                    }
+                }
+
+                if (inSelectionMode) {
+                    SelectionActionBar(
+                        onBack = { viewModel.clearSelection() },
+                        onShare = {
+                            val uris = selectedUris.toList()
+                            val shareIntent = if (uris.size == 1) {
+                                Intent(Intent.ACTION_SEND).apply {
+                                    type = context.contentResolver.getType(uris[0]) ?: "*/*"
+                                    putExtra(Intent.EXTRA_STREAM, uris[0])
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                            } else {
+                                Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                    type = "*/*"
+                                    putParcelableArrayListExtra(
+                                        Intent.EXTRA_STREAM,
+                                        ArrayList(uris)
+                                    )
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, null))
                         },
-                        onItemLongClick = {
-                            // TODO
-                        }
+                        onDelete = { showDeleteConfirmDialog = true }
                     )
                 }
+            }
+
+            if (showDeleteConfirmDialog) {
+                DeleteMediaConfirmDialog(
+                    onConfirm = {
+                        showDeleteConfirmDialog = false
+                        viewModel.deleteSelectedMedia()
+                    },
+                    onDismiss = { showDeleteConfirmDialog = false }
+                )
             }
         }
     }
@@ -214,10 +267,71 @@ fun SearchScreen(
 }
 
 @Composable
+private fun SelectionActionBar(
+    onBack: () -> Unit,
+    onShare: () -> Unit,
+    onDelete: () -> Unit
+) {
+    // TODO: сделать красивый островок справа
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Clear selection"
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(onClick = onShare) {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "Share"
+            )
+        }
+        IconButton(onClick = onDelete) {
+            RemoveAllTagsIcon(tint = MaterialTheme.colorScheme.onSurface)
+        }
+    }
+}
+
+@Composable
+private fun DeleteMediaConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Remove from app?") },
+        text = {
+            Text(
+                "This will remove the media from this app only. " +
+                    "The file will stay on your device and won't be deleted."
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Remove")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
 private fun SearchMediaPreviewItem(
     modifier: Modifier = Modifier,
     uri: Uri,
     request: ImageRequest,
+    isSelected: Boolean = false,
     onItemClick: (Uri) -> Unit,
     onItemLongClick: (Uri) -> Unit
 ) {
@@ -246,6 +360,25 @@ private fun SearchMediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+        if (isSelected) {
+            // TODO: сделать красивое выделение с анимацией (нечто вроде того, как это сделано в PhotoPicker)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.TopEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .size(24.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                )
+            }
+        }
         if (isVideo && duration != null) {
             VideoDurationOverlay(
                 duration = duration,

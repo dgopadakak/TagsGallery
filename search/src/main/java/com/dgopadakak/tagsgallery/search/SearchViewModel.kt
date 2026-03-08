@@ -2,6 +2,7 @@ package com.dgopadakak.tagsgallery.search
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,7 @@ import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.core.local_storage.util.hasPersistedReadPermission
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,7 @@ class SearchViewModel @Inject constructor(
         val filterBy: Tag.Color? = null,
         val selectedTagIds: List<Long> = emptyList(),
         val foundedMediaUris: List<Uri> = emptyList(),
+        val selectedMediaUris: Set<Uri> = emptySet(),
         val needToShowHint: Boolean = false
     )
 
@@ -125,5 +128,34 @@ class SearchViewModel @Inject constructor(
 
     fun setFilterBy(filterBy: Tag.Color?) {
         _uiState.update { it.copy(filterBy = filterBy) }
+    }
+
+    fun toggleMediaSelection(uri: Uri) {
+        _uiState.update { state ->
+            val current = state.selectedMediaUris
+            state.copy(
+                selectedMediaUris = if (uri in current) current - uri else current + uri
+            )
+        }
+    }
+
+    fun clearSelection() {
+        _uiState.update { it.copy(selectedMediaUris = emptySet()) }
+    }
+
+    fun deleteSelectedMedia() {
+        viewModelScope.launch {
+            val toDelete = _uiState.value.selectedMediaUris
+            toDelete.forEach { uri ->   // TODO: вместо цикличного удаления во ViewModel - доработать Repository
+                repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
+                if (contentResolver.hasPersistedReadPermission(uri)) {
+                    contentResolver.releasePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+            }
+            _uiState.update { it.copy(selectedMediaUris = emptySet()) }
+        }
     }
 }
