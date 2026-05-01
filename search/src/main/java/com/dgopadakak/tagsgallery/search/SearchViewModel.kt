@@ -146,8 +146,8 @@ class SearchViewModel @Inject constructor(
     fun deleteSelectedMedia() {
         viewModelScope.launch {
             val toDelete = _uiState.value.selectedMediaUris
-            toDelete.forEach { uri ->   // TODO: вместо цикличного удаления во ViewModel - доработать Repository
-                repository.deleteMediaTagCrossRefsByMediaId(uri.toString())
+            repository.deleteMediaTagCrossRefsByMediaIds(toDelete.map { it.toString() })
+            toDelete.forEach { uri ->
                 if (contentResolver.hasPersistedReadPermission(uri)) {
                     contentResolver.releasePersistableUriPermission(
                         uri,

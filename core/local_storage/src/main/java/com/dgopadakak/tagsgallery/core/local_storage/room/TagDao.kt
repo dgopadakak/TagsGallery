@@ -53,14 +53,17 @@ interface TagDao {
         mediaIdsToDeleteCrossRefs: Set<String>,
         crossRefsToAdd: List<MediaTagCrossRef>
     ) {
-        mediaIdsToDeleteCrossRefs.forEach {
-            deleteMediaTagCrossRefsByMediaId(it)
+        if (mediaIdsToDeleteCrossRefs.isNotEmpty()) {
+            deleteMediaTagCrossRefsByMediaIds(mediaIdsToDeleteCrossRefs.toList())
         }
         insertMediaTagCrossRefs(crossRefsToAdd)
     }
 
     @Query("DELETE FROM MediaTagCrossRef WHERE mediaId = :mediaId")
     suspend fun deleteMediaTagCrossRefsByMediaId(mediaId: String)
+
+    @Query("DELETE FROM MediaTagCrossRef WHERE mediaId IN (:mediaIds)")
+    suspend fun deleteMediaTagCrossRefsByMediaIds(mediaIds: List<String>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTagCrossRefs(crossRefs: List<MediaTagCrossRef>)
