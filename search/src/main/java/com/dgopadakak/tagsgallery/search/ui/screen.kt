@@ -8,7 +8,9 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -270,11 +272,21 @@ fun SearchScreen(
                     }
                 }
 
-                if (isMediaSelectionMode) {
+                AnimatedVisibility(
+                    visible = isMediaSelectionMode,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 12.dp),
+                    enter = slideInHorizontally(
+                        initialOffsetX = { it / 2 },
+                        animationSpec = tween(220)
+                    ) + fadeIn(animationSpec = tween(220)),
+                    exit = slideOutHorizontally(
+                        targetOffsetX = { it / 2 },
+                        animationSpec = tween(180)
+                    ) + fadeOut(animationSpec = tween(180))
+                ) {
                     SelectionActionBar(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 12.dp),
                         selectedCount = selectedUris.size,
                         onBack = { viewModel.clearSelection() },
                         onShare = {
