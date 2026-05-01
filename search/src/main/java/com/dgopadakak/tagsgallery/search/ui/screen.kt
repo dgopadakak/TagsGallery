@@ -4,15 +4,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,12 +100,8 @@ fun SearchScreen(
         snackbarHostState = snackbarHostState
     )
 
-    val sheetPeekHeightTarget = if (isMediaSelectionMode) 0.dp else 100.dp
-    val sheetPeekHeight by animateDpAsState(
-        targetValue = sheetPeekHeightTarget,
-        animationSpec = tween(durationMillis = 250),
-        label = "SheetPeekHeightAnimation"
-    )
+    val selectionLockedHint = "Finish media selection to change filters"
+    val sheetPeekHeight = 100.dp
     val halfScreenHeight = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.height.toDp() / 2
     }
@@ -124,86 +118,78 @@ fun SearchScreen(
         sheetSwipeEnabled = !isMediaSelectionMode,
         sheetShape = RectangleShape,
         sheetDragHandle = {
-            AnimatedVisibility(
-                visible = !isMediaSelectionMode,
-                enter = fadeIn(animationSpec = tween(200)),
-                exit = fadeOut(animationSpec = tween(150))
+            Column(
+                modifier = Modifier.fillMaxWidth().clickable { },
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
-                            .size(width = 40.dp, height = 4.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                shape = RoundedCornerShape(2.dp)
-                            )
-                    )
-                    if (scaffoldState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
-                        && uiState.selectedTagIds.isNotEmpty()
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = "Tap to remove tag, swipe up to add",
-                            fontSize = 14.sp
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .size(width = 40.dp, height = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            shape = RoundedCornerShape(2.dp)
                         )
+                )
+                if (scaffoldState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
+                    && uiState.selectedTagIds.isNotEmpty()) {
+                    val hintText = if (isMediaSelectionMode) {
+                        selectionLockedHint
+                    } else {
+                        "Tap to remove tag, swipe up to add"
                     }
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = hintText,
+                        fontSize = 14.sp
+                    )
                 }
             }
         },
         sheetContent = {
             val isExpanded = scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
 
-            AnimatedVisibility(
-                visible = !isMediaSelectionMode,
-                enter = slideInVertically(
-                    initialOffsetY = { it / 2 },
-                    animationSpec = tween(250)
-                ) + fadeIn(animationSpec = tween(250)),
-                exit = slideOutVertically(
-                    targetOffsetY = { it / 2 },
-                    animationSpec = tween(200)
-                ) + fadeOut(animationSpec = tween(180))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(halfScreenHeight)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(halfScreenHeight)
-                ) {
-                    Crossfade(targetState = isExpanded, label = "BottomSheetContent") { expanded ->
-                        if (expanded) {
-                            FullTagsSelectionView(
-                                modifier = Modifier.padding(start = 8.dp),
-                                tags = uiState.sortedFilteredTags,
-                                selectedTagsIds = uiState.selectedTagIds,
-                                onTagClick = { tagId ->
-                                    if (!isMediaSelectionMode) {
-                                        viewModel.onTagToggle(tagId)
-                                    }
-                                },
-                                sortBy = uiState.sortBy,
-                                onSortVariantChanged = { sortBy ->
-                                    if (!isMediaSelectionMode) {
-                                        viewModel.setSortBy(sortBy)
-                                    }
-                                },
-                                filterBy = uiState.filterBy,
-                                onFilterVariantChanged = { filterBy ->
-                                    if (!isMediaSelectionMode) {
-                                        viewModel.setFilterBy(filterBy)
-                                    }
-                                }
-                            )
-                        } else {
-                            SmallTagsRow(
-                                tags = uiState.allTags.filter { uiState.selectedTagIds.contains(it.id) }
-                            ) {
+                Crossfade(targetState = isExpanded, label = "BottomSheetContent") { expanded ->
+                    if (expanded) {
+                        FullTagsSelectionView(
+                            modifier = Modifier.padding(start = 8.dp),
+                            tags = uiState.sortedFilteredTags,
+                            selectedTagsIds = uiState.selectedTagIds,
+                            onTagClick = { tagId ->
                                 if (!isMediaSelectionMode) {
-                                    viewModel.onTagToggle(it)
+                                    viewModel.onTagToggle(tagId)
                                 }
+                            },
+                            sortBy = uiState.sortBy,
+                            onSortVariantChanged = { sortBy ->
+                                if (!isMediaSelectionMode) {
+                                    viewModel.setSortBy(sortBy)
+                                }
+                            },
+                            filterBy = uiState.filterBy,
+                            onFilterVariantChanged = { filterBy ->
+                                if (!isMediaSelectionMode) {
+                                    viewModel.setFilterBy(filterBy)
+                                }
+                            }
+                        )
+                    } else {
+                        SmallTagsRow(
+                            tags = uiState.allTags.filter { uiState.selectedTagIds.contains(it.id) },
+                            showRemoveIcon = !isMediaSelectionMode,
+                            emptyStateText = if (isMediaSelectionMode) {
+                                selectionLockedHint
+                            } else {
+                                "Swipe up here to choose tags for search"
+                            }
+                        ) {
+                            if (!isMediaSelectionMode) {
+                                viewModel.onTagToggle(it)
                             }
                         }
                     }
@@ -510,6 +496,8 @@ private fun VideoDurationOverlay(
 @Composable
 private fun SmallTagsRow(
     tags: List<Tag>,
+    showRemoveIcon: Boolean,
+    emptyStateText: String,
     onTagClick: (Long) -> Unit
 ) {
     if (tags.isNotEmpty()) {
@@ -525,11 +513,15 @@ private fun SmallTagsRow(
                     modifier = Modifier.padding(horizontal = 4.dp),
                     selected = false,
                     onClick = { onTagClick(tag.id) },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null
-                        )
+                    trailingIcon = if (showRemoveIcon) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null
+                            )
+                        }
+                    } else {
+                        null
                     },
                     label = {
                         Text(
@@ -551,7 +543,7 @@ private fun SmallTagsRow(
                 .height(80.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("Swipe up here to choose tags for search")
+            Text(emptyStateText)
         }
     }
 }
