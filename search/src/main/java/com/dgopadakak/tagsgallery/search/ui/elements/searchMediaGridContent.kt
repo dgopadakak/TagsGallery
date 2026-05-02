@@ -91,13 +91,15 @@ internal fun SearchMediaGridContent(
     }
 
     // ZoomableAsyncImage в FullScreenMediaView сам запрашивает лучшее качество
-    val requestsList = uiState.foundedMediaUris.map { uriToConvert ->
-        ImageRequest.Builder(context)
-            .data(uriToConvert)
-            .crossfade(true)
-            .memoryCacheKey(uriToConvert.toString())
-            .size(250)
-            .build()
+    val requestsList = remember(uiState.foundedMediaUris) {
+        uiState.foundedMediaUris.map { uriToConvert ->
+            ImageRequest.Builder(context)
+                .data(uriToConvert)
+                .crossfade(true)
+                .memoryCacheKey(uriToConvert.toString())
+                .size(250)
+                .build()
+        }
     }
     val selectedUris = uiState.selectedMediaUris
 
