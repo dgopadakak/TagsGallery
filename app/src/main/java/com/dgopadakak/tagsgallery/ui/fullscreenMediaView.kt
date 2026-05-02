@@ -1,6 +1,7 @@
 package com.dgopadakak.tagsgallery.ui
 
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -54,7 +55,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
-import android.net.Uri
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.ui.util.NavBarPaddingEditor
@@ -80,7 +80,7 @@ fun FullScreenMediaView(
 ) {
 
     val pagerState = rememberPagerState(initialPage = contentModel.startIndex) {
-        contentModel.placeholderImgRequests.size
+        contentModel.uris.size
     }
 
     val screenHeight = LocalWindowInfo.current.containerSize.height.toFloat()
@@ -227,21 +227,40 @@ fun FullScreenMediaView(
                         modifier = animatedModifier
                     )
                 } else {
-                    // Превью для пролистывания
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
+                    val videoPreviewRequest = remember(uri) {
+                        ImageRequest.Builder(context)
                             .data(uri)
                             .videoFrameMillis(0L)
                             .crossfade(true)
-                            .build(),
+                            .memoryCacheKey("video_preview:${uri}")
+                            .build()
+                    }
+                    // Превью для пролистывания
+                    AsyncImage(
+                        model = videoPreviewRequest,
                         contentDescription = null,
                         contentScale = ContentScale.Fit,
                         modifier = animatedModifier
                     )
                 }
             } else {
+                val fullscreenRequest = remember(uri) {
+                    ImageRequest.Builder(context)
+                        .data(uri)
+                        .crossfade(false)
+                        .build()
+                }
+
+                val previewRequest = contentModel.placeholderImgRequests.getOrNull(page)
+                val showPreviewRequest = animProgress.value < 1f && page == pagerState.currentPage
+                val imageModel = if (showPreviewRequest && previewRequest != null) {
+                    previewRequest
+                } else {
+                    fullscreenRequest
+                }
+
                 ZoomableAsyncImage(
-                    model = contentModel.placeholderImgRequests[page],
+                    model = imageModel,
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = animatedModifier,
