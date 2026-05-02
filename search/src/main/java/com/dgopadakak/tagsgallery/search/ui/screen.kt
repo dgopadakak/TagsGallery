@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -214,54 +215,62 @@ fun SearchScreen(
             )
         }
     } else {
-        Row(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 8.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.34f)
+            val tagsPanelMinWidth = 320.dp
+            val tagsPanelPreferredWidth = maxWidth * 0.34f
+            val tagsPanelWidth = tagsPanelPreferredWidth.coerceAtLeast(tagsPanelMinWidth)
+
+            Row(
+                modifier = Modifier.fillMaxSize()
             ) {
-                FullTagsSelectionView(
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(start = 8.dp, end = 8.dp),
-                    tags = uiState.sortedFilteredTags,
-                    selectedTagsIds = uiState.selectedTagIds,
-                    onTagClick = { tagId ->
-                        if (!isMediaSelectionMode) {
-                            viewModel.onTagToggle(tagId)
+                        .fillMaxHeight()
+                        .width(tagsPanelWidth)
+                ) {
+                    FullTagsSelectionView(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(start = 8.dp, end = 8.dp),
+                        tags = uiState.sortedFilteredTags,
+                        selectedTagsIds = uiState.selectedTagIds,
+                        onTagClick = { tagId ->
+                            if (!isMediaSelectionMode) {
+                                viewModel.onTagToggle(tagId)
+                            }
+                        },
+                        sortBy = uiState.sortBy,
+                        onSortVariantChanged = { sortBy ->
+                            if (!isMediaSelectionMode) {
+                                viewModel.setSortBy(sortBy)
+                            }
+                        },
+                        filterBy = uiState.filterBy,
+                        onFilterVariantChanged = { filterBy ->
+                            if (!isMediaSelectionMode) {
+                                viewModel.setFilterBy(filterBy)
+                            }
                         }
-                    },
-                    sortBy = uiState.sortBy,
-                    onSortVariantChanged = { sortBy ->
-                        if (!isMediaSelectionMode) {
-                            viewModel.setSortBy(sortBy)
-                        }
-                    },
-                    filterBy = uiState.filterBy,
-                    onFilterVariantChanged = { filterBy ->
-                        if (!isMediaSelectionMode) {
-                            viewModel.setFilterBy(filterBy)
-                        }
-                    }
+                    )
+                }
+                SearchMediaGridContent(
+                    uiState = uiState,
+                    isMediaSelectionMode = isMediaSelectionMode,
+                    onFullscreenContentSelected = onFullscreenContentSelected,
+                    onToggleMediaSelection = viewModel::toggleMediaSelection,
+                    onClearSelection = viewModel::clearSelection,
+                    onDeleteRequested = { showDeleteConfirmDialog = true },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    actionBarLayout = ActionBarLayout.HorizontalBottom
                 )
             }
-            SearchMediaGridContent(
-                uiState = uiState,
-                isMediaSelectionMode = isMediaSelectionMode,
-                onFullscreenContentSelected = onFullscreenContentSelected,
-                onToggleMediaSelection = viewModel::toggleMediaSelection,
-                onClearSelection = viewModel::clearSelection,
-                onDeleteRequested = { showDeleteConfirmDialog = true },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                actionBarLayout = ActionBarLayout.HorizontalBottom
-            )
         }
     }
     if (showDeleteConfirmDialog) {
