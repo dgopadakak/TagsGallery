@@ -29,7 +29,10 @@ enum class Routes(
         when (this) {
             TAGS -> TagsScreen()
             GALLERY -> GalleryScreen(LocalWindowSizeClass.current)
-            SEARCH -> SearchScreen(onFullscreenContentSelected)
+            SEARCH -> SearchScreen(
+                onFullscreenContentSelected = onFullscreenContentSelected,
+                windowSizeClass = LocalWindowSizeClass.current
+            )
         }
     }
 }
