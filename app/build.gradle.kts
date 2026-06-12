@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.dgopadakak.tagsgallery"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.dgopadakak.tagsgallery"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -70,6 +70,9 @@ dependencies {
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation)
+
+    // Temporary hilt-kotlin compatibility workaround
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0-Beta1")
 
     implementation(libs.datastore.preferences)
     implementation(libs.room.runtime)

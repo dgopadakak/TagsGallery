@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.dgopadakak.tagsgallery.gallery"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 24
@@ -61,9 +61,13 @@ dependencies {
     implementation(libs.coil.video)
     implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.media3.exoPlayer)
+
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation)
+
+    // Temporary hilt-kotlin compatibility workaround
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0-Beta1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
