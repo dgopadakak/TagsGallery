@@ -8,8 +8,10 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
+import com.dgopadakak.tagsgallery.core.local_storage.MediaSearchCriteria
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
+import com.dgopadakak.tagsgallery.core.local_storage.enums.TagMatchMode
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.util.hasPersistedReadPermission
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +37,7 @@ class GalleryViewModel @Inject constructor(
         val sortedFilteredTags: List<Tag> = emptyList(),
         val sortBy: SortVariant = SortVariant.DEFAULT_SORT_VARIANT,
         val filterBy: Tag.Color? = null,
+        val matchMode: TagMatchMode = TagMatchMode.DEFAULT_TAG_MATCH_MODE,
         val selectedTagIds: List<Long> = emptyList(),
         val foundedMediaUris: List<Uri> = emptyList(),
         val selectedMediaUris: Set<Uri> = emptySet(),
@@ -83,8 +86,13 @@ class GalleryViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            repository.getMediaUrisByAllTags(
-                tagIdsFlow = _uiState.map { it.selectedTagIds }.distinctUntilChanged(),
+            repository.getMediaUris(
+                criteriaFlow = combine(
+                    _uiState.map { it.selectedTagIds }.distinctUntilChanged(),
+                    _uiState.map { it.matchMode }.distinctUntilChanged()
+                ) { tagIds, matchMode ->
+                    MediaSearchCriteria(tagIds = tagIds, matchMode = matchMode)
+                },
                 contentResolver = contentResolver
             ).collect { mediaUris ->
                 _uiState.update { it.copy(foundedMediaUris = mediaUris) }
@@ -128,6 +136,10 @@ class GalleryViewModel @Inject constructor(
 
     fun setFilterBy(filterBy: Tag.Color?) {
         _uiState.update { it.copy(filterBy = filterBy) }
+    }
+
+    fun setMatchMode(matchMode: TagMatchMode) {
+        _uiState.update { it.copy(matchMode = matchMode) }
     }
 
     fun toggleMediaSelection(uri: Uri) {
