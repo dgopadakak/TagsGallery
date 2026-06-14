@@ -2,9 +2,9 @@ package com.dgopadakak.tagsgallery.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Sell
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dgopadakak.tagsgallery.R
@@ -18,9 +18,9 @@ enum class Routes(
     @param:StringRes val screenNameResId: Int,
     val icon: ImageVector
 ) {
-    TAGS("tags", R.string.tags_screen_name, Icons.Default.Menu),
-    GALLERY("gallery", R.string.gallery_screen_name, Icons.Default.AccountBox),
-    SEARCH("search", R.string.search_screen_name, Icons.Default.Search);
+    TAGS("tags", R.string.tags_screen_name, Icons.Default.Sell),
+    GALLERY("gallery", R.string.gallery_screen_name, Icons.Default.AddPhotoAlternate),
+    SEARCH("search", R.string.search_screen_name, Icons.Default.PhotoLibrary);
 
     @Composable
     fun ScreenForRoute(
