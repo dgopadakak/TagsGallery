@@ -18,8 +18,8 @@ TagsGallery - это Android-приложение для каталогизац�
 
 - [app](app/README.md) - Основной модуль приложения
 - [tags](tags/README.md) - Feature-модуль экрана для работы с тегами
-- [gallery](gallery/README.md) - Feature-модуль экрана для добавления медиа с присвоением тегов
-- [search](search/README.md) - Feature-модуль экрана поиска по тегам среди добавленных медиа
+- [add](add/README.md) - Feature-модуль экрана для добавления медиа с присвоением тегов
+- [gallery](gallery/README.md) - Feature-модуль экрана просмотра и поиска по тегам среди добавленных медиа
 - [core/local_storage](core/local_storage/README.md) - Core-модуль для взаимодействия с локальным хранилищем
 - [core/compose](core/compose/README.md) - Core-модуль общих UI компонентов
 

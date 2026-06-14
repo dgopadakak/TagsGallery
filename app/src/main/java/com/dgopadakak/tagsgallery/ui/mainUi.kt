@@ -59,8 +59,8 @@ internal fun MainScreen(
                         startDestination = Routes.TAGS.route
                     ) {
                         composable(route = Routes.TAGS.route) { Routes.TAGS.ScreenForRoute() }
-                        composable(route = Routes.GALLERY.route) { Routes.GALLERY.ScreenForRoute() }
-                        composable(route = Routes.SEARCH.route) { Routes.SEARCH.ScreenForRoute { viewModel.setFullscreenContent(it) } }
+                        composable(route = Routes.ADD.route) { Routes.ADD.ScreenForRoute() }
+                        composable(route = Routes.GALLERY.route) { Routes.GALLERY.ScreenForRoute { viewModel.setFullscreenContent(it) } }
                     }
                 }
             }

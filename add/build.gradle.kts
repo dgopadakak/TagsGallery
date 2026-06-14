@@ -1,22 +1,20 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.hilt.plugin)
     alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.dgopadakak.tagsgallery"
+    namespace = "com.dgopadakak.tagsgallery.add"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.dgopadakak.tagsgallery"
         minSdk = 24
-        targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -32,6 +30,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
+    }
     buildFeatures {
         compose = true
     }
@@ -39,11 +42,8 @@ android {
 
 dependencies {
 
-    implementation(project(":tags"))
-    implementation(project(":add"))
-    implementation(project(":gallery"))
-    implementation(project(":core:compose"))
     implementation(project(":core:local_storage"))
+    implementation(project(":core:compose"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -59,13 +59,8 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
-    implementation(libs.telephoto.image)
-
     implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.media3.exoPlayer)
-    implementation(libs.androidx.media3.common)
-
-    implementation(libs.androidx.compose.navigation)
 
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
@@ -73,9 +68,6 @@ dependencies {
 
     // Temporary hilt-kotlin compatibility workaround
     ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0-Beta1")
-
-    implementation(libs.datastore.preferences)
-    implementation(libs.room.runtime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
