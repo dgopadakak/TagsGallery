@@ -25,7 +25,7 @@ dependencyResolutionManagement {
 rootProject.name = "TagsGallery"
 include(":app")
 include(":tags")
+include(":add")
 include(":gallery")
-include(":search")
 include(":core:local_storage")
 include(":core:compose")

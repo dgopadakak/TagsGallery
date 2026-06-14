@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dgopadakak.tagsgallery.R
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.add.ui.AddScreen
 import com.dgopadakak.tagsgallery.gallery.ui.GalleryScreen
-import com.dgopadakak.tagsgallery.search.ui.SearchScreen
 import com.dgopadakak.tagsgallery.tags.ui.TagsScreen
 
 enum class Routes(
@@ -19,8 +19,8 @@ enum class Routes(
     val icon: ImageVector
 ) {
     TAGS("tags", R.string.tags_screen_name, Icons.Default.Sell),
-    GALLERY("gallery", R.string.gallery_screen_name, Icons.Default.AddPhotoAlternate),
-    SEARCH("search", R.string.search_screen_name, Icons.Default.PhotoLibrary);
+    ADD("add", R.string.add_screen_name, Icons.Default.AddPhotoAlternate),
+    GALLERY("gallery", R.string.gallery_screen_name, Icons.Default.PhotoLibrary);
 
     @Composable
     fun ScreenForRoute(
@@ -28,8 +28,8 @@ enum class Routes(
     ) {
         when (this) {
             TAGS -> TagsScreen()
-            GALLERY -> GalleryScreen(LocalWindowSizeClass.current)
-            SEARCH -> SearchScreen(
+            ADD -> AddScreen(LocalWindowSizeClass.current)
+            GALLERY -> GalleryScreen(
                 onFullscreenContentSelected = onFullscreenContentSelected,
                 windowSizeClass = LocalWindowSizeClass.current
             )
