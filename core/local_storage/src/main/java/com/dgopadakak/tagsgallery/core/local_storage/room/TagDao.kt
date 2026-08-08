@@ -35,6 +35,26 @@ interface TagDao {
     )
     fun getMediaIdsByAllTags(tagIds: List<Long>, requiredCount: Int): Flow<List<String>>
 
+    @Query(
+        """
+        SELECT DISTINCT mediaId
+        FROM MediaTagCrossRef
+        WHERE tagId IN (:tagIds)
+        """
+    )
+    fun getMediaIdsByAnyTag(tagIds: List<Long>): Flow<List<String>>
+
+    @Query(
+        """
+        SELECT DISTINCT mediaId
+        FROM MediaTagCrossRef
+        WHERE mediaId NOT IN (
+            SELECT mediaId FROM MediaTagCrossRef WHERE tagId IN (:tagIds)
+        )
+        """
+    )
+    fun getMediaIdsExcludingTags(tagIds: List<Long>): Flow<List<String>>
+
     @Query("SELECT DISTINCT mediaId FROM MediaTagCrossRef")
     fun getAllMediaIds(): Flow<List<String>>
 

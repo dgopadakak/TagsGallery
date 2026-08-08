@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
+import com.dgopadakak.tagsgallery.core.local_storage.enums.TagMatchMode
 import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.preferences.PreferencesRepository
@@ -19,6 +20,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+
+data class MediaSearchCriteria(
+    val tagIds: List<Long>,
+    val matchMode: TagMatchMode
+)
 
 class Repository(
     private val tagDao: TagDao,
@@ -110,15 +116,26 @@ class Repository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getMediaUrisByAllTags(
-        tagIdsFlow: Flow<List<Long>>,
+    fun getMediaUris(
+        criteriaFlow: Flow<MediaSearchCriteria>,
         contentResolver: ContentResolver
     ): Flow<List<Uri>> {
-        return tagIdsFlow.flatMapLatest { tagIds ->
+        return criteriaFlow.flatMapLatest { (tagIds, matchMode) ->
+            // При пустом выборе тегов показываем все медиа независимо от режима,
+            // чтобы избежать пустого результата.
             val mediaIdsFlow = if (tagIds.isEmpty()) {
                 tagDao.getAllMediaIds().distinctUntilChanged()
             } else {
-                tagDao.getMediaIdsByAllTags(tagIds, tagIds.size).distinctUntilChanged()
+                when (matchMode) {
+                    TagMatchMode.ALL ->
+                        tagDao.getMediaIdsByAllTags(tagIds, tagIds.size).distinctUntilChanged()
+
+                    TagMatchMode.ANY ->
+                        tagDao.getMediaIdsByAnyTag(tagIds).distinctUntilChanged()
+
+                    TagMatchMode.EXCLUDE ->
+                        tagDao.getMediaIdsExcludingTags(tagIds).distinctUntilChanged()
+                }
             }
 
             mediaIdsFlow.map { mediaIds ->

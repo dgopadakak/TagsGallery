@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
+import com.dgopadakak.tagsgallery.core.compose.ui.TagMatchModeRow
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
 import com.dgopadakak.tagsgallery.gallery.ui.elements.ActionBarLayout
@@ -78,6 +79,7 @@ fun GalleryScreen(
             onToggleTag = viewModel::onTagToggle,
             onSetSortBy = viewModel::setSortBy,
             onSetFilterBy = viewModel::setFilterBy,
+            onSetMatchMode = viewModel::setMatchMode,
             onToggleMediaSelection = viewModel::toggleMediaSelection,
             onClearSelection = viewModel::clearSelection,
             onDeleteRequested = { showDeleteConfirmDialog = true }
@@ -91,6 +93,7 @@ fun GalleryScreen(
             onToggleTag = viewModel::onTagToggle,
             onSetSortBy = viewModel::setSortBy,
             onSetFilterBy = viewModel::setFilterBy,
+            onSetMatchMode = viewModel::setMatchMode,
             onToggleMediaSelection = viewModel::toggleMediaSelection,
             onClearSelection = viewModel::clearSelection,
             onDeleteRequested = { showDeleteConfirmDialog = true }
@@ -126,6 +129,7 @@ private fun CompactGalleryContent(
     onToggleTag: (Long) -> Unit,
     onSetSortBy: (com.dgopadakak.tagsgallery.core.compose.enums.SortVariant) -> Unit,
     onSetFilterBy: (com.dgopadakak.tagsgallery.core.local_storage.models.Tag.Color?) -> Unit,
+    onSetMatchMode: (com.dgopadakak.tagsgallery.core.local_storage.enums.TagMatchMode) -> Unit,
     onToggleMediaSelection: (android.net.Uri) -> Unit,
     onClearSelection: () -> Unit,
     onDeleteRequested: () -> Unit
@@ -183,28 +187,42 @@ private fun CompactGalleryContent(
             ) {
                 Crossfade(targetState = isExpanded, label = "BottomSheetContent") { expanded ->
                     if (expanded) {
-                        FullTagsSelectionView(
-                            modifier = Modifier.padding(start = 8.dp),
-                            tags = uiState.sortedFilteredTags,
-                            selectedTagsIds = uiState.selectedTagIds,
-                            onTagClick = { tagId ->
-                                if (!isMediaSelectionMode) {
-                                    onToggleTag(tagId)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = 8.dp)
+                        ) {
+                            TagMatchModeRow(
+                                matchMode = uiState.matchMode,
+                                onMatchModeChanged = { matchMode ->
+                                    if (!isMediaSelectionMode) {
+                                        onSetMatchMode(matchMode)
+                                    }
                                 }
-                            },
-                            sortBy = uiState.sortBy,
-                            onSortVariantChanged = { sortBy ->
-                                if (!isMediaSelectionMode) {
-                                    onSetSortBy(sortBy)
+                            )
+                            FullTagsSelectionView(
+                                modifier = Modifier.weight(1f),
+                                tags = uiState.sortedFilteredTags,
+                                selectedTagsIds = uiState.selectedTagIds,
+                                onTagClick = { tagId ->
+                                    if (!isMediaSelectionMode) {
+                                        onToggleTag(tagId)
+                                    }
+                                },
+                                sortBy = uiState.sortBy,
+                                onSortVariantChanged = { sortBy ->
+                                    if (!isMediaSelectionMode) {
+                                        onSetSortBy(sortBy)
+                                    }
+                                },
+                                filterBy = uiState.filterBy,
+                                onFilterVariantChanged = { filterBy ->
+                                    if (!isMediaSelectionMode) {
+                                        onSetFilterBy(filterBy)
+                                    }
                                 }
-                            },
-                            filterBy = uiState.filterBy,
-                            onFilterVariantChanged = { filterBy ->
-                                if (!isMediaSelectionMode) {
-                                    onSetFilterBy(filterBy)
-                                }
-                            }
-                        )
+                            )
+                        }
                     } else {
                         SmallTagsRow(
                             tags = uiState.allTags.filter { uiState.selectedTagIds.contains(it.id) },
@@ -246,6 +264,7 @@ private fun WideGalleryContent(
     onToggleTag: (Long) -> Unit,
     onSetSortBy: (com.dgopadakak.tagsgallery.core.compose.enums.SortVariant) -> Unit,
     onSetFilterBy: (com.dgopadakak.tagsgallery.core.local_storage.models.Tag.Color?) -> Unit,
+    onSetMatchMode: (com.dgopadakak.tagsgallery.core.local_storage.enums.TagMatchMode) -> Unit,
     onToggleMediaSelection: (android.net.Uri) -> Unit,
     onClearSelection: () -> Unit,
     onDeleteRequested: () -> Unit
@@ -267,30 +286,42 @@ private fun WideGalleryContent(
                     .fillMaxHeight()
                     .width(tagsPanelWidth)
             ) {
-                FullTagsSelectionView(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(start = 8.dp, end = 8.dp),
-                    tags = uiState.sortedFilteredTags,
-                    selectedTagsIds = uiState.selectedTagIds,
-                    onTagClick = { tagId ->
-                        if (!isMediaSelectionMode) {
-                            onToggleTag(tagId)
+                        .padding(start = 8.dp, end = 8.dp)
+                ) {
+                    TagMatchModeRow(
+                        matchMode = uiState.matchMode,
+                        onMatchModeChanged = { matchMode ->
+                            if (!isMediaSelectionMode) {
+                                onSetMatchMode(matchMode)
+                            }
                         }
-                    },
-                    sortBy = uiState.sortBy,
-                    onSortVariantChanged = { sortBy ->
-                        if (!isMediaSelectionMode) {
-                            onSetSortBy(sortBy)
+                    )
+                    FullTagsSelectionView(
+                        modifier = Modifier.weight(1f),
+                        tags = uiState.sortedFilteredTags,
+                        selectedTagsIds = uiState.selectedTagIds,
+                        onTagClick = { tagId ->
+                            if (!isMediaSelectionMode) {
+                                onToggleTag(tagId)
+                            }
+                        },
+                        sortBy = uiState.sortBy,
+                        onSortVariantChanged = { sortBy ->
+                            if (!isMediaSelectionMode) {
+                                onSetSortBy(sortBy)
+                            }
+                        },
+                        filterBy = uiState.filterBy,
+                        onFilterVariantChanged = { filterBy ->
+                            if (!isMediaSelectionMode) {
+                                onSetFilterBy(filterBy)
+                            }
                         }
-                    },
-                    filterBy = uiState.filterBy,
-                    onFilterVariantChanged = { filterBy ->
-                        if (!isMediaSelectionMode) {
-                            onSetFilterBy(filterBy)
-                        }
-                    }
-                )
+                    )
+                }
 
                 if (isMediaSelectionMode) {
                     Box(
