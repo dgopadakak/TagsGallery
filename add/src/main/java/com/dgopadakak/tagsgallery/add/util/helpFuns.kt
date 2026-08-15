@@ -10,3 +10,10 @@ internal fun calculateFinalTagIds(
         .minus(individualRemovedTagIds.toSet())
         .toList()
 }
+
+internal fun hasAnyTagsToSave(
+    selectedCommonTagIds: List<Long>,
+    allIndividualAddedTagIds: Collection<List<Long>>
+): Boolean {
+    return selectedCommonTagIds.isNotEmpty() || allIndividualAddedTagIds.any { it.isNotEmpty() }
+}
