@@ -87,6 +87,22 @@ class AddViewModel @Inject constructor(
                 }
             }.collect {}
         }
+
+        // Синхронизация с удалением связей медиа с тегами на других экранах
+        // Фильтр только убирает и никогда не добавляет: в MediaTagCrossRef пишет один
+        // onClickSave, а сразу за записью идет resetScreen(). Поэтому пока медиа лежит на
+        // этом экране, стать уже сохраненным извне оно не может
+        viewModelScope.launch {
+            repository.getAllMediaIds().collect { mediaIds ->
+                val savedMediaIds = mediaIds.toSet()
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        alreadySavedMedia = currentState.alreadySavedMedia
+                            .filterTo(HashSet()) { it.toString() in savedMediaIds }
+                    )
+                }
+            }
+        }
     }
 
     fun addSelectedMedia(uris: List<Uri>) = viewModelScope.launch {

@@ -36,6 +36,11 @@ class Repository(
         .getAllTags()
         .flowOn(dispatcher)
 
+    fun getAllMediaIds(): Flow<List<String>> = tagDao
+        .getAllMediaIds()
+        .distinctUntilChanged()
+        .flowOn(dispatcher)
+
     suspend fun getTagById(tagId: Long): Tag? = withContext(dispatcher) {
         tagDao.getTagById(tagId)
     }
