@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -46,8 +47,45 @@ fun EditModeWarningIcon(
 fun RemoveAllTagsIcon(
     modifier: Modifier = Modifier,
     tagIconSize: Dp = 20.dp,
-    closeIconSize: Dp = 12.dp,
+    badgeIconSize: Dp = 12.dp,
     tint: Color = Color.White
+) {
+    TagsIconWithBadge(
+        badge = Icons.Default.Close,
+        modifier = modifier,
+        tagIconSize = tagIconSize,
+        badgeIconSize = badgeIconSize,
+        tint = tint
+    )
+}
+
+@Composable
+fun EditTagsIcon(
+    modifier: Modifier = Modifier,
+    tagIconSize: Dp = 20.dp,
+    badgeIconSize: Dp = 12.dp,
+    tint: Color = Color.White
+) {
+    TagsIconWithBadge(
+        badge = Icons.Default.Edit,
+        modifier = modifier,
+        tagIconSize = tagIconSize,
+        badgeIconSize = badgeIconSize,
+        tint = tint
+    )
+}
+
+/**
+ * Общая основа иконок действий над списком тегов медиа: сами теги плюс бейдж с действием.
+ * Геометрия одна на всех, чтобы кнопки в одном ряду не разъезжались
+ */
+@Composable
+private fun TagsIconWithBadge(
+    badge: ImageVector,
+    modifier: Modifier,
+    tagIconSize: Dp,
+    badgeIconSize: Dp,
+    tint: Color
 ) {
     Box(
         modifier = modifier.size(24.dp),
@@ -62,12 +100,12 @@ fun RemoveAllTagsIcon(
                 .size(tagIconSize)
         )
         Icon(
-            imageVector = Icons.Default.Close,
+            imageVector = badge,
             contentDescription = null,
             tint = tint,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .size(closeIconSize)
+                .size(badgeIconSize)
                 .background(
                     color = Color.Black.copy(alpha = 0.4f),
                     shape = CircleShape

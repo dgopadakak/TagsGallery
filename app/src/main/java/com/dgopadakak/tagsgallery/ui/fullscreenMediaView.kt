@@ -56,6 +56,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.core.compose.ui.EditTagsIcon
 import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.ui.util.NavBarPaddingEditor
 import com.dgopadakak.tagsgallery.ui.util.StatusBarPaddingEditor
@@ -75,6 +76,7 @@ fun FullScreenMediaView(
     isMuted: Boolean,
     onAnimated: () -> Unit,
     onSetMuted: (Boolean) -> Unit,
+    onEditTags: (Uri) -> Unit,
     onDeleteMedia: (Uri) -> Unit,
     onClose: () -> Unit
 ) {
@@ -82,6 +84,11 @@ fun FullScreenMediaView(
     val pagerState = rememberPagerState(initialPage = contentModel.startIndex) {
         contentModel.uris.size
     }
+
+    /**
+     * Медиа текущей страницы для действий верхней панели.
+     */
+    fun currentUri(): Uri? = contentModel.uris.getOrNull(pagerState.currentPage)
 
     val screenHeight = LocalWindowInfo.current.containerSize.height.toFloat()
     val closingAnimDuration = 150
@@ -276,16 +283,18 @@ fun FullScreenMediaView(
             navBarPadding = navBarPadding.value,
             onBack = onClose,
             onShare = {
-                val uri = contentModel.uris[pagerState.currentPage]
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = context.contentResolver.getType(uri)
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
+                currentUri()?.let { uri ->
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = context.contentResolver.getType(uri)
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
 
-                val chooser = Intent.createChooser(shareIntent, "Поделиться через")
-                context.startActivity(chooser)
+                    val chooser = Intent.createChooser(shareIntent, "Поделиться через")
+                    context.startActivity(chooser)
+                }
             },
+            onEditTags = { currentUri()?.let(onEditTags) },
             onClearTags = { showDeleteMediaDialog = true }
         )
 
@@ -293,7 +302,7 @@ fun FullScreenMediaView(
             DeleteMediaConfirmDialog(
                 onConfirm = {
                     showDeleteMediaDialog = false
-                    onDeleteMedia(contentModel.uris[pagerState.currentPage])
+                    currentUri()?.let(onDeleteMedia)
                 },
                 onDismiss = { showDeleteMediaDialog = false }
             )
@@ -309,6 +318,7 @@ private fun TopQuickActions(
     navBarPadding: PaddingValues,
     onBack: () -> Unit,
     onShare: () -> Unit,
+    onEditTags: () -> Unit,
     onClearTags: () -> Unit
 ) {
     val alpha1 = animateFloatAsState(
@@ -348,6 +358,10 @@ private fun TopQuickActions(
             )
         }
 
+        IconButton(onClick = onEditTags) {
+            EditTagsIcon()
+        }
+
         IconButton(onClick = onClearTags) {
             RemoveAllTagsIcon()
         }
@@ -355,7 +369,7 @@ private fun TopQuickActions(
 }
 
 @Composable
-private fun DeleteMediaConfirmDialog(
+internal fun DeleteMediaConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
