@@ -19,8 +19,10 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.navigation.LocalWindowSizeClass
 import com.dgopadakak.tagsgallery.navigation.Routes
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun MainScreen(
@@ -95,25 +97,52 @@ internal fun MainScreen(
                     }
                 )
 
-                uiState.tagsEditor?.let { editor ->
-                    if (editor.confirmingRemoval) {
-                        // Снятый до последнего список тегов равносилен удалению медиа из
-                        // приложения, поэтому спрашиваем тем же диалогом, что и кнопка удаления
-                        DeleteMediaConfirmDialog(
-                            onConfirm = { removeMediaFromApp(editor.mediaUri) },
-                            onDismiss = viewModel::dismissTagsEditorRemoval
-                        )
-                    } else {
-                        EditTagsDialog(
-                            tags = uiState.allTags,
-                            selectedTagIds = editor.selectedTagIds,
-                            onTagClick = viewModel::toggleTagsEditorTag,
-                            onSave = viewModel::saveTagsEditor,
-                            onDismiss = viewModel::dismissTagsEditor
-                        )
-                    }
+                uiState.tagsEditorState?.let { editor ->
+                    TagsEditorDialogs(
+                        editor = editor,
+                        allTagsFlow = viewModel.allTags,
+                        onTagClick = viewModel::toggleTagsEditorTag,
+                        onSave = viewModel::saveTagsEditor,
+                        onDismiss = viewModel::dismissTagsEditor,
+                        onConfirmRemoval = { removeMediaFromApp(editor.mediaUri) },
+                        onDismissRemoval = viewModel::dismissTagsEditorRemoval
+                    )
                 }
             }
         }
+    }
+}
+
+/**
+ * Диалоги редактора тегов. Список тегов собирается здесь, а не в [MainScreen]: так его
+ * обновления рекомпозируют только сам диалог
+ */
+@Composable
+private fun TagsEditorDialogs(
+    editor: MainViewModel.TagsEditorState,
+    allTagsFlow: StateFlow<List<Tag>>,
+    onTagClick: (Long) -> Unit,
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
+    onConfirmRemoval: () -> Unit,
+    onDismissRemoval: () -> Unit
+) {
+    if (editor.confirmingRemoval) {
+        // Снятый до последнего список тегов равносилен удалению медиа из приложения,
+        // поэтому спрашиваем тем же диалогом, что и кнопка удаления
+        DeleteMediaConfirmDialog(
+            onConfirm = onConfirmRemoval,
+            onDismiss = onDismissRemoval
+        )
+    } else {
+        val allTags by allTagsFlow.collectAsState()
+
+        EditTagsDialog(
+            tags = allTags,
+            selectedTagIds = editor.selectedTagIds,
+            onTagClick = onTagClick,
+            onSave = onSave,
+            onDismiss = onDismiss
+        )
     }
 }

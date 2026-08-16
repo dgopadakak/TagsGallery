@@ -85,6 +85,11 @@ fun FullScreenMediaView(
         contentModel.uris.size
     }
 
+    /**
+     * Медиа текущей страницы для действий верхней панели.
+     */
+    fun currentUri(): Uri? = contentModel.uris.getOrNull(pagerState.currentPage)
+
     val screenHeight = LocalWindowInfo.current.containerSize.height.toFloat()
     val closingAnimDuration = 150
 
@@ -278,17 +283,18 @@ fun FullScreenMediaView(
             navBarPadding = navBarPadding.value,
             onBack = onClose,
             onShare = {
-                val uri = contentModel.uris[pagerState.currentPage]
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = context.contentResolver.getType(uri)
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
+                currentUri()?.let { uri ->
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = context.contentResolver.getType(uri)
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
 
-                val chooser = Intent.createChooser(shareIntent, "Поделиться через")
-                context.startActivity(chooser)
+                    val chooser = Intent.createChooser(shareIntent, "Поделиться через")
+                    context.startActivity(chooser)
+                }
             },
-            onEditTags = { onEditTags(contentModel.uris[pagerState.currentPage]) },
+            onEditTags = { currentUri()?.let(onEditTags) },
             onClearTags = { showDeleteMediaDialog = true }
         )
 
@@ -296,7 +302,7 @@ fun FullScreenMediaView(
             DeleteMediaConfirmDialog(
                 onConfirm = {
                     showDeleteMediaDialog = false
-                    onDeleteMedia(contentModel.uris[pagerState.currentPage])
+                    currentUri()?.let(onDeleteMedia)
                 },
                 onDismiss = { showDeleteMediaDialog = false }
             )
