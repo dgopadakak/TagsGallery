@@ -37,6 +37,7 @@ import com.dgopadakak.tagsgallery.add.AddViewModel
 import com.dgopadakak.tagsgallery.add.ui.preview.MediaPreviewGrid
 import com.dgopadakak.tagsgallery.add.ui.preview.MediaPreviewRow
 import com.dgopadakak.tagsgallery.add.ui.tags.TagsSegment
+import com.dgopadakak.tagsgallery.add.util.hasAnyTagsToSave
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
@@ -177,7 +178,10 @@ private fun ButtonRow(
 
             FilledTonalButton(
                 onClick = onClickSave,
-                enabled = uiState.selectedTagIds.isNotEmpty()
+                enabled = hasAnyTagsToSave(
+                    selectedCommonTagIds = uiState.selectedTagIds,
+                    allIndividualAddedTagIds = uiState.perMediaAddedTagIds.values
+                )
             ) {
                 Text("Save")
             }

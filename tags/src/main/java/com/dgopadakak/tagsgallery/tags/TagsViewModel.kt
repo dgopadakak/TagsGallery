@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.tags
 
+import android.content.ContentResolver
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -120,9 +121,12 @@ class TagsViewModel @Inject constructor(
         _uiState.update { it.copy(selectedTagIds = emptyList()) }
     }
 
-    fun deleteSelectedTags() {
+    fun deleteSelectedTags(contentResolver: ContentResolver) {
         viewModelScope.launch {
-            repository.deleteTagsAndRelations(_uiState.value.selectedTagIds)
+            repository.deleteTagsAndRelations(
+                tagIds = _uiState.value.selectedTagIds,
+                contentResolver = contentResolver
+            )
         }
     }
 

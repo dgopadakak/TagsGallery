@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -39,6 +40,10 @@ internal fun MainScreen(
         // иерархии Composable, так что без него происходят артефакты вроде залипания FullScreenMediaView
         Box {
             Scaffold(
+                // Явно surface, а не дефолтный для Scaffold background: Gallery построен на
+                // BottomSheetScaffold, у которого дефолт - surface, и в динамической палитре
+                // эти две роли уже не совпадают. Без этого фон Tags и Add отличался бы от Gallery
+                containerColor = MaterialTheme.colorScheme.surface,
                 bottomBar = {
                     if (!useRail) {
                         NavigationBar(navController)

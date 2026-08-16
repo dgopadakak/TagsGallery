@@ -88,13 +88,38 @@ interface TagDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTagCrossRefs(crossRefs: List<MediaTagCrossRef>)
 
+    /**
+     * Удаляет теги вместе со связями и возвращает id медиа, оставшихся без единого тега.
+     *
+     * Транзакция нужна, несмотря на то что выборка здесь одна: между ней и удалением не должно
+     * вклиниться сохранение с экрана Add. Иначе медиа, только что получившее новый тег, попало
+     * бы в список осиротевших и лишилось разрешения на доступ, имея при этом тег
+     */
     @Transaction
-    suspend fun deleteTagsAndRelations(tagIds: List<Long>) {
+    suspend fun deleteTagsAndRelations(tagIds: List<Long>): List<String> {
+        val orphanedMediaIds = getMediaIdsWithNoOtherTags(tagIds)
         tagIds.forEach { tagId ->
             deleteMediaTagCrossRefsByTagId(tagId)
             deleteTagById(tagId)
         }
+        return orphanedMediaIds
     }
+
+    /**
+     * Медиа, у которых есть хотя бы один из переданных тегов и нет ни одного другого - то есть
+     * те, что останутся без единого тега после удаления [tagIds].
+     */
+    @Query(
+        """
+        SELECT DISTINCT mediaId
+        FROM MediaTagCrossRef
+        WHERE tagId IN (:tagIds)
+        AND mediaId NOT IN (
+            SELECT mediaId FROM MediaTagCrossRef WHERE tagId NOT IN (:tagIds)
+        )
+        """
+    )
+    suspend fun getMediaIdsWithNoOtherTags(tagIds: List<Long>): List<String>
 
     @Query("DELETE FROM MediaTagCrossRef WHERE tagId = :tagId")
     suspend fun deleteMediaTagCrossRefsByTagId(tagId: Long)

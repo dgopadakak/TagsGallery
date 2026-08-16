@@ -36,6 +36,11 @@ class Repository(
         .getAllTags()
         .flowOn(dispatcher)
 
+    fun getAllMediaIds(): Flow<List<String>> = tagDao
+        .getAllMediaIds()
+        .distinctUntilChanged()
+        .flowOn(dispatcher)
+
     suspend fun getTagById(tagId: Long): Tag? = withContext(dispatcher) {
         tagDao.getTagById(tagId)
     }
@@ -48,8 +53,40 @@ class Repository(
         tagDao.updateTag(tag)
     }
 
-    suspend fun deleteTagsAndRelations(tagIds: List<Long>) = withContext(dispatcher) {
-        tagDao.deleteTagsAndRelations(tagIds)
+    /**
+     * Функция, удаляющая теги вместе со связями с медиа.
+     *
+     * В отличие от [deleteMediaTagCrossRefsByMediaId] и [deleteMediaTagCrossRefsByMediaIds],
+     * разрешение на перманентный доступ освобождается здесь же: удаление тега может оставить
+     * медиа без единой связи, и такое медиа больше не попадет ни в одну выборку из
+     * MediaTagCrossRef - а значит и самоочистка в [getMediaUris] его не найдет. Вызывающему
+     * делать с разрешениями ничего не нужно.
+     *
+     * Освобождение вынесено за транзакцию сознательно: держать binder-вызовы под блокировкой
+     * записи в БД нельзя. Ценой этого остается узкое окно между коммитом и освобождением, в
+     * которое теоретически может попасть сохранение с экрана Add
+     */
+    suspend fun deleteTagsAndRelations(
+        tagIds: List<Long>,
+        contentResolver: ContentResolver
+    ) = withContext(dispatcher) {
+        val orphanedMediaIds = tagDao.deleteTagsAndRelations(tagIds)
+
+        // Один запрос к системе вместо вызова на каждое медиа: persistedUriPermissions - это
+        // binder-вызов, возвращающий весь список грантов, а осиротеть может пара тысяч медиа
+        val persistedReadUris = contentResolver.persistedUriPermissions
+            .filter { it.isReadPermission }
+            .mapTo(HashSet()) { it.uri }
+
+        orphanedMediaIds.forEach { mediaId ->
+            val mediaUri = mediaId.toUri()
+            if (mediaUri in persistedReadUris) {
+                contentResolver.releasePersistableUriPermission(
+                    mediaUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+        }
     }
 
     suspend fun getTagIdsForMedia(mediaId: String): List<Long> = withContext(dispatcher) {
