@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
@@ -38,7 +40,6 @@ import com.dgopadakak.tagsgallery.tags.ui.header.HeaderRow
 import kotlinx.coroutines.android.awaitFrame
 import java.text.DateFormat
 import java.util.Date
-import java.util.Locale
 
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
@@ -50,6 +51,8 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val context = LocalContext.current
 
     if (showEditDialog) {
         TagDialog(
@@ -70,7 +73,10 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
     if (showDeleteDialog) {
         DeleteDialog(
             numOfTags = uiState.selectedTagIds.size,
-            onAccept = { viewModel.deleteSelectedTags(); showDeleteDialog = false },
+            onAccept = {
+                viewModel.deleteSelectedTags(context.contentResolver)
+                showDeleteDialog = false
+            },
             onDismiss = { showDeleteDialog = false }
         )
     }
@@ -162,10 +168,13 @@ private fun TagDialog(
                 ) { color = it }
                 if (tag != null) {
                     val date = Date(tag.lastModified)
+                    // Локаль берется из LocalConfiguration, а не из Locale.getDefault(): последний
+                    // не наблюдаем для Compose, и смена языка системы не перерисует дату
+                    val locale = LocalConfiguration.current.locales[0]
                     val formatter = DateFormat.getDateTimeInstance(
                         DateFormat.DEFAULT, // Уровень детализации (можно SHORT, MEDIUM, LONG, FULL)
                         DateFormat.DEFAULT,
-                        Locale.getDefault()
+                        locale
                     )
                     Text(
                         modifier = Modifier
