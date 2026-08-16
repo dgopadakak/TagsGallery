@@ -1,5 +1,6 @@
 package com.dgopadakak.tagsgallery.ui
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,6 +72,13 @@ internal fun MainScreen(
             }
 
             uiState.fullscreenContent?.let { content ->
+                val removeMediaFromApp: (Uri) -> Unit = { uri ->
+                    windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
+                    viewModel.deleteMedia(uri)
+                    viewModel.setFullscreenContent(null)
+                    // TODO: вместо закрытия продумать и протестить поведение при удалении не последнего медиа, последнего медиа (и так же под фильтром)
+                }
+
                 FullScreenMediaView(
                     contentModel = content,
                     windowInsetsControllerCompat = windowInsetsControllerCompat,
@@ -79,17 +87,32 @@ internal fun MainScreen(
                     isMuted = uiState.isMuted,
                     onAnimated = { viewModel.setAnimated(true) },
                     onSetMuted = { viewModel.setMuted(it) },
-                    onDeleteMedia = { uri ->
-                        windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
-                        viewModel.deleteMedia(uri)
-                        viewModel.setFullscreenContent(null)
-                        // TODO: вместо закрытия продумать и протестить поведение при удалении не последнего медиа, последнего медиа (и так же под фильтром)
-                    },
+                    onEditTags = { viewModel.openTagsEditor(it) },
+                    onDeleteMedia = removeMediaFromApp,
                     onClose = {
                         windowInsetsControllerCompat.show(WindowInsetsCompat.Type.systemBars())
                         viewModel.setFullscreenContent(null)
                     }
                 )
+
+                uiState.tagsEditor?.let { editor ->
+                    if (editor.confirmingRemoval) {
+                        // Снятый до последнего список тегов равносилен удалению медиа из
+                        // приложения, поэтому спрашиваем тем же диалогом, что и кнопка удаления
+                        DeleteMediaConfirmDialog(
+                            onConfirm = { removeMediaFromApp(editor.mediaUri) },
+                            onDismiss = viewModel::dismissTagsEditorRemoval
+                        )
+                    } else {
+                        EditTagsDialog(
+                            tags = uiState.allTags,
+                            selectedTagIds = editor.selectedTagIds,
+                            onTagClick = viewModel::toggleTagsEditorTag,
+                            onSave = viewModel::saveTagsEditor,
+                            onDismiss = viewModel::dismissTagsEditor
+                        )
+                    }
+                }
             }
         }
     }

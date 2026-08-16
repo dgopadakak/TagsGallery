@@ -56,6 +56,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
+import com.dgopadakak.tagsgallery.core.compose.ui.EditTagsIcon
 import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.ui.util.NavBarPaddingEditor
 import com.dgopadakak.tagsgallery.ui.util.StatusBarPaddingEditor
@@ -75,6 +76,7 @@ fun FullScreenMediaView(
     isMuted: Boolean,
     onAnimated: () -> Unit,
     onSetMuted: (Boolean) -> Unit,
+    onEditTags: (Uri) -> Unit,
     onDeleteMedia: (Uri) -> Unit,
     onClose: () -> Unit
 ) {
@@ -286,6 +288,7 @@ fun FullScreenMediaView(
                 val chooser = Intent.createChooser(shareIntent, "Поделиться через")
                 context.startActivity(chooser)
             },
+            onEditTags = { onEditTags(contentModel.uris[pagerState.currentPage]) },
             onClearTags = { showDeleteMediaDialog = true }
         )
 
@@ -309,6 +312,7 @@ private fun TopQuickActions(
     navBarPadding: PaddingValues,
     onBack: () -> Unit,
     onShare: () -> Unit,
+    onEditTags: () -> Unit,
     onClearTags: () -> Unit
 ) {
     val alpha1 = animateFloatAsState(
@@ -348,6 +352,10 @@ private fun TopQuickActions(
             )
         }
 
+        IconButton(onClick = onEditTags) {
+            EditTagsIcon()
+        }
+
         IconButton(onClick = onClearTags) {
             RemoveAllTagsIcon()
         }
@@ -355,7 +363,7 @@ private fun TopQuickActions(
 }
 
 @Composable
-private fun DeleteMediaConfirmDialog(
+internal fun DeleteMediaConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {

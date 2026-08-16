@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.local_storage.Repository
+import com.dgopadakak.tagsgallery.core.local_storage.models.MediaTagCrossRef
+import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 import com.dgopadakak.tagsgallery.core.local_storage.util.hasPersistedReadPermission
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,7 +30,16 @@ class MainViewModel @Inject constructor(
     data class UiState(
         val fullscreenContent: FullscreenContentModel? = null,
         val fullscreenAnimated: Boolean = false,
-        val isMuted: Boolean = true
+        val isMuted: Boolean = true,
+        val allTags: List<Tag> = emptyList(),
+        val tagsEditor: TagsEditorState? = null
+    )
+
+    @Stable
+    data class TagsEditorState(
+        val mediaUri: Uri,
+        val selectedTagIds: Set<Long>,
+        val confirmingRemoval: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -40,11 +51,33 @@ class MainViewModel @Inject constructor(
     )
     val volumeKeyEvents: SharedFlow<Unit> = _volumeKeyEvents
 
+    init {
+        viewModelScope.launch {
+            repository.getAllTags().collect { tagList ->
+                val existingIds = tagList.mapTo(HashSet()) { it.id }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        allTags = tagList.sortedBy { it.name },
+                        // Очистка от несуществующих id в случае их удаления на экране Tags:
+                        // внешних ключей у MediaTagCrossRef нет, так что мертвый id ушел бы в БД
+                        tagsEditor = currentState.tagsEditor?.let { editor ->
+                            editor.copy(
+                                selectedTagIds = editor.selectedTagIds
+                                    .filterTo(HashSet()) { it in existingIds }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+
     fun setFullscreenContent(fullscreenContent: FullscreenContentModel?) {
         _uiState.update { it.copy(
             fullscreenContent = fullscreenContent,
             fullscreenAnimated = false,
-            isMuted = true
+            isMuted = true,
+            tagsEditor = null
         ) }
     }
 
@@ -65,6 +98,61 @@ class MainViewModel @Inject constructor(
     fun onVolumeKeyPressed() {
         viewModelScope.launch {
             _volumeKeyEvents.emit(Unit)
+        }
+    }
+
+    fun openTagsEditor(mediaUri: Uri) {
+        viewModelScope.launch {
+            val linkedTagIds = repository.getTagIdsForMedia(mediaUri.toString()).toSet()
+            _uiState.update { currentState ->
+                currentState.copy(
+                    tagsEditor = TagsEditorState(
+                        mediaUri = mediaUri,
+                        selectedTagIds = linkedTagIds
+                    )
+                )
+            }
+        }
+    }
+
+    fun toggleTagsEditorTag(tagId: Long) {
+        _uiState.update { currentState ->
+            val editor = currentState.tagsEditor ?: return@update currentState
+            val updatedSelection = if (tagId in editor.selectedTagIds) {
+                editor.selectedTagIds - tagId
+            } else {
+                editor.selectedTagIds + tagId
+            }
+            currentState.copy(tagsEditor = editor.copy(selectedTagIds = updatedSelection))
+        }
+    }
+
+    fun saveTagsEditor() {
+        val editor = _uiState.value.tagsEditor ?: return
+        // Медиа без единой связи в приложении не существует, поэтому пустой выбор - это не
+        // сохранение, а удаление медиа из приложения, и спрашиваем мы о нем отдельно
+        if (editor.selectedTagIds.isEmpty()) {
+            _uiState.update { it.copy(tagsEditor = editor.copy(confirmingRemoval = true)) }
+            return
+        }
+        viewModelScope.launch {
+            val mediaId = editor.mediaUri.toString()
+            repository.deleteAndInsertMediaTagCrossRefs(
+                mediaIdsToDeleteCrossRefs = setOf(mediaId),
+                crossRefsToAdd = editor.selectedTagIds.map { MediaTagCrossRef(mediaId, it) }
+            )
+            _uiState.update { it.copy(tagsEditor = null) }
+        }
+    }
+
+    fun dismissTagsEditor() {
+        _uiState.update { it.copy(tagsEditor = null) }
+    }
+
+    fun dismissTagsEditorRemoval() {
+        _uiState.update { currentState ->
+            val editor = currentState.tagsEditor ?: return@update currentState
+            currentState.copy(tagsEditor = editor.copy(confirmingRemoval = false))
         }
     }
 
