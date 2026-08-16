@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -94,6 +95,9 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             }
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        // Тот же surface, что и у внешнего Scaffold в MainScreen - иначе этот перекрасил бы
+        // область поверх него дефолтным background
+        containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
