@@ -34,6 +34,11 @@ android {
             jvmTarget = JvmTarget.JVM_11
         }
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 ksp {
@@ -50,6 +55,7 @@ dependencies {
     implementation(libs.room.coroutinesExtensions)
 
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
