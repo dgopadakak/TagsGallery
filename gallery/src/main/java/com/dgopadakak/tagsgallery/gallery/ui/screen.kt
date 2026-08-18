@@ -20,6 +20,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -77,6 +78,7 @@ fun GalleryScreen(
             uiState = uiState,
             isMediaSelectionMode = isMediaSelectionMode,
             selectionLockedHint = selectionLockedHint,
+            snackbarHostState = snackbarHostState,
             sheetPeekHeight = sheetPeekHeight,
             halfScreenHeight = halfScreenHeight,
             onFullscreenContentSelected = onFullscreenContentSelected,
@@ -93,6 +95,7 @@ fun GalleryScreen(
             uiState = uiState,
             isMediaSelectionMode = isMediaSelectionMode,
             selectionLockedHint = selectionLockedHint,
+            snackbarHostState = snackbarHostState,
             onFullscreenContentSelected = onFullscreenContentSelected,
             onToggleTag = viewModel::onTagToggle,
             onSetSortBy = viewModel::setSortBy,
@@ -128,6 +131,7 @@ private fun CompactGalleryContent(
     uiState: GalleryViewModel.UiState,
     isMediaSelectionMode: Boolean,
     selectionLockedHint: String,
+    snackbarHostState: SnackbarHostState,
     sheetPeekHeight: androidx.compose.ui.unit.Dp,
     halfScreenHeight: androidx.compose.ui.unit.Dp,
     onFullscreenContentSelected: (FullscreenContentModel) -> Unit,
@@ -139,7 +143,7 @@ private fun CompactGalleryContent(
     onClearSelection: () -> Unit,
     onDeleteRequested: () -> Unit
 ) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState(snackbarHostState = snackbarHostState)
 
     LaunchedEffect(isMediaSelectionMode) {
         if (isMediaSelectionMode) {
@@ -267,6 +271,7 @@ private fun WideGalleryContent(
     uiState: GalleryViewModel.UiState,
     isMediaSelectionMode: Boolean,
     selectionLockedHint: String,
+    snackbarHostState: SnackbarHostState,
     onFullscreenContentSelected: (FullscreenContentModel) -> Unit,
     onToggleTag: (Long) -> Unit,
     onSetSortBy: (com.dgopadakak.tagsgallery.core.compose.enums.SortVariant) -> Unit,
@@ -364,5 +369,11 @@ private fun WideGalleryContent(
                 actionBarLayout = ActionBarLayout.HorizontalBottom
             )
         }
+
+        // В широкой раскладке нет Scaffold, поэтому хост снекбара ставим сами
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
