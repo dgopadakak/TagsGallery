@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.dgopadakak.tagsgallery.core.compose.R
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 
 @Composable
@@ -25,7 +27,7 @@ fun SortVariantsRow(
     ) {
         item {
             Text(
-                text = "Sort tags by:"
+                text = stringResource(R.string.sort_variants_label)
             )
         }
 
@@ -35,7 +37,7 @@ fun SortVariantsRow(
                     .padding(start = 20.dp),
                 selected = sortBy == sortVariant,
                 onClick = { onSortVariantChanged(sortVariant) },
-                label = { Text("$sortVariant") }
+                label = { Text(stringResource(sortVariant.labelRes)) }
             )
         }
     }

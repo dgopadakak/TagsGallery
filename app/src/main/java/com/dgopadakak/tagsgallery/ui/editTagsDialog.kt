@@ -7,9 +7,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.dgopadakak.tagsgallery.R
 import com.dgopadakak.tagsgallery.core.compose.ui.SimpleTagsSelectionView
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 /**
  * Правка списка тегов медиа, открытого в просмотрщике. Выбор копится локально в состоянии
@@ -25,7 +28,7 @@ internal fun EditTagsDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit tags") },
+        title = { Text(stringResource(R.string.edit_tags_dialog_title)) },
         text = {
             SimpleTagsSelectionView(
                 // Высота ограничена, чтобы длинный список тегов скроллился внутри диалога,
@@ -38,12 +41,12 @@ internal fun EditTagsDialog(
         },
         confirmButton = {
             TextButton(onClick = onSave) {
-                Text("Save")
+                Text(stringResource(CoreR.string.action_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CoreR.string.action_cancel))
             }
         }
     )

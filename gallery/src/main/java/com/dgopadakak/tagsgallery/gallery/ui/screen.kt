@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -45,6 +46,7 @@ import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.compose.ui.TagMatchModeRow
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
+import com.dgopadakak.tagsgallery.gallery.R
 import com.dgopadakak.tagsgallery.gallery.ui.elements.ActionBarLayout
 import com.dgopadakak.tagsgallery.gallery.ui.elements.DeleteMediaConfirmDialog
 import com.dgopadakak.tagsgallery.gallery.ui.elements.GalleryMediaGridContent
@@ -61,7 +63,7 @@ fun GalleryScreen(
     val isMediaSelectionMode = uiState.selectedMediaUris.isNotEmpty()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    val selectionLockedHint = "Finish media selection to change filters"
+    val selectionLockedHint = stringResource(R.string.selection_locked_hint)
     val sheetPeekHeight = 100.dp
     val halfScreenHeight = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.height.toDp() / 2
@@ -109,9 +111,10 @@ fun GalleryScreen(
         )
     }
 
+    val mainHint = stringResource(Hints.GALLERY_MAIN_HINT.textRes)
     LaunchedEffect(key1 = uiState.needToShowHint) {
         if (uiState.needToShowHint) {
-            snackbarHostState.showSnackbar(Hints.GALLERY_MAIN_HINT.text)
+            snackbarHostState.showSnackbar(mainHint)
             viewModel.setHintShown()
         }
     }
@@ -167,7 +170,7 @@ private fun CompactGalleryContent(
                     val hintText = if (isMediaSelectionMode) {
                         selectionLockedHint
                     } else {
-                        "Tap to remove tag, swipe up to add"
+                        stringResource(R.string.tags_row_hint)
                     }
                     Text(
                         modifier = Modifier.padding(start = 8.dp),
@@ -230,7 +233,7 @@ private fun CompactGalleryContent(
                             emptyStateText = if (isMediaSelectionMode) {
                                 selectionLockedHint
                             } else {
-                                "Swipe up here to choose tags for search"
+                                stringResource(R.string.expand_sheet_hint)
                             }
                         ) {
                             if (!isMediaSelectionMode) {

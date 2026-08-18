@@ -1,0 +1,18 @@
+<resources>
+    <string name="github_label" translatable="false">GitHub</string>
+    <string name="github_description">View on GitHub</string>
+    <string name="reset_selection_description">Reset selected tags</string>
+    <string name="accept_deletion_description">Accept deletion</string>
+
+    <string name="add_tag_description">Add Tag</string>
+    <string name="add_tag_dialog_title">Add Tag</string>
+    <string name="edit_tag_dialog_title">Edit Tag</string>
+    <string name="tag_name_label">Tag Name</string>
+    <string name="tag_last_update">Last update: %1$s</string>
+
+    <string name="delete_tags_dialog_title">Delete Tags?</string>
+    <plurals name="delete_tags_dialog_message">
+        <item quantity="one">Selected tag (%1$d) will be deleted</item>
+        <item quantity="other">Selected tags (%1$d) will be deleted</item>
+    </plurals>
+</resources>

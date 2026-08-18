@@ -1,0 +1,8 @@
+<resources>
+    <string name="no_media_found">Нет медиа с выбранными тегами</string>
+    <string name="clear_selection_description">Снять выделение</string>
+
+    <string name="selection_locked_hint">Завершите выбор медиа, чтобы менять фильтры</string>
+    <string name="tags_row_hint">Нажмите, чтобы убрать тег, свайп вверх — добавить</string>
+    <string name="expand_sheet_hint">Свайпните вверх, чтобы выбрать теги для поиска</string>
+</resources>

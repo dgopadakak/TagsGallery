@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -52,6 +53,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
+import com.dgopadakak.tagsgallery.R
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
@@ -246,13 +248,13 @@ fun VideoPlayerWithControls(
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.VolumeOff,
                             tint = Color.White,
-                            contentDescription = "Mute"
+                            contentDescription = stringResource(R.string.video_mute_description)
                         )
                     } else {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.VolumeUp,
                             tint = Color.White,
-                            contentDescription = "Unmute"
+                            contentDescription = stringResource(R.string.video_unmute_description)
                         )
                     }
                 }
@@ -273,7 +275,7 @@ fun VideoPlayerWithControls(
                         modifier = Modifier.size(32.dp),
                         imageVector = Icons.Default.Replay5,
                         tint = Color.White,
-                        contentDescription = "Back 5s"
+                        contentDescription = stringResource(R.string.video_rewind_description)
                     )
                 }
 
@@ -288,14 +290,14 @@ fun VideoPlayerWithControls(
                             modifier = Modifier.size(50.dp),
                             imageVector = Icons.Default.Pause,
                             tint = Color.White,
-                            contentDescription = "Pause"
+                            contentDescription = stringResource(R.string.video_pause_description)
                         )
                     } else {
                         Icon(
                             modifier = Modifier.size(50.dp),
                             imageVector = Icons.Default.PlayArrow,
                             tint = Color.White,
-                            contentDescription = "Play"
+                            contentDescription = stringResource(R.string.video_play_description)
                         )
                     }
                 }
@@ -310,7 +312,7 @@ fun VideoPlayerWithControls(
                         modifier = Modifier.size(32.dp),
                         imageVector = Icons.Default.Forward5,
                         tint = Color.White,
-                        contentDescription = "Forward 5s"
+                        contentDescription = stringResource(R.string.video_forward_description)
                     )
                 }
             }

@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +40,7 @@ import androidx.core.net.toUri
 import com.dgopadakak.tagsgallery.tags.R
 import com.dgopadakak.tagsgallery.tags.TagsViewModel
 import kotlinx.coroutines.flow.StateFlow
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 @Composable
 fun HeaderRow(
@@ -90,7 +92,7 @@ private fun MainHeaderRow() {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "Tags",
+            text = stringResource(CoreR.string.tags_screen_name),
             fontSize = 22.sp
         )
         Row(
@@ -109,7 +111,7 @@ private fun MainHeaderRow() {
             )
             Text(
                 modifier = Modifier.padding(start = 6.dp),
-                text = "GitHub",
+                text = stringResource(R.string.github_label),
                 fontSize = 14.sp,
                 textDecoration = TextDecoration.Underline
             )
@@ -118,7 +120,7 @@ private fun MainHeaderRow() {
                     .padding(start = 4.dp)
                     .size(14.dp),
                 imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = "View on GitHub"
+                contentDescription = stringResource(R.string.github_description)
             )
         }
     }
@@ -145,7 +147,7 @@ fun TagSelectionModeHeaderRow(
             ) {
                 Icon(
                     imageVector = Icons.Default.Clear,
-                    contentDescription = "Reset selected tags"
+                    contentDescription = stringResource(R.string.reset_selection_description)
                 )
             }
             Text(
@@ -160,7 +162,7 @@ fun TagSelectionModeHeaderRow(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Accept deletion"
+                contentDescription = stringResource(R.string.accept_deletion_description)
             )
         }
     }

@@ -1,0 +1,19 @@
+<resources>
+    <string name="github_description">Открыть на GitHub</string>
+    <string name="reset_selection_description">Сбросить выделение</string>
+    <string name="accept_deletion_description">Подтвердить удаление</string>
+
+    <string name="add_tag_description">Добавить тег</string>
+    <string name="add_tag_dialog_title">Новый тег</string>
+    <string name="edit_tag_dialog_title">Изменить тег</string>
+    <string name="tag_name_label">Имя тега</string>
+    <string name="tag_last_update">Изменён: %1$s</string>
+
+    <string name="delete_tags_dialog_title">Удалить теги?</string>
+    <plurals name="delete_tags_dialog_message">
+        <item quantity="one">Выбранный тег (%1$d) будет удалён</item>
+        <item quantity="few">Выбранные теги (%1$d) будут удалены</item>
+        <item quantity="many">Выбранные теги (%1$d) будут удалены</item>
+        <item quantity="other">Выбранные теги (%1$d) будут удалены</item>
+    </plurals>
+</resources>

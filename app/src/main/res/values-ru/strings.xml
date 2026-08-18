@@ -1,0 +1,12 @@
+<resources>
+    <string name="edit_tags_dialog_title">Изменить теги</string>
+    <string name="share_chooser_title">Поделиться через</string>
+    <string name="fullscreen_back_description">Назад</string>
+
+    <string name="video_mute_description">Выключить звук</string>
+    <string name="video_unmute_description">Включить звук</string>
+    <string name="video_rewind_description">Назад на 5 с</string>
+    <string name="video_pause_description">Пауза</string>
+    <string name="video_play_description">Воспроизвести</string>
+    <string name="video_forward_description">Вперёд на 5 с</string>
+</resources>

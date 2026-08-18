@@ -28,6 +28,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.core.compose.ui.ColorFilterRow
@@ -35,12 +37,14 @@ import com.dgopadakak.tagsgallery.core.compose.ui.ColorPickerRow
 import com.dgopadakak.tagsgallery.core.compose.ui.SortVariantsRow
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
+import com.dgopadakak.tagsgallery.tags.R
 import com.dgopadakak.tagsgallery.tags.TagsViewModel
 import com.dgopadakak.tagsgallery.tags.ui.body.TagsGrid
 import com.dgopadakak.tagsgallery.tags.ui.header.HeaderRow
 import kotlinx.coroutines.android.awaitFrame
 import java.text.DateFormat
 import java.util.Date
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 @Composable
 fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
@@ -91,7 +95,10 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
             FloatingActionButton(
                 onClick = { showEditDialog = true }
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Tag")
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_tag_description)
+                )
             }
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -134,9 +141,10 @@ fun TagsScreen(viewModel: TagsViewModel = hiltViewModel()) {
         }
     }
 
+    val mainHint = stringResource(Hints.TAGS_MAIN_HINT.textRes)
     LaunchedEffect(uiState.needToShowHint) {
         if (uiState.needToShowHint) {
-            snackbarHostState.showSnackbar(Hints.TAGS_MAIN_HINT.text)
+            snackbarHostState.showSnackbar(mainHint)
             viewModel.setHintShown()
         }
     }
@@ -155,7 +163,13 @@ private fun TagDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = if (tag == null) "Add Tag" else "Edit Tag") },
+        title = {
+            Text(
+                text = stringResource(
+                    if (tag == null) R.string.add_tag_dialog_title else R.string.edit_tag_dialog_title
+                )
+            )
+        },
         text = {
             Column {
                 OutlinedTextField(
@@ -163,7 +177,7 @@ private fun TagDialog(
                         .focusRequester(focusRequester),
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Tag Name") }
+                    label = { Text(stringResource(R.string.tag_name_label)) }
                 )
                 ColorPickerRow(
                     modifier = Modifier
@@ -183,7 +197,7 @@ private fun TagDialog(
                     Text(
                         modifier = Modifier
                             .padding(top = 8.dp),
-                        text = "Last update: ${formatter.format(date)}"
+                        text = stringResource(R.string.tag_last_update, formatter.format(date))
                     )
                 }
             }
@@ -192,12 +206,12 @@ private fun TagDialog(
             TextButton(
                 onClick = { if (name.isNotBlank()) onSave(name, color) }
             ) {
-                Text("Save")
+                Text(stringResource(CoreR.string.action_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CoreR.string.action_cancel))
             }
         }
     )
@@ -216,16 +230,24 @@ private fun DeleteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Delete Tags?") },
-        text = { Text("Selected tags ($numOfTags) will be deleted") },
+        title = { Text(stringResource(R.string.delete_tags_dialog_title)) },
+        text = {
+            Text(
+                pluralStringResource(
+                    R.plurals.delete_tags_dialog_message,
+                    numOfTags,
+                    numOfTags
+                )
+            )
+        },
         confirmButton = {
             TextButton(onClick = onAccept) {
-                Text("Delete")
+                Text(stringResource(CoreR.string.action_delete))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CoreR.string.action_cancel))
             }
         }
     )

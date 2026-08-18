@@ -1,0 +1,13 @@
+<resources>
+    <string name="default_tag_dog">Собака</string>
+    <string name="default_tag_forest">Лес</string>
+    <string name="default_tag_sky">Небо</string>
+    <string name="default_tag_sunset">Закат</string>
+
+    <string name="tag_match_mode_all">Все</string>
+    <string name="tag_match_mode_any">Любой</string>
+    <string name="tag_match_mode_exclude">Исключить</string>
+
+    <string name="tags_main_hint">Нажмите на тег, чтобы изменить, удерживайте, чтобы выделить и удалить</string>
+    <string name="gallery_main_hint">Здесь можно искать добавленные медиа по тегам</string>
+</resources>

@@ -30,16 +30,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.add.AddViewModel
+import com.dgopadakak.tagsgallery.add.R
 import com.dgopadakak.tagsgallery.add.ui.preview.MediaPreviewGrid
 import com.dgopadakak.tagsgallery.add.ui.preview.MediaPreviewRow
 import com.dgopadakak.tagsgallery.add.ui.tags.TagsSegment
 import com.dgopadakak.tagsgallery.add.util.hasAnyTagsToSave
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 @Composable
 fun AddScreen(
@@ -134,7 +137,7 @@ fun AddScreen(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth(0.75f),
-                    text = "Click \"Add\" to start",
+                    text = stringResource(R.string.add_empty_state),
                     textAlign = TextAlign.Center
                 )
             }
@@ -163,7 +166,7 @@ private fun ButtonRow(
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(Modifier.width(6.dp))
-            Text("Add")
+            Text(stringResource(R.string.action_add))
         }
 
         Row(
@@ -173,7 +176,7 @@ private fun ButtonRow(
                 onClick = onClickReset,
                 enabled = uiState.selectedUris.isNotEmpty()
             ) {
-                Text("Clear")
+                Text(stringResource(R.string.action_clear))
             }
 
             FilledTonalButton(
@@ -183,7 +186,7 @@ private fun ButtonRow(
                     allIndividualAddedTagIds = uiState.perMediaAddedTagIds.values
                 )
             ) {
-                Text("Save")
+                Text(stringResource(CoreR.string.action_save))
             }
         }
     }

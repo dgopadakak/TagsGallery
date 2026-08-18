@@ -1,0 +1,12 @@
+<resources>
+    <string name="add_empty_state">Click \"Add\" to start</string>
+    <string name="action_add">Add</string>
+    <string name="action_clear">Clear</string>
+
+    <string name="video_description">Video</string>
+    <string name="remove_media_description">Remove</string>
+
+    <string name="individual_tags_hint">Tap on media to edit tags individually</string>
+    <string name="already_saved_media_note">- already saved media, tags will be overwritten</string>
+    <string name="save_and_return_to_common_tags">Save and return to common tags</string>
+</resources>
