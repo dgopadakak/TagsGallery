@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -173,9 +175,11 @@ private fun CompactGalleryContent(
                         stringResource(R.string.tags_row_hint)
                     }
                     Text(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         text = hintText,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -340,7 +344,8 @@ private fun WideGalleryContent(
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = selectionLockedHint
+                            text = selectionLockedHint,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

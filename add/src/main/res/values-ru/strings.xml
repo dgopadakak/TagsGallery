@@ -1,7 +1,7 @@
 <resources>
     <string name="add_empty_state">Нажмите «Добавить», чтобы начать</string>
     <string name="action_add">Добавить</string>
-    <string name="action_clear">Очистить</string>
+    <string name="action_clear">Сброс</string>
 
     <string name="video_description">Видео</string>
     <string name="remove_media_description">Убрать</string>

@@ -13,9 +13,9 @@
     <string name="remove_media_dialog_message">Медиа будет убрано только из этого приложения. Файл останется на устройстве и не будет удалён.</string>
 
     <string name="color_picker_label">Цвет:</string>
-    <string name="color_filter_label">Фильтр тегов:</string>
-    <string name="sort_variants_label">Сортировка тегов:</string>
-    <string name="tag_match_mode_label">Режим поиска:</string>
+    <string name="color_filter_label">Фильтр:</string>
+    <string name="sort_variants_label">Сортировка:</string>
+    <string name="tag_match_mode_label">Режим:</string>
     <string name="tags_selection_empty">Чтобы использовать теги здесь, добавьте их на экране «Теги»</string>
 
     <string name="sort_variant_name">Имя</string>

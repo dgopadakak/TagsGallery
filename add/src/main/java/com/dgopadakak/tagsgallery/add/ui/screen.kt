@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -145,6 +146,8 @@ fun AddScreen(
     }
 }
 
+private val compactButtonPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+
 @Composable
 private fun ButtonRow(
     uiStateFlow: StateFlow<AddViewModel.UiState>,
@@ -162,11 +165,12 @@ private fun ButtonRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         FilledTonalButton(
-            onClick = onAddMediaClick
+            onClick = onAddMediaClick,
+            contentPadding = compactButtonPadding
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.action_add))
+            Text(stringResource(R.string.action_add), maxLines = 1)
         }
 
         Row(
@@ -174,9 +178,10 @@ private fun ButtonRow(
         ) {
             OutlinedButton(
                 onClick = onClickReset,
-                enabled = uiState.selectedUris.isNotEmpty()
+                enabled = uiState.selectedUris.isNotEmpty(),
+                contentPadding = compactButtonPadding
             ) {
-                Text(stringResource(R.string.action_clear))
+                Text(stringResource(R.string.action_clear), maxLines = 1)
             }
 
             FilledTonalButton(
@@ -184,9 +189,10 @@ private fun ButtonRow(
                 enabled = hasAnyTagsToSave(
                     selectedCommonTagIds = uiState.selectedTagIds,
                     allIndividualAddedTagIds = uiState.perMediaAddedTagIds.values
-                )
+                ),
+                contentPadding = compactButtonPadding
             ) {
-                Text(stringResource(CoreR.string.action_save))
+                Text(stringResource(CoreR.string.action_save), maxLines = 1)
             }
         }
     }
