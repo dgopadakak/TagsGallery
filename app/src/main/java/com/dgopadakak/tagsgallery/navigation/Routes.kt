@@ -7,7 +7,7 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.dgopadakak.tagsgallery.R
+import com.dgopadakak.tagsgallery.core.compose.R
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.add.ui.AddScreen
 import com.dgopadakak.tagsgallery.gallery.ui.GalleryScreen

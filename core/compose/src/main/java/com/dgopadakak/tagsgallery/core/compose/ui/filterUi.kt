@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.dgopadakak.tagsgallery.core.compose.R
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
 @Composable
@@ -26,7 +28,7 @@ fun ColorFilterRow(
             Text(
                 modifier = Modifier
                     .padding(end = 4.dp),
-                text = "Filter tags by:"
+                text = stringResource(R.string.color_filter_label)
             )
         }
 

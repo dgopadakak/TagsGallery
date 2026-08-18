@@ -17,7 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.dgopadakak.tagsgallery.core.compose.R
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
 
 @Composable
@@ -34,7 +36,7 @@ fun ColorPickerRow(
             Text(
                 modifier = Modifier
                     .padding(end = 10.dp),
-                text = "Color:"
+                text = stringResource(R.string.color_picker_label)
             )
         }
         items(Tag.Color.entries.toList()) { color->

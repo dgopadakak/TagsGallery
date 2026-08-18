@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,16 +31,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dgopadakak.tagsgallery.add.AddViewModel
+import com.dgopadakak.tagsgallery.add.R
 import com.dgopadakak.tagsgallery.add.ui.preview.MediaPreviewGrid
 import com.dgopadakak.tagsgallery.add.ui.preview.MediaPreviewRow
 import com.dgopadakak.tagsgallery.add.ui.tags.TagsSegment
 import com.dgopadakak.tagsgallery.add.util.hasAnyTagsToSave
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 @Composable
 fun AddScreen(
@@ -134,13 +138,15 @@ fun AddScreen(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth(0.75f),
-                    text = "Click \"Add\" to start",
+                    text = stringResource(R.string.add_empty_state),
                     textAlign = TextAlign.Center
                 )
             }
         }
     }
 }
+
+private val compactButtonPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
 
 @Composable
 private fun ButtonRow(
@@ -159,11 +165,12 @@ private fun ButtonRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         FilledTonalButton(
-            onClick = onAddMediaClick
+            onClick = onAddMediaClick,
+            contentPadding = compactButtonPadding
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(Modifier.width(6.dp))
-            Text("Add")
+            Text(stringResource(R.string.action_add), maxLines = 1)
         }
 
         Row(
@@ -171,9 +178,10 @@ private fun ButtonRow(
         ) {
             OutlinedButton(
                 onClick = onClickReset,
-                enabled = uiState.selectedUris.isNotEmpty()
+                enabled = uiState.selectedUris.isNotEmpty(),
+                contentPadding = compactButtonPadding
             ) {
-                Text("Clear")
+                Text(stringResource(R.string.action_clear), maxLines = 1)
             }
 
             FilledTonalButton(
@@ -181,9 +189,10 @@ private fun ButtonRow(
                 enabled = hasAnyTagsToSave(
                     selectedCommonTagIds = uiState.selectedTagIds,
                     allIndividualAddedTagIds = uiState.perMediaAddedTagIds.values
-                )
+                ),
+                contentPadding = compactButtonPadding
             ) {
-                Text("Save")
+                Text(stringResource(CoreR.string.action_save), maxLines = 1)
             }
         }
     }

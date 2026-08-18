@@ -1,0 +1,8 @@
+<resources>
+    <string name="no_media_found">No media found for the selected tags</string>
+    <string name="clear_selection_description">Clear selection</string>
+
+    <string name="selection_locked_hint">Finish media selection to change filters</string>
+    <string name="tags_row_hint">Tap to remove tag, swipe up to add</string>
+    <string name="expand_sheet_hint">Swipe up here to choose tags for search</string>
+</resources>

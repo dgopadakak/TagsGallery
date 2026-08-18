@@ -32,9 +32,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dgopadakak.tagsgallery.add.R
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
@@ -104,7 +106,7 @@ internal fun MediaPreview(
         if (isVideo && !isActiveForIndividualTagsEdit) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
-                contentDescription = "Video",
+                contentDescription = stringResource(R.string.video_description),
                 tint = Color.White,
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -125,7 +127,7 @@ internal fun MediaPreview(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Удалить",
+                contentDescription = stringResource(R.string.remove_media_description),
                 tint = Color.White,
                 modifier = Modifier.size(14.dp)
             )

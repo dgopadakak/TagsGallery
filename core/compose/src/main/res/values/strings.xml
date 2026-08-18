@@ -1,0 +1,30 @@
+<resources>
+    <!-- Названия экранов: используются и в нижней навигации, и в заголовках самих экранов -->
+    <string name="tags_screen_name">Tags</string>
+    <string name="add_screen_name">Add</string>
+    <string name="gallery_screen_name">Gallery</string>
+
+    <!-- Действия, общие для нескольких модулей -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_share">Share</string>
+
+    <!-- Диалог удаления медиа из приложения: одинаков в галерее и в полноэкранном просмотре -->
+    <string name="remove_media_dialog_title">Remove from app?</string>
+    <string name="remove_media_dialog_message">This will remove the media from this app only. The file will stay on your device and won\'t be deleted.</string>
+
+    <!-- Ряды настройки списка тегов -->
+    <string name="color_picker_label">Color:</string>
+    <string name="color_filter_label">Filter tags by:</string>
+    <string name="sort_variants_label">Sort tags by:</string>
+    <string name="tag_match_mode_label">Search mode:</string>
+    <string name="tags_selection_empty">You need to add tags on Tags screen to use them here</string>
+
+    <string name="sort_variant_name">Name</string>
+    <string name="sort_variant_date">Date</string>
+    <string name="sort_variant_color">Color</string>
+
+    <string name="edit_mode_warning_description">Edit mode warning</string>
+</resources>

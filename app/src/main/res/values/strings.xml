@@ -1,6 +1,14 @@
 <resources>
-    <string name="app_name">TagsGallery</string>
-    <string name="tags_screen_name">Tags</string>
-    <string name="add_screen_name">Add</string>
-    <string name="gallery_screen_name">Gallery</string>
+    <string name="app_name" translatable="false">TagsGallery</string>
+
+    <string name="edit_tags_dialog_title">Edit tags</string>
+    <string name="share_chooser_title">Share via</string>
+    <string name="fullscreen_back_description">Back</string>
+
+    <string name="video_mute_description">Mute</string>
+    <string name="video_unmute_description">Unmute</string>
+    <string name="video_rewind_description">Back 5s</string>
+    <string name="video_pause_description">Pause</string>
+    <string name="video_play_description">Play</string>
+    <string name="video_forward_description">Forward 5s</string>
 </resources>

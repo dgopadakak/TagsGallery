@@ -3,4 +3,11 @@
     <string name="default_tag_forest">Forest</string>
     <string name="default_tag_sky">Sky</string>
     <string name="default_tag_sunset">Sunset</string>
+
+    <string name="tag_match_mode_all">All</string>
+    <string name="tag_match_mode_any">Any</string>
+    <string name="tag_match_mode_exclude">Exclude</string>
+
+    <string name="tags_main_hint">Tap tag to edit, hold to select and delete</string>
+    <string name="gallery_main_hint">Here you can search for added media using tags</string>
 </resources>

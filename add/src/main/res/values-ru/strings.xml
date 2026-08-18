@@ -1,0 +1,12 @@
+<resources>
+    <string name="add_empty_state">Нажмите «Добавить», чтобы начать</string>
+    <string name="action_add">Добавить</string>
+    <string name="action_clear">Сброс</string>
+
+    <string name="video_description">Видео</string>
+    <string name="remove_media_description">Убрать</string>
+
+    <string name="individual_tags_hint">Нажмите на медиа, чтобы задать теги по отдельности</string>
+    <string name="already_saved_media_note">— уже сохранённое медиа, теги будут перезаписаны</string>
+    <string name="save_and_return_to_common_tags">Сохранить и вернуться к общим тегам</string>
+</resources>

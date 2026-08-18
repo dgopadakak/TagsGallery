@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -56,7 +57,9 @@ import coil3.request.crossfade
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
+import com.dgopadakak.tagsgallery.gallery.R
 import com.dgopadakak.tagsgallery.gallery.util.getVideoDuration
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 internal enum class ActionBarLayout {
     VerticalEnd,
@@ -85,7 +88,7 @@ internal fun GalleryMediaGridContent(
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
-            Text("No media found for the selected tags")
+            Text(stringResource(R.string.no_media_found))
         }
         return
     }
@@ -233,7 +236,7 @@ private fun SelectionActionBar(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Clear selection"
+                        contentDescription = stringResource(R.string.clear_selection_description)
                     )
                 }
                 Spacer(modifier = Modifier.width(spacing))
@@ -252,7 +255,7 @@ private fun SelectionActionBar(
                 IconButton(onClick = onShare) {
                     Icon(
                         imageVector = Icons.Default.Share,
-                        contentDescription = "Share"
+                        contentDescription = stringResource(CoreR.string.action_share)
                     )
                 }
                 IconButton(onClick = onDelete) {
@@ -267,7 +270,7 @@ private fun SelectionActionBar(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Clear selection"
+                        contentDescription = stringResource(R.string.clear_selection_description)
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing))
@@ -286,7 +289,7 @@ private fun SelectionActionBar(
                 IconButton(onClick = onShare) {
                     Icon(
                         imageVector = Icons.Default.Share,
-                        contentDescription = "Share"
+                        contentDescription = stringResource(CoreR.string.action_share)
                     )
                 }
                 IconButton(onClick = onDelete) {

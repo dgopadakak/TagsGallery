@@ -28,8 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dgopadakak.tagsgallery.add.R
 import com.dgopadakak.tagsgallery.core.compose.enums.SortVariant
 import com.dgopadakak.tagsgallery.core.compose.ui.EditModeWarningIcon
 import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
@@ -82,7 +84,7 @@ internal fun TagsSegment(
                 Column {
                     Text(
                         modifier = Modifier.padding(start = 8.dp),
-                        text = "Tap on media to edit tags individually",
+                        text = stringResource(R.string.individual_tags_hint),
                         fontSize = 12.sp
                     )
                     if (uiState.alreadySavedMedia.isNotEmpty()) {
@@ -93,7 +95,7 @@ internal fun TagsSegment(
                             EditModeWarningIcon(iconSize = 12.dp)
                             Text(
                                 modifier = Modifier.padding(start = 4.dp),
-                                text = "- already saved media, tags will be overwritten",
+                                text = stringResource(R.string.already_saved_media_note),
                                 fontSize = 12.sp
                             )
                         }
@@ -140,7 +142,7 @@ private fun IndividualTagsSelector(
             Text(
                 modifier = Modifier
                     .padding(start = 8.dp),
-                text = "Save and return to common tags",
+                text = stringResource(R.string.save_and_return_to_common_tags),
                 color = MaterialTheme.colorScheme.primary,
                 fontFamily = MaterialTheme.typography.labelLarge.fontFamily,
                 fontWeight = MaterialTheme.typography.labelLarge.fontWeight,

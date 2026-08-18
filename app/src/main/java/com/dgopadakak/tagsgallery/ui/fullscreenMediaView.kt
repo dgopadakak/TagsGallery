@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
@@ -55,6 +56,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.video.videoFrameMillis
+import com.dgopadakak.tagsgallery.R
 import com.dgopadakak.tagsgallery.core.compose.models.FullscreenContentModel
 import com.dgopadakak.tagsgallery.core.compose.ui.EditTagsIcon
 import com.dgopadakak.tagsgallery.core.compose.ui.RemoveAllTagsIcon
@@ -66,6 +68,7 @@ import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.dgopadakak.tagsgallery.core.compose.R as CoreR
 
 @Composable
 fun FullScreenMediaView(
@@ -99,6 +102,7 @@ fun FullScreenMediaView(
     val backgroundAnimClosing = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val shareChooserTitle = stringResource(R.string.share_chooser_title)
     var showDeleteMediaDialog by remember { mutableStateOf(false) }
 
     val backgroundAlphaByPosition = (1f - (abs(offsetY.value) / 1000f).coerceIn(0f, 0.7f))
@@ -290,7 +294,7 @@ fun FullScreenMediaView(
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
 
-                    val chooser = Intent.createChooser(shareIntent, "Поделиться через")
+                    val chooser = Intent.createChooser(shareIntent, shareChooserTitle)
                     context.startActivity(chooser)
                 }
             },
@@ -344,7 +348,7 @@ private fun TopQuickActions(
             Icon(
                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
                 tint = Color.White,
-                contentDescription = "Back"
+                contentDescription = stringResource(R.string.fullscreen_back_description)
             )
         }
 
@@ -354,7 +358,7 @@ private fun TopQuickActions(
             Icon(
                 imageVector = Icons.Default.Share,
                 tint = Color.White,
-                contentDescription = "Share"
+                contentDescription = stringResource(CoreR.string.action_share)
             )
         }
 
@@ -375,21 +379,16 @@ internal fun DeleteMediaConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Remove from app?") },
-        text = {
-            Text(
-                "This will remove the media from this app only. " +
-                    "The file will stay on your device and won't be deleted."
-            )
-        },
+        title = { Text(stringResource(CoreR.string.remove_media_dialog_title)) },
+        text = { Text(stringResource(CoreR.string.remove_media_dialog_message)) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Remove")
+                Text(stringResource(CoreR.string.action_remove))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(CoreR.string.action_cancel))
             }
         }
     )

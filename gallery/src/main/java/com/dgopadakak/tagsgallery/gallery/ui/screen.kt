@@ -20,6 +20,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -37,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -45,6 +49,7 @@ import com.dgopadakak.tagsgallery.core.compose.ui.FullTagsSelectionView
 import com.dgopadakak.tagsgallery.core.compose.ui.TagMatchModeRow
 import com.dgopadakak.tagsgallery.core.local_storage.enums.Hints
 import com.dgopadakak.tagsgallery.gallery.GalleryViewModel
+import com.dgopadakak.tagsgallery.gallery.R
 import com.dgopadakak.tagsgallery.gallery.ui.elements.ActionBarLayout
 import com.dgopadakak.tagsgallery.gallery.ui.elements.DeleteMediaConfirmDialog
 import com.dgopadakak.tagsgallery.gallery.ui.elements.GalleryMediaGridContent
@@ -61,7 +66,7 @@ fun GalleryScreen(
     val isMediaSelectionMode = uiState.selectedMediaUris.isNotEmpty()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    val selectionLockedHint = "Finish media selection to change filters"
+    val selectionLockedHint = stringResource(R.string.selection_locked_hint)
     val sheetPeekHeight = 100.dp
     val halfScreenHeight = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.height.toDp() / 2
@@ -73,6 +78,7 @@ fun GalleryScreen(
             uiState = uiState,
             isMediaSelectionMode = isMediaSelectionMode,
             selectionLockedHint = selectionLockedHint,
+            snackbarHostState = snackbarHostState,
             sheetPeekHeight = sheetPeekHeight,
             halfScreenHeight = halfScreenHeight,
             onFullscreenContentSelected = onFullscreenContentSelected,
@@ -89,6 +95,7 @@ fun GalleryScreen(
             uiState = uiState,
             isMediaSelectionMode = isMediaSelectionMode,
             selectionLockedHint = selectionLockedHint,
+            snackbarHostState = snackbarHostState,
             onFullscreenContentSelected = onFullscreenContentSelected,
             onToggleTag = viewModel::onTagToggle,
             onSetSortBy = viewModel::setSortBy,
@@ -109,9 +116,10 @@ fun GalleryScreen(
         )
     }
 
+    val mainHint = stringResource(Hints.GALLERY_MAIN_HINT.textRes)
     LaunchedEffect(key1 = uiState.needToShowHint) {
         if (uiState.needToShowHint) {
-            snackbarHostState.showSnackbar(Hints.GALLERY_MAIN_HINT.text)
+            snackbarHostState.showSnackbar(mainHint)
             viewModel.setHintShown()
         }
     }
@@ -123,6 +131,7 @@ private fun CompactGalleryContent(
     uiState: GalleryViewModel.UiState,
     isMediaSelectionMode: Boolean,
     selectionLockedHint: String,
+    snackbarHostState: SnackbarHostState,
     sheetPeekHeight: androidx.compose.ui.unit.Dp,
     halfScreenHeight: androidx.compose.ui.unit.Dp,
     onFullscreenContentSelected: (FullscreenContentModel) -> Unit,
@@ -134,7 +143,7 @@ private fun CompactGalleryContent(
     onClearSelection: () -> Unit,
     onDeleteRequested: () -> Unit
 ) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState(snackbarHostState = snackbarHostState)
 
     LaunchedEffect(isMediaSelectionMode) {
         if (isMediaSelectionMode) {
@@ -167,12 +176,14 @@ private fun CompactGalleryContent(
                     val hintText = if (isMediaSelectionMode) {
                         selectionLockedHint
                     } else {
-                        "Tap to remove tag, swipe up to add"
+                        stringResource(R.string.tags_row_hint)
                     }
                     Text(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         text = hintText,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -230,7 +241,7 @@ private fun CompactGalleryContent(
                             emptyStateText = if (isMediaSelectionMode) {
                                 selectionLockedHint
                             } else {
-                                "Swipe up here to choose tags for search"
+                                stringResource(R.string.expand_sheet_hint)
                             }
                         ) {
                             if (!isMediaSelectionMode) {
@@ -260,6 +271,7 @@ private fun WideGalleryContent(
     uiState: GalleryViewModel.UiState,
     isMediaSelectionMode: Boolean,
     selectionLockedHint: String,
+    snackbarHostState: SnackbarHostState,
     onFullscreenContentSelected: (FullscreenContentModel) -> Unit,
     onToggleTag: (Long) -> Unit,
     onSetSortBy: (com.dgopadakak.tagsgallery.core.compose.enums.SortVariant) -> Unit,
@@ -337,7 +349,8 @@ private fun WideGalleryContent(
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = selectionLockedHint
+                            text = selectionLockedHint,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -356,5 +369,11 @@ private fun WideGalleryContent(
                 actionBarLayout = ActionBarLayout.HorizontalBottom
             )
         }
+
+        // В широкой раскладке нет Scaffold, поэтому хост снекбара ставим сами
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

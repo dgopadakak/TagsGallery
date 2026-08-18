@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.dgopadakak.tagsgallery.core.compose.R
 import com.dgopadakak.tagsgallery.core.local_storage.enums.TagMatchMode
 
 @Composable
@@ -25,7 +27,7 @@ fun TagMatchModeRow(
     ) {
         item {
             Text(
-                text = "Search mode:"
+                text = stringResource(R.string.tag_match_mode_label)
             )
         }
 
@@ -35,7 +37,7 @@ fun TagMatchModeRow(
                     .padding(start = 20.dp),
                 selected = matchMode == mode,
                 onClick = { onMatchModeChanged(mode) },
-                label = { Text("$mode") }
+                label = { Text(stringResource(mode.labelRes)) }
             )
         }
     }

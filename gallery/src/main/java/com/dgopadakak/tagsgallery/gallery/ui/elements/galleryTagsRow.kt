@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dgopadakak.tagsgallery.core.local_storage.models.Tag
@@ -72,7 +73,11 @@ internal fun SmallTagsRow(
                 .height(80.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(emptyStateText)
+            Text(
+                modifier = Modifier.fillMaxWidth(0.85f),
+                text = emptyStateText,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

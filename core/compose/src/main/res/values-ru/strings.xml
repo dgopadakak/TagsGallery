@@ -1,0 +1,26 @@
+<resources>
+    <string name="tags_screen_name">Теги</string>
+    <string name="add_screen_name">Добавить</string>
+    <string name="gallery_screen_name">Галерея</string>
+
+    <string name="action_save">Сохранить</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_remove">Убрать</string>
+    <string name="action_share">Поделиться</string>
+
+    <string name="remove_media_dialog_title">Убрать из приложения?</string>
+    <string name="remove_media_dialog_message">Медиа будет убрано только из этого приложения. Файл останется на устройстве и не будет удалён.</string>
+
+    <string name="color_picker_label">Цвет:</string>
+    <string name="color_filter_label">Фильтр:</string>
+    <string name="sort_variants_label">Сортировка:</string>
+    <string name="tag_match_mode_label">Режим:</string>
+    <string name="tags_selection_empty">Чтобы использовать теги здесь, добавьте их на экране «Теги»</string>
+
+    <string name="sort_variant_name">Имя</string>
+    <string name="sort_variant_date">Дата</string>
+    <string name="sort_variant_color">Цвет</string>
+
+    <string name="edit_mode_warning_description">Предупреждение: режим редактирования</string>
+</resources>
