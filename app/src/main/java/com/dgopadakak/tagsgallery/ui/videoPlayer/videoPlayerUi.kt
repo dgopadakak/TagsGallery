@@ -248,13 +248,13 @@ fun VideoPlayerWithControls(
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.VolumeOff,
                             tint = Color.White,
-                            contentDescription = stringResource(R.string.video_mute_description)
+                            contentDescription = stringResource(R.string.video_unmute_description)
                         )
                     } else {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.VolumeUp,
                             tint = Color.White,
-                            contentDescription = stringResource(R.string.video_unmute_description)
+                            contentDescription = stringResource(R.string.video_mute_description)
                         )
                     }
                 }
