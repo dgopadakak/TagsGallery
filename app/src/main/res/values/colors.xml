@@ -7,4 +7,13 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!--
+      Background of the starting window, so the splash does not flash a colour the
+      app never draws. Must track MaterialTheme.colorScheme.surface, which mainUi.kt
+      sets as the Scaffold container. These two are the M3 baseline surfaces, used
+      when TagsGalleryTheme falls back off dynamic colour; values-v34 overrides them
+      with the system palette the dynamic scheme actually reads.
+    -->
+    <color name="splash_background">#FFFEF7FF</color>
 </resources>
