@@ -53,13 +53,11 @@ TagsGallery не запрашивает никаких разрешений Andr
 
 ### Дети
 
-Приложение подходит пользователям любого возраста, включая детей. В нём нет рекламы, встроенных покупок, общения между пользователями и какого-либо собственного контента: оно показывает только те медиафайлы, которые уже есть на устройстве и которые пользователь выбрал сам. Наружу из приложения ведут ровно два действия, и оба требуют явного нажатия: кнопка «Поделиться» и ссылка на страницу проекта на GitHub, открывающаяся в браузере.
-
-Приложение не собирает персональные данные ни о ком, включая детей, и никому их не передаёт. Поэтому требования законов о защите данных детей — в том числе COPPA и GDPR-K — соблюдаются самим устройством приложения: собирать родительское согласие попросту не на что.
+Приложение не предназначено для детей и не адресовано им. Разработчик не собирает персональные данные ни о ком, включая детей, и никому их не передаёт: в приложении нет рекламы, встроенных покупок, общения между пользователями и какого-либо собственного контента — оно показывает только те медиафайлы, которые уже есть на устройстве и которые пользователь выбрал сам.
 
 ### Ваши права
 
-Поскольку приложение не собирает и не передаёт данные, у разработчика нет ваших данных, которые можно было бы предоставить, исправить или удалить по запросу. Все данные полностью находятся под вашим контролем на вашем устройстве, что покрывает права, предусмотренные GDPR, CCPA и аналогичными законами.
+Поскольку приложение не собирает и не передаёт данные, у разработчика нет ваших данных, которые можно было бы предоставить, исправить или удалить по запросу. Все данные полностью находятся под вашим контролем на вашем устройстве.
 
 ### Безопасность
 
@@ -124,13 +122,11 @@ Data is stored on your device until you delete it. You can delete it at any time
 
 ### Children
 
-The app is suitable for users of any age, children included. It has no advertising, no in-app purchases, no communication between users, and no content of its own: it displays only the media files already present on the device that the user selected. Exactly two actions lead out of the app, and both require an explicit tap: the share button, and the link to the project's GitHub page, which opens in a browser.
-
-The app collects no personal data about anyone, children included, and shares none with anyone. Laws protecting children's data — COPPA and GDPR-K among them — are therefore satisfied by the app's very design: there is simply nothing for a parent to consent to.
+The app is not directed to children and is not intended for them. The developer collects no personal data about anyone, children included, and shares none with anyone: the app has no advertising, no in-app purchases, no communication between users, and no content of its own — it displays only the media files already present on the device that the user selected.
 
 ### Your rights
 
-Because the app neither collects nor transmits data, the developer holds no data of yours that could be provided, corrected, or deleted on request. All data remains entirely under your control on your device, which satisfies the rights granted by the GDPR, the CCPA, and comparable laws.
+Because the app neither collects nor transmits data, the developer holds no data of yours that could be provided, corrected, or deleted on request. All data remains entirely under your control on your device.
 
 ### Security
 
