@@ -11,30 +11,38 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <path
-        android:pathData="M71,53.9 L71,36 Q71,32 67,32 L33,32 Q29,32 29,36 L29,60 Q29,64 33,64 L53.9,64"
-        android:strokeWidth="3"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-
-    <group>
-        <clip-path android:pathData="M29,36 Q29,32 33,32 L71,32 L71,55.4 L55.4,55.4 L55.4,64 L33,64 Q29,64 29,60 Z" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M29,64 L43,42 L53,55 L60,46 L71,64 Z" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M58.2,40 a3.8,3.8 0 1,0 7.6,0 a3.8,3.8 0 1,0 -7.6,0 Z" />
-    </group>
-
+    <!-- Same nudge as the foreground layer, so the themed icon sits exactly where the full-colour one does. -->
     <group
-        android:pivotX="66"
-        android:pivotY="66"
-        android:rotation="225">
+        android:translateX="1.04"
+        android:translateY="0.54">
+
         <path
-            android:fillColor="#FFFFFF"
-            android:fillType="evenOdd"
-            android:pathData="M56.4,57 L69.2,57 L78,66 L69.2,75 L56.4,75 Q54,75 54,72.6 L54,59.4 Q54,57 56.4,57 Z M68.2,66 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0 Z" />
+            android:pathData="M71,53.9 L71,36 Q71,32 67,32 L33,32 Q29,32 29,36 L29,60 Q29,64 33,64 L53.9,64"
+            android:strokeWidth="3"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <group>
+            <clip-path android:pathData="M29,36 Q29,32 33,32 L71,32 L71,55.4 L55.4,55.4 L55.4,64 L33,64 Q29,64 29,60 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M29,64 L43,42 L53,55 L60,46 L71,64 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M58.2,40 a3.8,3.8 0 1,0 7.6,0 a3.8,3.8 0 1,0 -7.6,0 Z" />
+        </group>
+
+        <group
+            android:pivotX="66"
+            android:pivotY="66"
+            android:rotation="225">
+            <path
+                android:fillColor="#FFFFFF"
+                android:fillType="evenOdd"
+                android:pathData="M56.4,57 L69.2,57 L78,66 L69.2,75 L56.4,75 Q54,75 54,72.6 L54,59.4 Q54,57 56.4,57 Z M68.2,66 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0 Z" />
+        </group>
+
     </group>
+
 </vector>

@@ -5,46 +5,56 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Photo stack: three cards fanned out around (50, 48). -->
+    <!-- Whole composition nudged onto the optical centre of the 108dp canvas. The pivots
+         below stay in the untranslated space, so the fan and the tag keep their angles. -->
     <group
-        android:pivotX="50"
-        android:pivotY="48"
-        android:rotation="-16">
-        <path
-            android:fillColor="#CFC4EC"
-            android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
-    </group>
-    <group
-        android:pivotX="50"
-        android:pivotY="48"
-        android:rotation="-8">
-        <path
-            android:fillColor="#E5DEF7"
-            android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
-    </group>
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
+        android:translateX="1.04"
+        android:translateY="0.54">
 
-    <!-- Landscape printed on the front card. -->
-    <group>
-        <clip-path android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
+        <!-- Photo stack: three cards fanned out around (50, 48). The back card is darker
+             than the middle one so the stack still reads as separate sheets at launcher size. -->
+        <group
+            android:pivotX="50"
+            android:pivotY="48"
+            android:rotation="-20">
+            <path
+                android:fillColor="#A999D4"
+                android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
+        </group>
+        <group
+            android:pivotX="50"
+            android:pivotY="48"
+            android:rotation="-10">
+            <path
+                android:fillColor="#E5DEF7"
+                android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
+        </group>
         <path
-            android:fillColor="#6650A4"
-            android:pathData="M29,64 L43,42 L53,55 L60,46 L71,64 Z" />
-        <path
-            android:fillColor="#FFB020"
-            android:pathData="M58.2,40 a3.8,3.8 0 1,0 7.6,0 a3.8,3.8 0 1,0 -7.6,0 Z" />
+            android:fillColor="#FFFFFF"
+            android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
+
+        <!-- Landscape printed on the front card. -->
+        <group>
+            <clip-path android:pathData="M33,32 L67,32 Q71,32 71,36 L71,60 Q71,64 67,64 L33,64 Q29,64 29,60 L29,36 Q29,32 33,32 Z" />
+            <path
+                android:fillColor="#6650A4"
+                android:pathData="M29,64 L43,42 L53,55 L60,46 L71,64 Z" />
+            <path
+                android:fillColor="#FFB020"
+                android:pathData="M58.2,40 a3.8,3.8 0 1,0 7.6,0 a3.8,3.8 0 1,0 -7.6,0 Z" />
+        </group>
+
+        <!-- Tag hooked onto the bottom-right corner of the stack, point facing the photo. -->
+        <group
+            android:pivotX="66"
+            android:pivotY="66"
+            android:rotation="225">
+            <path
+                android:fillColor="#FFB020"
+                android:fillType="evenOdd"
+                android:pathData="M56.4,57 L69.2,57 L78,66 L69.2,75 L56.4,75 Q54,75 54,72.6 L54,59.4 Q54,57 56.4,57 Z M68.2,66 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0 Z" />
+        </group>
+
     </group>
 
-    <!-- Tag hooked onto the bottom-right corner of the stack, point facing the photo. -->
-    <group
-        android:pivotX="66"
-        android:pivotY="66"
-        android:rotation="225">
-        <path
-            android:fillColor="#FFB020"
-            android:fillType="evenOdd"
-            android:pathData="M56.4,57 L69.2,57 L78,66 L69.2,75 L56.4,75 Q54,75 54,72.6 L54,59.4 Q54,57 56.4,57 Z M68.2,66 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0 Z" />
-    </group>
 </vector>
