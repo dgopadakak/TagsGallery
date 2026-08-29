@@ -1,0 +1,18 @@
+# окружение и служебные файлы
+venv/
+__pycache__/
+*.pyc
+_seed.sql
+
+# промежуточные картинки: превью, контактные листы, перебор вариантов.
+# Готовые ассеты лежат уровнем выше, в google-play-res/
+_*.png
+*_contact.png
+*_sheet.png
+icon_v*.png
+green_*.png
+card_[ABC].png
+probe_*.png
+step_*.png
+demo_*.png
+photos_contact*.png
