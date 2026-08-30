@@ -14,3 +14,8 @@
 .cxx
 local.properties
 /.idea/
+
+# Signing (никогда не коммитить)
+/keystore.properties
+*.jks
+*.keystore
